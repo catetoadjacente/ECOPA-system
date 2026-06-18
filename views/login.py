@@ -6,7 +6,7 @@ from tkinter import messagebox
 
 ctk.set_appearance_mode("dark")
 
-BG_IMAGE = r"C:\Users\62543886\Desktop\ECOPA.png"
+BG_IMAGE = r"fundo_login.png"
 IMG_W, IMG_H = 1043, 673
 
 
@@ -18,7 +18,7 @@ class App(ctk.CTk):
 
         self._pil_image = None
         self.bg_photo = None
-        img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), BG_IMAGE)
+        img_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", BG_IMAGE)
         if os.path.exists(img_path):
             self._pil_image = Image.open(img_path)
 
