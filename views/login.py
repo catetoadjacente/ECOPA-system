@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from PIL import Image, ImageTk
 import os
-from database import verify_login, get_user_info
+from database.database import verify_login, get_user_info
 from tkinter import messagebox
 
 ctk.set_appearance_mode("dark")
