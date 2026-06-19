@@ -73,3 +73,24 @@ def get_user_info(user):
     finally:
         if connection.is_connected():
             connection.close()
+
+def get_all_gerentes():
+    """Retorna lista de todos os gerentes cadastrados"""
+    connection = get_connection()
+    if connection is None:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        query = "SELECT idcpf, nome, Celular, email, setor FROM gerente ORDER BY nome"
+        cursor.execute(query)
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+    except Error as e:
+        print(f"Erro ao buscar gerentes: {e}")
+        return []
+    finally:
+        if connection.is_connected():
+            connection.close()
+            
