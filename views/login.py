@@ -58,12 +58,12 @@ class App(ctk.CTk):
             border_width=0,
             bg_color="#DDEEDD",
             hover_color="#205b59",
-            height=40,
+            height=25,
             text_color="black",
             font=ctk.CTkFont(size=14, weight="bold"),
             command=self.handle_login
         )
-        self.btn_login.place(relx=0.75, rely=0.8, anchor="center", relwidth=0.1)
+        self.btn_login.place(relx=0.75, rely=0.65, anchor="center", relwidth=0.1)
 
     def handle_login(self):
         """Verifica as credenciais de login"""
