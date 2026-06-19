@@ -50,6 +50,36 @@ def verify_login(user, password):
             connection.close()
 
 
+def register_user(nome, cpf, email, senha, telefone=""):
+    """Cadastra um novo gerente no banco de dados"""
+    connection = get_connection()
+    if connection is None:
+        return False, "Erro de conexão com o banco de dados!"
+
+    try:
+        cursor = connection.cursor()
+
+        query_check = "SELECT id FROM gerente WHERE cpf = %s OR email = %s LIMIT 1"
+        cursor.execute(query_check, (cpf, email))
+        if cursor.fetchone():
+            cursor.close()
+            return False, "CPF ou Email já cadastrados!"
+
+        query_insert = """INSERT INTO gerente (nome, cpf, email, senha, telefone)
+                          VALUES (%s, %s, %s, %s, %s)"""
+        cursor.execute(query_insert, (nome, cpf, email, senha, telefone))
+        connection.commit()
+        cursor.close()
+        return True, "Cadastro realizado com sucesso!"
+
+    except Error as e:
+        print(f"Erro ao cadastrar usuário: {e}")
+        return False, f"Erro ao cadastrar: {e}"
+    finally:
+        if connection.is_connected():
+            connection.close()
+
+
 def get_user_info(user):
     """Obtém informações do usuário logado"""
     connection = get_connection()
