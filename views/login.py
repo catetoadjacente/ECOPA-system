@@ -48,6 +48,7 @@ class App(ctk.CTk):
             bg_color="#ffffff",
             height=32,
             font=ctk.CTkFont(size=14),
+            show="*",
         )
         self.entry_pass.place(relx=0.75, rely=0.545, anchor="center", relwidth=0.28)
 
@@ -76,13 +77,22 @@ class App(ctk.CTk):
         
         if verify_login(user, password):
             user_info = get_user_info(user)
-            messagebox.showinfo("Sucesso", f"Bem-vindo, {user_info['nome']}!")
-            self.entry_user.delete(0, ctk.END)
-            self.entry_pass.delete(0, ctk.END)
-            # Aqui você pode abrir a próxima tela do aplicativo
+            self.withdraw()
+            from views.dashboard import MainView
+            dashboard = ctk.CTk()
+            dashboard.title("ECOPA System - Dashboard")
+            dashboard.geometry("1200x700")
+            MainView(dashboard).pack(fill="both", expand=True)
+            dashboard.protocol("WM_DELETE_WINDOW", self._on_dashboard_close)
+            self._dashboard = dashboard
+            dashboard.mainloop()
         else:
             messagebox.showerror("Erro", "Usuário ou senha inválidos!")
             self.entry_pass.delete(0, ctk.END)
+
+    def _on_dashboard_close(self):
+        self._dashboard.destroy()
+        self.deiconify()
 
     def _on_resize(self, event):
         if event.widget is self:
