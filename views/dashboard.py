@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from views.cadastros_hub import CadastrosHub
 
 
 class MainView(ctk.CTkFrame):
@@ -36,6 +37,12 @@ class MainView(ctk.CTkFrame):
         )
         self.btn_destinacoes.pack(pady=5, padx=20, fill="x")
 
+        self.btn_cadastros = ctk.CTkButton(
+            self.sidebar, text="Cadastros",
+            command=self.abrir_cadastros
+        )
+        self.btn_cadastros.pack(pady=5, padx=20, fill="x")
+
         # (opcional) botão sair no final
         self.btn_sair = ctk.CTkButton(
             self.sidebar, text="Sair", fg_color="#c0392b",
@@ -62,8 +69,23 @@ class MainView(ctk.CTkFrame):
     def abrir_destinacoes(self):
         self.label_bem_vindo.configure(text="Destinações")
 
+    def abrir_cadastros(self):
+        for widget in self.content.winfo_children():
+            widget.destroy()
+        hub = CadastrosHub(self.content, on_voltar=self._voltar_ao_conteudo)
+        hub.pack(fill="both", expand=True)
+
+    def _voltar_ao_conteudo(self):
+        for widget in self.content.winfo_children():
+            widget.destroy()
+        self.label_bem_vindo = ctk.CTkLabel(
+            self.content, text="Bem-vindo!",
+            font=ctk.CTkFont(size=24)
+        )
+        self.label_bem_vindo.pack(pady=50)
+
     def sair(self):
-        self.master.destroy()
+        self.winfo_toplevel().destroy()
 
 
 # Teste rápido (executar direto)
