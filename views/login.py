@@ -49,6 +49,7 @@ class App(ctk.CTk):
             bg_color="#ffffff",
             height=32,
             font=ctk.CTkFont(size=14),
+            
         )
         self.entry_pass.place(relx=0.75, rely=0.545, anchor="center", relwidth=0.28)
 
@@ -86,6 +87,10 @@ class App(ctk.CTk):
         else:
             messagebox.showerror("Erro", "Usuário ou senha inválidos!")
             self.entry_pass.delete(0, ctk.END)
+
+    def _on_dashboard_close(self):
+        self._dashboard.destroy()
+        self.deiconify()
 
     def _on_resize(self, event):
         if event.widget is self:
