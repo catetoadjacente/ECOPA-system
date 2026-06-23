@@ -33,8 +33,8 @@ def verify_login(user, password):
     try:
         cursor = connection.cursor()
         
-        # Agora usa `nome` como usuário e `cpf` como senha
-        query = "SELECT cpf FROM gerente WHERE nome = %s AND cpf = %s LIMIT 1"
+        # Agora usa `nome` como usuário e `senha` como senha
+        query = "SELECT senha FROM gerente WHERE nome = %s AND senha = %s LIMIT 1"
         cursor.execute(query, (user, password))
         
         result = cursor.fetchone()
