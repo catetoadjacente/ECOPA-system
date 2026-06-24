@@ -3,12 +3,14 @@ from tkinter import messagebox
 from controllers.gerente_controller import GerenteController
 
 
-class CadastroGerente(ctk.CTkFrame):
-    def __init__(self, master, content, on_voltar):
+class EdicaoGerente(ctk.CTkFrame):
+    def __init__(self, master, content, cpf, on_voltar):
         super().__init__(master)
         self.content = content
+        self.cpf = cpf
         self.on_voltar = on_voltar
 
+        self.gerente = GerenteController.obter_info_por_cpf(cpf)
         self.montar_formulario()
 
     def montar_formulario(self):
@@ -19,12 +21,12 @@ class CadastroGerente(ctk.CTkFrame):
         frame.place(relx=0.5, rely=0.5, anchor="center")
 
         label = ctk.CTkLabel(
-            frame, text="Novo Gerente",
+            frame, text="Editar Gerente",
             font=ctk.CTkFont(size=18, weight="bold")
         )
         label.pack(pady=(20, 15))
 
-        campos = ["CPF", "Nome", "Celular", "Email", "Senha", "Setor"]
+        campos = ["Nome", "Celular", "Email", "Setor"]
         self.entries = {}
 
         for campo in campos:
@@ -32,6 +34,7 @@ class CadastroGerente(ctk.CTkFrame):
             lbl.pack(anchor="w", padx=20)
             entry = ctk.CTkEntry(frame, width=350)
             entry.pack(padx=20, pady=(0, 10))
+            entry.insert(0, self.gerente[campo.lower()] or "")
             self.entries[campo] = entry
 
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
@@ -57,8 +60,8 @@ class CadastroGerente(ctk.CTkFrame):
             messagebox.showerror("Erro", "Preencha todos os campos!")
             return
 
-        if GerenteController.cadastrar(dados):
-            messagebox.showinfo("Sucesso", "Gerente cadastrado!")
+        if GerenteController.atualizar(self.cpf, dados):
+            messagebox.showinfo("Sucesso", "Gerente atualizado!")
             self.on_voltar()
         else:
-            messagebox.showerror("Erro", "Falha ao cadastrar!")
+            messagebox.showerror("Erro", "Falha ao atualizar!")
