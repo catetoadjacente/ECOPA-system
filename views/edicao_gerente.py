@@ -26,15 +26,27 @@ class EdicaoGerente(ctk.CTkFrame):
         )
         label.pack(pady=(20, 15))
 
-        campos = ["Nome", "Celular", "Email", "Setor"]
+        lbl_nome = ctk.CTkLabel(frame, text="Nome:")
+        lbl_nome.pack(anchor="w", padx=20)
+        lbl_nome_valor = ctk.CTkLabel(
+            frame, text=self.gerente["nome"] or "",
+            font=ctk.CTkFont(size=14), width=350, anchor="w"
+        )
+        lbl_nome_valor.pack(padx=20, pady=(0, 10))
+
+        campos_editaveis = {
+            "Celular": "Celular",
+            "Email": "email",
+            "Setor": "setor",
+        }
         self.entries = {}
 
-        for campo in campos:
+        for campo, db_key in campos_editaveis.items():
             lbl = ctk.CTkLabel(frame, text=campo + ":")
             lbl.pack(anchor="w", padx=20)
             entry = ctk.CTkEntry(frame, width=350)
             entry.pack(padx=20, pady=(0, 10))
-            entry.insert(0, self.gerente[campo.lower()] or "")
+            entry.insert(0, self.gerente[db_key] or "")
             self.entries[campo] = entry
 
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
@@ -60,7 +72,13 @@ class EdicaoGerente(ctk.CTkFrame):
             messagebox.showerror("Erro", "Preencha todos os campos!")
             return
 
-        if GerenteController.atualizar(self.cpf, dados):
+        dados_db = {
+            "Celular": dados["Celular"],
+            "Email": dados["Email"],
+            "Setor": dados["Setor"],
+        }
+
+        if GerenteController.atualizar(self.cpf, dados_db):
             messagebox.showinfo("Sucesso", "Gerente atualizado!")
             self.on_voltar()
         else:
