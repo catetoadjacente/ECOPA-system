@@ -14,8 +14,8 @@ class CadastrosHub(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
 
-        frame = ctk.CTkFrame(self.content, width=600, height=400)
-        frame.place(relx=0.5, rely=0.5, anchor="center")
+        frame = ctk.CTkFrame(self.content)
+        frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.8, relheight=0.2)
 
         label = ctk.CTkLabel(
             frame, text="Gerente",
@@ -29,6 +29,12 @@ class CadastrosHub(ctk.CTkFrame):
             command=self.novo_gerente
         )
         btn_novo.pack(side="right", padx=20, pady=20)
+        btn_acessar = ctk.CTkButton(
+            frame, text="Acessar",
+            width=100,
+            command=self.acessar_gerentes
+        )
+        btn_acessar.pack(side="right", padx=20, pady=20)
         
         frame2 = ctk.CTkFrame(self.content, width=600, height=400)
         frame2.place(relx=0.5, rely=0.7, anchor="center")
@@ -61,12 +67,11 @@ class CadastrosHub(ctk.CTkFrame):
     def acessar_gerentes(self):
         from views.lista_gerentes import ListaGerentes
         ListaGerentes(self, self.content, on_voltar=self.abrir_cadastros)
-        
+    
     def novo_cliente(self):
-        CadastroClienteView(self, self.content, on_voltar=self.abrir_cadastros)
-
+        CadastroClienteView()
+    
     def listar_clientes(self):
         for widget in self.content.winfo_children():
             widget.destroy()
         ListarClientesView(self.content).pack(fill="both", expand=True)
- 
