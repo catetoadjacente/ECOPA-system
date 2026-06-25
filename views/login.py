@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from PIL import Image, ImageTk
 import os
-from database.database import verify_login, get_user_info
+from controllers.gerente_controller import GerenteController
 from views.dashboard import MainView
 from tkinter import messagebox
 
@@ -76,8 +76,8 @@ class App(ctk.CTk):
             messagebox.showerror("Erro", "Por favor, preencha usuário e senha!")
             return
         
-        if verify_login(user, password):
-            user_info = get_user_info(user)
+        if GerenteController.login(user, password):
+            user_info = GerenteController.obter_info(user)
             self.withdraw()
             dashboard = MainView(self)
             dashboard.pack(fill="both", expand=True)
