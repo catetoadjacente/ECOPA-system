@@ -47,23 +47,23 @@ class ListaGerentes(ctk.CTkFrame):
 
         gerentes = GerenteController.listar()
         for row, gerente in enumerate(gerentes, start=1):
-            ctk.CTkLabel(frame_tabela, text=gerente["cpf"], width=120).grid(row=row, column=0, padx=5, pady=4, sticky="w")
+            ctk.CTkLabel(frame_tabela, text=gerente["idcpf"], width=120).grid(row=row, column=0, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=gerente["nome"], width=120).grid(row=row, column=1, padx=5, pady=4, sticky="w")
-            ctk.CTkLabel(frame_tabela, text=gerente["celular"], width=120).grid(row=row, column=2, padx=5, pady=4, sticky="w")
+            ctk.CTkLabel(frame_tabela, text=gerente["Celular"], width=120).grid(row=row, column=2, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=gerente["email"], width=120).grid(row=row, column=3, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=gerente["setor"], width=120).grid(row=row, column=4, padx=5, pady=4, sticky="w")
 
             btn_editar = ctk.CTkButton(
                 frame_tabela, text="Editar", width=70,
                 fg_color="#f39c12", hover_color="#e67e22",
-                command=lambda cpf=gerente["cpf"]: self.editar_gerente(cpf)
+                command=lambda cpf=gerente["idcpf"]: self.editar_gerente(cpf)
             )
             btn_editar.grid(row=row, column=5, padx=2)
 
             btn_excluir = ctk.CTkButton(
                 frame_tabela, text="Excluir", width=70,
                 fg_color="#e74c3c", hover_color="#c0392b",
-                command=lambda cpf=gerente["cpf"]: self.excluir_gerente(cpf)
+                command=lambda cpf=gerente["idcpf"]: self.excluir_gerente(cpf)
             )
             btn_excluir.grid(row=row, column=6, padx=2)
 

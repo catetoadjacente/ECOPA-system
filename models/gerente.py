@@ -43,7 +43,7 @@ class Gerente:
             return False
         try:
             cursor = connection.cursor()
-            query = """INSERT INTO gerente (cpf, nome, celular, email, senha, setor)
+            query = """INSERT INTO gerente (idcpf, nome, Celular, email, senha, setor)
                        VALUES (%s, %s, %s, %s, %s, %s)"""
             cursor.execute(query, (
                 dados["CPF"], dados["Nome"], dados["Celular"],
@@ -65,7 +65,7 @@ class Gerente:
             return []
         try:
             cursor = connection.cursor(dictionary=True)
-            query = "SELECT cpf, nome, celular, email, setor FROM gerente"
+            query = "SELECT idcpf, nome, Celular, email, setor FROM gerente"
             cursor.execute(query)
             return cursor.fetchall()
         except Exception as e:
@@ -81,7 +81,7 @@ class Gerente:
             return None
         try:
             cursor = connection.cursor(dictionary=True)
-            query = "SELECT * FROM gerente WHERE cpf = %s LIMIT 1"
+            query = "SELECT * FROM gerente WHERE idcpf = %s LIMIT 1"
             cursor.execute(query, (cpf,))
             return cursor.fetchone()
         except Exception as e:
@@ -99,10 +99,10 @@ class Gerente:
         try:
             cursor = connection.cursor()
             query = """UPDATE gerente 
-                       SET nome = %s, celular = %s, email = %s, setor = %s
-                       WHERE cpf = %s"""
+                       SET Celular = %s, email = %s, setor = %s
+                       WHERE idcpf = %s"""
             cursor.execute(query, (
-                dados["Nome"], dados["Celular"], dados["Email"],
+                dados["Celular"], dados["Email"],
                 dados["Setor"], cpf
             ))
             connection.commit()
@@ -121,7 +121,7 @@ class Gerente:
             return False
         try:
             cursor = connection.cursor()
-            query = "DELETE FROM gerente WHERE cpf = %s"
+            query = "DELETE FROM gerente WHERE idcpf = %s"
             cursor.execute(query, (cpf,))
             connection.commit()
             return True
