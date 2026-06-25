@@ -103,3 +103,82 @@ def get_user_info(user):
     finally:
         if connection.is_connected():
             connection.close()
+
+def get_all_gerentes():
+    """Retorna lista de todos os gerentes cadastrados"""
+    connection = get_connection()
+    if connection is None:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        query = "SELECT idcpf, nome, Celular, email, setor FROM gerente ORDER BY nome"
+        cursor.execute(query)
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+    except Error as e:
+        print(f"Erro ao buscar gerentes: {e}")
+        return []
+    finally:
+        if connection.is_connected():
+            connection.close()
+            
+
+def cadastrar_cliente(dados):
+    connection = get_connection()
+    if connection is None:
+        return False
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO ponto (idponto, endereco, email, estabelecimento,
+                               telefone, propretario)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (dados["idponto"], dados["endereco"], dados["email"],
+              dados["estabelecimento"], dados["telefone"], dados["proprietario"]))
+
+        cursor.execute("""
+            INSERT INTO destinacoes (iddestinacoes, cnpj, cliente, data)
+            VALUES (%s, %s, %s, %s)
+        """, (dados["iddestinacoes"], dados["cnpj"],
+              dados["cliente"], dados["data"]))
+
+        connection.commit()
+        cursor.close()
+        return True
+    except Error as e:
+        print(f"Erro ao cadastrar cliente: {e}")
+        connection.rollback()
+        return False
+    finally:
+        if connection.is_connected():
+            connection.close() 
+
+def get_all_clientes():
+    connection = get_connection()
+    if connection is None:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        query = """
+            SELECT p.idponto, p.estabelecimento, p.endereco, p.email,
+                   p.telefone, p.propretario,
+                   d.iddeatinacoes, d.cnpj, d.cliente, d.data
+            FROM ponto p
+            LEFT JOIN deatinacoes d ON p.estabelecimento = d.cliente
+            ORDER BY p.estabelecimento
+        """
+        cursor.execute(query)
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+    except Error as e:
+        print(f"Erro ao buscar clientes: {e}")
+        return []
+    finally:
+        if connection.is_connected():
+            connection.close()
+            

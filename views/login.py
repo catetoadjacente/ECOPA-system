@@ -1,7 +1,8 @@
 import customtkinter as ctk
 from PIL import Image, ImageTk
 import os
-from database.database import verify_login, get_user_info
+from controllers.gerente_controller import GerenteController
+from views.dashboard import MainView
 from tkinter import messagebox
 
 ctk.set_appearance_mode("dark")
@@ -48,7 +49,7 @@ class App(ctk.CTk):
             bg_color="#ffffff",
             height=32,
             font=ctk.CTkFont(size=14),
-            show="*",
+            
         )
         self.entry_pass.place(relx=0.75, rely=0.545, anchor="center", relwidth=0.28)
 
@@ -75,17 +76,14 @@ class App(ctk.CTk):
             messagebox.showerror("Erro", "Por favor, preencha usuário e senha!")
             return
         
-        if verify_login(user, password):
-            user_info = get_user_info(user)
+        if GerenteController.login(user, password):
+            user_info = GerenteController.obter_info(user)
             self.withdraw()
-            from views.dashboard import MainView
-            dashboard = ctk.CTk()
-            dashboard.title("ECOPA System - Dashboard")
-            dashboard.geometry("1200x700")
-            MainView(dashboard).pack(fill="both", expand=True)
-            dashboard.protocol("WM_DELETE_WINDOW", self._on_dashboard_close)
-            self._dashboard = dashboard
-            dashboard.mainloop()
+            dashboard = MainView(self)
+            dashboard.pack(fill="both", expand=True)
+            self.deiconify()
+            self.geometry("1200x700")
+            self.title(f"ECOPA System - {user_info['nome']}")
         else:
             messagebox.showerror("Erro", "Usuário ou senha inválidos!")
             self.entry_pass.delete(0, ctk.END)

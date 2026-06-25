@@ -43,6 +43,12 @@ class MainView(ctk.CTkFrame):
         )
         self.btn_cadastros.pack(pady=5, padx=20, fill="x")
 
+        self.btn_relatorios = ctk.CTkButton(
+            self.sidebar, text="Relatórios",
+            command=self.abrir_relatorios
+        )
+        self.btn_relatorios.pack(pady=5, padx=20, fill="x")
+
         # (opcional) botão sair no final
         self.btn_sair = ctk.CTkButton(
             self.sidebar, text="Sair", fg_color="#c0392b",
@@ -72,17 +78,10 @@ class MainView(ctk.CTkFrame):
     def abrir_cadastros(self):
         for widget in self.content.winfo_children():
             widget.destroy()
-        hub = CadastrosHub(self.content, on_voltar=self._voltar_ao_conteudo)
-        hub.pack(fill="both", expand=True)
+        self.cadastros_hub = CadastrosHub(self, self.content)
 
-    def _voltar_ao_conteudo(self):
-        for widget in self.content.winfo_children():
-            widget.destroy()
-        self.label_bem_vindo = ctk.CTkLabel(
-            self.content, text="Bem-vindo!",
-            font=ctk.CTkFont(size=24)
-        )
-        self.label_bem_vindo.pack(pady=50)
+    def abrir_relatorios(self):
+        self.label_bem_vindo.configure(text="Relatórios")
 
     def sair(self):
         self.winfo_toplevel().destroy()
