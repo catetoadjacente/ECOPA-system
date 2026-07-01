@@ -11,7 +11,7 @@ class ListarClientesView(ctk.CTkFrame):
                      font=ctk.CTkFont(size=18, weight="bold")).pack(pady=10)
 
         colunas = ("ID Ponto", "Estabelecimento", "Endereço", "Email",
-                   "Telefone", "Proprietário", "ID Dest.", "CNPJ")
+                   "Telefone", "CNPJ")
         self.tabela = ttk.Treeview(
             self, columns=colunas, show="headings", height=18
         )
@@ -41,7 +41,7 @@ class ListarClientesView(ctk.CTkFrame):
             self.tabela.insert("", "end", values=(
                 c["idponto"], c["estabelecimento"], c["endereco"],
                 c["email"], c["telefone"], c["propretario"],
-                c["iddeatinacoes"] if c["iddeatinacoes"] else "-",
+                c["iddestinacoes"] if c["iddestinacoes"] else "-",
                 c["cnpj"] if c["cnpj"] else "-"
             ))
             
