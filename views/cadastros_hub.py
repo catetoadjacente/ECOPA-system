@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from views.cadastro_gerente import CadastroGerente
-from views.cadastro_clientes import CadastroClienteView
-from views.listar_clientes import ListarClientesView
+from views.cadastro_clientes import CadastroCliente
+
 
 class CadastrosHub(ctk.CTkFrame):
     def __init__(self, master, content):
@@ -36,8 +36,8 @@ class CadastrosHub(ctk.CTkFrame):
         )
         btn_acessar.pack(side="right", padx=20, pady=20)
         
-        frame2 = ctk.CTkFrame(self.content, width=600, height=400)
-        frame2.place(relx=0.5, rely=0.7, anchor="center")
+        frame2 = ctk.CTkFrame(self.content)
+        frame2.place(relx=0.5, rely=0.7, anchor="center", relwidth=0.8, relheight=0.2)
 
         label2 = ctk.CTkLabel(
             frame2, text="Cliente",
@@ -59,7 +59,6 @@ class CadastrosHub(ctk.CTkFrame):
         )
         btn_listar2.pack(side="right", padx=(5, 20), pady=20)
 
-        
 
     def novo_gerente(self):
         CadastroGerente(self, self.content, on_voltar=self.abrir_cadastros)
@@ -67,11 +66,10 @@ class CadastrosHub(ctk.CTkFrame):
     def acessar_gerentes(self):
         from views.lista_gerentes import ListaGerentes
         ListaGerentes(self, self.content, on_voltar=self.abrir_cadastros)
-    
+
     def novo_cliente(self):
-        CadastroClienteView()
-    
+        CadastroCliente(self, self.content, on_voltar=self.abrir_cadastros)
+
     def listar_clientes(self):
-        for widget in self.content.winfo_children():
-            widget.destroy()
-        ListarClientesView(self.content).pack(fill="both", expand=True)
+        from views.lista_clientes import ListaClientes
+        ListaClientes(self, self.content, on_voltar=self.abrir_cadastros)
