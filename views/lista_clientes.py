@@ -47,7 +47,7 @@ class ListaClientes(ctk.CTkFrame):
 
         clientes = ClienteController.listar()
         for row, cliente in enumerate(clientes, start=1):
-            ctk.CTkLabel(frame_tabela, text=str(cliente.get("idponto", "")), width=120).grid(row=row, column=0, padx=5, pady=4, sticky="w")
+            ctk.CTkLabel(frame_tabela, text=str(cliente.get("id_ponto", "")), width=120).grid(row=row, column=0, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=cliente.get("estabelecimento", "") or "", width=150).grid(row=row, column=1, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=cliente.get("endereco", "") or "", width=150).grid(row=row, column=2, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=cliente.get("email", "") or "", width=150).grid(row=row, column=3, padx=5, pady=4, sticky="w")
@@ -58,14 +58,14 @@ class ListaClientes(ctk.CTkFrame):
             btn_editar = ctk.CTkButton(
                 frame_tabela, text="Editar", width=70,
                 fg_color="#f39c12", hover_color="#e67e22",
-                command=lambda idp=cliente["idponto"]: self.editar_cliente(idp)
+                command=lambda idp=cliente["id_ponto"]: self.editar_cliente(idp)
             )
             btn_editar.grid(row=row, column=7, padx=2)
 
             btn_excluir = ctk.CTkButton(
                 frame_tabela, text="Excluir", width=70,
                 fg_color="#e74c3c", hover_color="#c0392b",
-                command=lambda idp=cliente["idponto"]: self.excluir_cliente(idp)
+                command=lambda idp=cliente["id_ponto"]: self.excluir_cliente(idp)
             )
             btn_excluir.grid(row=row, column=8, padx=2)
 

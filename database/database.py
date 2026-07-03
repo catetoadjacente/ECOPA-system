@@ -82,7 +82,7 @@ def get_all_gerentes():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        query = "SELECT idcpf, nome, Celular, email, setor FROM gerente ORDER BY nome"
+        query = "SELECT cpf, nome, celular, email, setor FROM gerente ORDER BY nome"
         cursor.execute(query)
         result = cursor.fetchall()
         cursor.close()
@@ -103,17 +103,17 @@ def cadastrar_cliente(dados):
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            INSERT INTO ponto (idponto, endereco, email, estabelecimento,
+            INSERT INTO ponto (endereco, email, estabelecimento,
                                telefone, propretario)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (dados["idponto"], dados["endereco"], dados["email"],
+            VALUES (%s, %s, %s, %s, %s)
+        """, (dados["endereco"], dados["email"],
               dados["estabelecimento"], dados["telefone"], dados["proprietario"]))
 
         cursor.execute("""
-            INSERT INTO destinacoes (iddestinacoes, cnpj, cliente, data)
+            INSERT INTO destinacoes (cnpj, cliente, data, coleta_id_coleta)
             VALUES (%s, %s, %s, %s)
-        """, (dados["iddestinacoes"], dados["cnpj"],
-              dados["cliente"], dados["data"]))
+        """, (dados["cnpj"],
+              dados["cliente"], dados["data"], dados.get("coleta_id_coleta")))
 
         connection.commit()
         cursor.close()
@@ -134,11 +134,11 @@ def get_all_clientes():
     try:
         cursor = connection.cursor(dictionary=True)
         query = """
-            SELECT p.idponto, p.estabelecimento, p.endereco, p.email,
+            SELECT p.id_ponto, p.estabelecimento, p.endereco, p.email,
                    p.telefone, p.propretario,
-                   d.iddeatinacoes, d.cnpj, d.cliente, d.data
+                   d.id_destinacoes, d.cnpj, d.cliente, d.data
             FROM ponto p
-            LEFT JOIN deatinacoes d ON p.estabelecimento = d.cliente
+            LEFT JOIN destinacoes d ON p.estabelecimento = d.cliente
             ORDER BY p.estabelecimento
         """
         cursor.execute(query)

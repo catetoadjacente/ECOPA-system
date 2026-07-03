@@ -35,7 +35,7 @@ class EdicaoGerente(ctk.CTkFrame):
         lbl_nome_valor.pack(padx=20, pady=(0, 10))
 
         campos_editaveis = {
-            "Celular": "Celular",
+            "Celular": "celular",
             "Email": "email",
             "Setor": "setor",
         }

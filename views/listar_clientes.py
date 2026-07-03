@@ -39,9 +39,9 @@ class ListarClientesView(ctk.CTkFrame):
 
         for c in get_all_clientes():
             self.tabela.insert("", "end", values=(
-                c["idponto"], c["estabelecimento"], c["endereco"],
+                c["id_ponto"], c["estabelecimento"], c["endereco"],
                 c["email"], c["telefone"], c["propretario"],
-                c["iddestinacoes"] if c["iddestinacoes"] else "-",
+                c["id_destinacoes"] if c["id_destinacoes"] else "-",
                 c["cnpj"] if c["cnpj"] else "-"
             ))
             

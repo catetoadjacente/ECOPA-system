@@ -26,13 +26,13 @@ class CadastroCliente(ctk.CTkFrame):
         label.pack(pady=(20, 15))
 
         campos = [
-            ("ID Ponto", "idponto"),
+            ("ID Ponto", "id_ponto"),
             ("Endereço", "endereco"),
             ("Email", "email"),
             ("Estabelecimento", "estabelecimento"),
             ("Telefone", "telefone"),
             ("Proprietário", "proprietario"),
-            ("ID Destinação", "iddeatinacoes"),
+            ("ID Destinação", "id_destinacoes"),
             ("CNPJ", "cnpj"),
             ("Cliente", "cliente"),
         ]
