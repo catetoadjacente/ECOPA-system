@@ -10,12 +10,12 @@ class Cliente:
         try:
             cursor = connection.cursor(dictionary=True)
             query = """
-                SELECT p.idponto, p.endereco, p.email, p.estabelecimento,
+                SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
                        p.telefone, p.propretario as proprietario,
-                       d.iddeatinacoes, d.cnpj, d.cliente as cliente_nome, d.data
+                       d.id_destinacoes, d.cnpj, d.cliente as cliente_nome, d.data
                 FROM ponto p
-                LEFT JOIN deatinacoes d ON p.estabelecimento = d.cliente
-                WHERE p.idponto = %s LIMIT 1
+                LEFT JOIN destinacoes d ON p.estabelecimento = d.cliente
+                WHERE p.id_ponto = %s LIMIT 1
             """
             cursor.execute(query, (idponto,))
             return cursor.fetchone()
@@ -33,17 +33,17 @@ class Cliente:
             return False
         try:
             cursor = connection.cursor()
-            query_ponto = """INSERT INTO ponto (idponto, endereco, email, estabelecimento,
+            query_ponto = """INSERT INTO ponto (endereco, email, estabelecimento,
                            telefone, propretario)
-                           VALUES (%s, %s, %s, %s, %s, %s)"""
+                           VALUES (%s, %s, %s, %s, %s)"""
             cursor.execute(query_ponto, (
-                dados["idponto"], dados["endereco"], dados["email"],
+                dados["endereco"], dados["email"],
                 dados["estabelecimento"], dados["telefone"], dados["proprietario"]
             ))
-            query_dest = """INSERT INTO deatinacoes (iddeatinacoes, cnpj, cliente, data)
+            query_dest = """INSERT INTO destinacoes (cnpj, cliente, data, coleta_id_coleta)
                            VALUES (%s, %s, %s, %s)"""
             cursor.execute(query_dest, (
-                dados["iddeatinacoes"], dados["cnpj"], dados["cliente"], dados["data"]
+                dados["cnpj"], dados["cliente"], dados["data"], dados.get("coleta_id_coleta")
             ))
             connection.commit()
             return True
@@ -63,11 +63,11 @@ class Cliente:
         try:
             cursor = connection.cursor(dictionary=True)
             query = """
-                SELECT p.idponto, p.endereco, p.email, p.estabelecimento,
+                SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
                        p.telefone, p.propretario as proprietario,
-                       d.iddeatinacoes, d.cnpj, d.cliente as cliente_nome, d.data
+                       d.id_destinacoes, d.cnpj, d.cliente as cliente_nome, d.data
                 FROM ponto p
-                LEFT JOIN deatinacoes d ON p.estabelecimento = d.cliente
+                LEFT JOIN destinacoes d ON p.estabelecimento = d.cliente
                 ORDER BY p.estabelecimento
             """
             cursor.execute(query)
@@ -87,7 +87,7 @@ class Cliente:
         try:
             cursor = connection.cursor()
             query = """UPDATE ponto SET endereco=%s, email=%s,
-                       telefone=%s, propretario=%s WHERE idponto=%s"""
+                       telefone=%s, propretario=%s WHERE id_ponto=%s"""
             cursor.execute(query, (
                 dados["endereco"], dados["email"],
                 dados["telefone"], dados["proprietario"], idponto
@@ -109,7 +109,7 @@ class Cliente:
             return False
         try:
             cursor = connection.cursor()
-            cursor.execute("DELETE FROM ponto WHERE idponto=%s", (idponto,))
+            cursor.execute("DELETE FROM ponto WHERE id_ponto=%s", (idponto,))
             connection.commit()
             return True
         except Exception as e:

@@ -1,3 +1,12 @@
+
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Schema ecopa_system
+-- -----------------------------------------------------
+
 -- -----------------------------------------------------
 -- Schema ecopa_system
 -- -----------------------------------------------------
@@ -7,8 +16,6 @@ USE `ecopa_system` ;
 -- -----------------------------------------------------
 -- Table `ecopa_system`.`gerente`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `ecopa_system`.`gerente` ;
-
 CREATE TABLE IF NOT EXISTS `ecopa_system`.`gerente` (
   `cpf` VARCHAR(11) NOT NULL,
   `nome` VARCHAR(90) NOT NULL,
@@ -30,15 +37,13 @@ DEFAULT CHARACTER SET = utf8mb3;
 -- -----------------------------------------------------
 -- Table `ecopa_system`.`ponto`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `ecopa_system`.`ponto` ;
-
 CREATE TABLE IF NOT EXISTS `ecopa_system`.`ponto` (
   `id_ponto` INT NOT NULL AUTO_INCREMENT,
   `endereco` VARCHAR(45) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `estabelecimento` VARCHAR(100) NOT NULL,
   `telefone` VARCHAR(45) NOT NULL,
-  `proprietario` VARCHAR(90) NOT NULL,
+  `propretario` VARCHAR(90) NOT NULL,
   PRIMARY KEY (`id_ponto`),
   UNIQUE INDEX `idponto_UNIQUE` (`id_ponto` ASC) VISIBLE,
   UNIQUE INDEX `endereco_UNIQUE` (`endereco` ASC) VISIBLE,
@@ -53,8 +58,6 @@ DEFAULT CHARACTER SET = utf8mb3;
 -- -----------------------------------------------------
 -- Table `ecopa_system`.`coleta`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `ecopa_system`.`coleta` ;
-
 CREATE TABLE IF NOT EXISTS `ecopa_system`.`coleta` (
   `id_coleta` INT NOT NULL AUTO_INCREMENT,
   `data` DATETIME NOT NULL,
@@ -82,8 +85,6 @@ DEFAULT CHARACTER SET = utf8mb3;
 -- -----------------------------------------------------
 -- Table `ecopa_system`.`destinacoes`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `ecopa_system`.`destinacoes` ;
-
 CREATE TABLE IF NOT EXISTS `ecopa_system`.`destinacoes` (
   `id_destinacoes` INT NOT NULL AUTO_INCREMENT,
   `cnpj` VARCHAR(20) NOT NULL,
@@ -103,24 +104,4 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
 
--- -----------------------------------------------------
--- Table `ecopa_system`.`horario_ponto`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `ecopa_system`.`horario_ponto` ;
 
-CREATE TABLE IF NOT EXISTS `ecopa_system`.`horario_ponto` (
-  `idhorario` INT NOT NULL AUTO_INCREMENT,
-  `idponto_fk` INT NOT NULL,
-  `dia_semana` TINYINT NOT NULL COMMENT '1=DOM, 2=SEG, 3=TER, 4=QUA, 5=QUI, 6=SEX, 7=SAB',
-  `abertura` TIME NOT NULL,
-  `fechamento` TIME NOT NULL,
-  `ativo` TINYINT(1) NULL DEFAULT 1,
-  PRIMARY KEY (`idhorario`),
-  INDEX `fk_horario_ponto_idx` (`idponto_fk` ASC) VISIBLE,
-  CONSTRAINT `fk_horario_ponto`
-    FOREIGN KEY (`idponto_fk`)
-    REFERENCES `ecopa_system`.`ponto` (`id_ponto`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb3;

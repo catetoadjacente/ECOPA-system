@@ -29,7 +29,7 @@ class EdicaoCliente(ctk.CTkFrame):
         lbl_id = ctk.CTkLabel(frame, text="ID Ponto:")
         lbl_id.pack(anchor="w", padx=20)
         lbl_id_valor = ctk.CTkLabel(
-            frame, text=str(self.cliente.get("idponto", "")),
+            frame, text=str(self.cliente.get("id_ponto", "")),
             font=ctk.CTkFont(size=14), width=350, anchor="w"
         )
         lbl_id_valor.pack(padx=20, pady=(0, 10))
