@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from tkinter import ttk
-from database.database import get_all_clientes
+from controllers.cliente_controller import ClienteController
 
 
 class ListarClientesView(ctk.CTkFrame):
@@ -37,10 +37,10 @@ class ListarClientesView(ctk.CTkFrame):
         for item in self.tabela.get_children():
             self.tabela.delete(item)
 
-        for c in get_all_clientes():
+        for c in ClienteController.listar():
             self.tabela.insert("", "end", values=(
                 c["id_ponto"], c["estabelecimento"], c["endereco"],
-                c["email"], c["telefone"], c["propretario"],
+                c["email"], c["telefone"], c["proprietario"],
                 c["id_destinacoes"] if c["id_destinacoes"] else "-",
                 c["cnpj"] if c["cnpj"] else "-"
             ))
