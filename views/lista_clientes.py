@@ -52,7 +52,7 @@ class ListaClientes(ctk.CTkFrame):
             ctk.CTkLabel(frame_tabela, text=cliente.get("endereco", "") or "", width=150).grid(row=row, column=2, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=cliente.get("email", "") or "", width=150).grid(row=row, column=3, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=cliente.get("telefone", "") or "", width=120).grid(row=row, column=4, padx=5, pady=4, sticky="w")
-            ctk.CTkLabel(frame_tabela, text=cliente.get("propretario", "") or "", width=120).grid(row=row, column=5, padx=5, pady=4, sticky="w")
+            ctk.CTkLabel(frame_tabela, text=cliente.get("proprietario", "") or "", width=120).grid(row=row, column=5, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=cliente.get("cnpj", "") or "-", width=120).grid(row=row, column=6, padx=5, pady=4, sticky="w")
 
             btn_editar = ctk.CTkButton(

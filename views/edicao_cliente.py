@@ -86,7 +86,8 @@ class EdicaoCliente(ctk.CTkFrame):
             "endereco": dados.get("Endereço", ""),
             "email": dados.get("Email", ""),
             "telefone": dados.get("Telefone", ""),
-            "propretario": dados.get("Proprietário", ""),
+            "proprietario": dados.get("Proprietário", ""),
+            "cnpj": dados.get("CNPJ", ""),
         }
 
         if ClienteController.atualizar(self.idponto, dados_db):
