@@ -8,10 +8,9 @@ class CadastroGerente(ctk.CTkFrame):
         super().__init__(master)
         self.content = content
         self.on_voltar = on_voltar
+        self._montar()
 
-        self.montar_formulario()
-
-    def montar_formulario(self):
+    def _montar(self):
         for widget in self.content.winfo_children():
             widget.destroy()
 
@@ -40,7 +39,7 @@ class CadastroGerente(ctk.CTkFrame):
         btn_salvar = ctk.CTkButton(
             btn_frame, text="Salvar", width=120,
             fg_color="#27ae60", hover_color="#2ecc71",
-            command=self.salvar
+            command=self._on_salvar
         )
         btn_salvar.pack(side="left", padx=10)
 
@@ -51,14 +50,11 @@ class CadastroGerente(ctk.CTkFrame):
         )
         btn_voltar.pack(side="left", padx=10)
 
-    def salvar(self):
+    def _on_salvar(self):
         dados = {campo: entry.get().strip() for campo, entry in self.entries.items()}
-        if not all(dados.values()):
-            messagebox.showerror("Erro", "Preencha todos os campos!")
-            return
-
-        if GerenteController.cadastrar(dados):
-            messagebox.showinfo("Sucesso", "Gerente cadastrado!")
+        ok, msg = GerenteController.cadastrar(dados)
+        if ok:
+            messagebox.showinfo("Sucesso", msg)
             self.on_voltar()
         else:
-            messagebox.showerror("Erro", "Falha ao cadastrar!")
+            messagebox.showerror("Erro", msg)

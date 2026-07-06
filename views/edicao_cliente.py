@@ -9,11 +9,14 @@ class EdicaoCliente(ctk.CTkFrame):
         self.content = content
         self.idponto = idponto
         self.on_voltar = on_voltar
-
         self.cliente = ClienteController.buscar_por_idponto(idponto)
-        self.montar_formulario()
+        if not self.cliente:
+            messagebox.showerror("Erro", "Ponto de coleta nao encontrado")
+            self.on_voltar()
+            return
+        self._montar()
 
-    def montar_formulario(self):
+    def _montar(self):
         for widget in self.content.winfo_children():
             widget.destroy()
 
@@ -21,7 +24,7 @@ class EdicaoCliente(ctk.CTkFrame):
         frame.place(relx=0.5, rely=0.5, anchor="center")
 
         label = ctk.CTkLabel(
-            frame, text="Editar Cliente",
+            frame, text="Editar Ponto de Coleta",
             font=ctk.CTkFont(size=18, weight="bold")
         )
         label.pack(pady=(20, 15))
@@ -42,16 +45,16 @@ class EdicaoCliente(ctk.CTkFrame):
         )
         lbl_est_valor.pack(padx=20, pady=(0, 10))
 
-        campos_editaveis = {
-            "Endereço": "endereco",
+        campos = {
+            "Endereco": "endereco",
             "Email": "email",
             "Telefone": "telefone",
-            "Proprietário": "proprietario",
+            "Proprietario": "proprietario",
             "CNPJ": "cnpj",
         }
         self.entries = {}
 
-        for campo, db_key in campos_editaveis.items():
+        for campo, db_key in campos.items():
             lbl = ctk.CTkLabel(frame, text=campo + ":")
             lbl.pack(anchor="w", padx=20)
             entry = ctk.CTkEntry(frame, width=350)
@@ -65,7 +68,7 @@ class EdicaoCliente(ctk.CTkFrame):
         btn_salvar = ctk.CTkButton(
             btn_frame, text="Salvar", width=120,
             fg_color="#27ae60", hover_color="#2ecc71",
-            command=self.salvar
+            command=self._on_salvar
         )
         btn_salvar.pack(side="left", padx=10)
 
@@ -76,23 +79,11 @@ class EdicaoCliente(ctk.CTkFrame):
         )
         btn_voltar.pack(side="left", padx=10)
 
-    def salvar(self):
+    def _on_salvar(self):
         dados = {campo: entry.get().strip() for campo, entry in self.entries.items()}
-        if not all(dados.values()):
-            messagebox.showerror("Erro", "Preencha todos os campos!")
-            return
-
-        dados_db = {
-            "endereco": dados.get("Endereço", ""),
-            "email": dados.get("Email", ""),
-            "telefone": dados.get("Telefone", ""),
-            "proprietario": dados.get("Proprietário", ""),
-            "cnpj": dados.get("CNPJ", ""),
-        }
-
-        if ClienteController.atualizar(self.idponto, dados_db):
-            messagebox.showinfo("Sucesso", "Cliente atualizado!")
+        ok, msg = ClienteController.atualizar(self.idponto, dados)
+        if ok:
+            messagebox.showinfo("Sucesso", msg)
             self.on_voltar()
         else:
-            messagebox.showerror("Erro", "Falha ao atualizar!")
-            
+            messagebox.showerror("Erro", msg)
