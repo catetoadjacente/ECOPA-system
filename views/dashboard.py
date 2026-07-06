@@ -1,89 +1,95 @@
 import customtkinter as ctk
 from views.cadastros_hub import CadastrosHub
-from views.coletas import ColetasView
-from views.pontos import PontosView
 
 
 class MainView(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        # Sidebar
-        self.sidebar = ctk.CTkFrame(self, width=220, corner_radius=0, fg_color="#006d12")
+        # Sidebar (frame à esquerda)
+        self.sidebar = ctk.CTkFrame(self, width=200, corner_radius=0)
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
-        ctk.CTkLabel(
-            self.sidebar, text="ECOPA",
-            font=ctk.CTkFont(size=28, weight="bold"),
-            text_color="white"
-        ).pack(pady=(30, 40))
+        # Logo / título na sidebar
+        self.logo_label = ctk.CTkLabel(
+            self.sidebar, text="ECOPA System",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        self.logo_label.pack(pady=(20, 40))
 
-        botoes = [
-            ("Dashboard",    self.abrir_dashboard),
-            ("Coletas",      self.abrir_coleta),
-            ("Pontos",       self.abrir_pontos),
-            ("Destinações",  self.abrir_destinacoes),
-            ("Cadastros",    self.abrir_cadastros),
-            ("Relatórios",   self.abrir_relatorios),
-        ]
+        # Botões de navegação
+        self.btn_coleta = ctk.CTkButton(
+            self.sidebar, text="Coleta",
+            command=self.abrir_coleta
+        )
+        self.btn_coleta.pack(pady=5, padx=20, fill="x")
 
-        for texto, comando in botoes:
-            ctk.CTkButton(
-                self.sidebar, text=texto,
-                fg_color="transparent", hover_color="#0a8f2c",
-                anchor="w", command=comando
-            ).pack(fill="x", padx=15, pady=4)
+        self.btn_pontos = ctk.CTkButton(
+            self.sidebar, text="Pontos",
+            command=self.abrir_pontos
+        )
+        self.btn_pontos.pack(pady=5, padx=20, fill="x")
 
-        ctk.CTkButton(
+        self.btn_destinacoes = ctk.CTkButton(
+            self.sidebar, text="Destinações",
+            command=self.abrir_destinacoes
+        )
+        self.btn_destinacoes.pack(pady=5, padx=20, fill="x")
+
+        self.btn_cadastros = ctk.CTkButton(
+            self.sidebar, text="Cadastros",
+            command=self.abrir_cadastros
+        )
+        self.btn_cadastros.pack(pady=5, padx=20, fill="x")
+
+        self.btn_relatorios = ctk.CTkButton(
+            self.sidebar, text="Relatórios",
+            command=self.abrir_relatorios
+        )
+        self.btn_relatorios.pack(pady=5, padx=20, fill="x")
+
+        # (opcional) botão sair no final
+        self.btn_sair = ctk.CTkButton(
             self.sidebar, text="Sair", fg_color="#c0392b",
             hover_color="#e74c3c", command=self.sair
-        ).pack(side="bottom", pady=20, padx=15, fill="x")
+        )
+        self.btn_sair.pack(side="bottom", pady=20, padx=20, fill="x")
 
-        # Área de conteúdo
-        self.content = ctk.CTkFrame(self, corner_radius=0, fg_color="#dcebdc")
+        # Área de conteúdo principal (direita)
+        self.content = ctk.CTkFrame(self, corner_radius=0)
         self.content.pack(side="right", fill="both", expand=True)
 
-        self.abrir_dashboard()
-
-    def abrir_dashboard(self):
-        for widget in self.content.winfo_children():
-            widget.destroy()
-        ctk.CTkLabel(
+        self.label_bem_vindo = ctk.CTkLabel(
             self.content, text="Bem-vindo!",
             font=ctk.CTkFont(size=24)
-        ).pack(pady=50)
+        )
+        self.label_bem_vindo.pack(pady=50)
 
     def abrir_coleta(self):
-        for widget in self.content.winfo_children():
-            widget.destroy()
-        ColetasView(self, self.content)
+        self.label_bem_vindo.configure(text="Coleta")
 
     def abrir_pontos(self):
-        for widget in self.content.winfo_children():
-            widget.destroy()
-        PontosView(self, self.content)
+        self.label_bem_vindo.configure(text="Pontos")
 
     def abrir_destinacoes(self):
-        for widget in self.content.winfo_children():
-            widget.destroy()
-        ctk.CTkLabel(
-            self.content, text="Destinações",
-            font=ctk.CTkFont(size=24)
-        ).pack(pady=50)
+        self.label_bem_vindo.configure(text="Destinações")
 
     def abrir_cadastros(self):
         for widget in self.content.winfo_children():
             widget.destroy()
-        CadastrosHub(self, self.content)
+        self.cadastros_hub = CadastrosHub(self, self.content)
 
     def abrir_relatorios(self):
-        for widget in self.content.winfo_children():
-            widget.destroy()
-        ctk.CTkLabel(
-            self.content, text="Relatórios",
-            font=ctk.CTkFont(size=24)
-        ).pack(pady=50)
+        self.label_bem_vindo.configure(text="Relatórios")
 
     def sair(self):
         self.winfo_toplevel().destroy()
+
+
+# Teste rápido (executar direto)
+if __name__ == "__main__":
+    app = ctk.CTk()
+    app.geometry("1200x700")
+    MainView(app).pack(fill="both", expand=True)
+    app.mainloop()
