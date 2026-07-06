@@ -16,6 +16,7 @@ class App(ctk.CTk):
         super().__init__()
         self.title("ECOPA System")
         self.geometry(f"{IMG_W}x{IMG_H}")
+        self.after(0, lambda: self.state("zoomed"))
 
         img_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", BG_IMAGE)
         if os.path.exists(img_path):
@@ -36,10 +37,10 @@ class App(ctk.CTk):
             text_color="black",
             border_width=0,
             bg_color="#ffffff",
-            height=32,
+            height=35,
             font=ctk.CTkFont(size=14),
         )
-        self.entry_user.place(relx=0.75, rely=0.4, anchor="center", relwidth=0.28)
+        self.entry_user.place(relx=0.76, rely=0.4, anchor="center", relwidth=0.34)
 
         self.entry_pass = ctk.CTkEntry(
             self,
@@ -48,10 +49,10 @@ class App(ctk.CTk):
             text_color="black",
             border_width=0,
             bg_color="#ffffff",
-            height=32,
+            height=35,
             font=ctk.CTkFont(size=14),
         )
-        self.entry_pass.place(relx=0.75, rely=0.545, anchor="center", relwidth=0.28)
+        self.entry_pass.place(relx=0.76, rely=0.545, anchor="center", relwidth=0.34)
 
         self.btn_login = ctk.CTkButton(
             self,
