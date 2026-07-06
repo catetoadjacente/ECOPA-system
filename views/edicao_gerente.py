@@ -9,11 +9,14 @@ class EdicaoGerente(ctk.CTkFrame):
         self.content = content
         self.cpf = cpf
         self.on_voltar = on_voltar
+        self.gerente = GerenteController.obter_por_cpf(cpf)
+        if not self.gerente:
+            messagebox.showerror("Erro", "Gerente nao encontrado")
+            self.on_voltar()
+            return
+        self._montar()
 
-        self.gerente = GerenteController.obter_info_por_cpf(cpf)
-        self.montar_formulario()
-
-    def montar_formulario(self):
+    def _montar(self):
         for widget in self.content.winfo_children():
             widget.destroy()
 
@@ -29,19 +32,19 @@ class EdicaoGerente(ctk.CTkFrame):
         lbl_nome = ctk.CTkLabel(frame, text="Nome:")
         lbl_nome.pack(anchor="w", padx=20)
         lbl_nome_valor = ctk.CTkLabel(
-            frame, text=self.gerente["nome"] or "",
+            frame, text=self.gerente["nome"],
             font=ctk.CTkFont(size=14), width=350, anchor="w"
         )
         lbl_nome_valor.pack(padx=20, pady=(0, 10))
 
-        campos_editaveis = {
+        campos = {
             "Celular": "celular",
             "Email": "email",
             "Setor": "setor",
         }
         self.entries = {}
 
-        for campo, db_key in campos_editaveis.items():
+        for campo, db_key in campos.items():
             lbl = ctk.CTkLabel(frame, text=campo + ":")
             lbl.pack(anchor="w", padx=20)
             entry = ctk.CTkEntry(frame, width=350)
@@ -55,7 +58,7 @@ class EdicaoGerente(ctk.CTkFrame):
         btn_salvar = ctk.CTkButton(
             btn_frame, text="Salvar", width=120,
             fg_color="#27ae60", hover_color="#2ecc71",
-            command=self.salvar
+            command=self._on_salvar
         )
         btn_salvar.pack(side="left", padx=10)
 
@@ -66,20 +69,11 @@ class EdicaoGerente(ctk.CTkFrame):
         )
         btn_voltar.pack(side="left", padx=10)
 
-    def salvar(self):
+    def _on_salvar(self):
         dados = {campo: entry.get().strip() for campo, entry in self.entries.items()}
-        if not all(dados.values()):
-            messagebox.showerror("Erro", "Preencha todos os campos!")
-            return
-
-        dados_db = {
-            "Celular": dados["Celular"],
-            "Email": dados["Email"],
-            "Setor": dados["Setor"],
-        }
-
-        if GerenteController.atualizar(self.cpf, dados_db):
-            messagebox.showinfo("Sucesso", "Gerente atualizado!")
+        ok, msg = GerenteController.atualizar(self.cpf, dados)
+        if ok:
+            messagebox.showinfo("Sucesso", msg)
             self.on_voltar()
         else:
-            messagebox.showerror("Erro", "Falha ao atualizar!")
+            messagebox.showerror("Erro", msg)

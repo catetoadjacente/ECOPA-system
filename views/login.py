@@ -50,7 +50,6 @@ class App(ctk.CTk):
             bg_color="#ffffff",
             height=32,
             font=ctk.CTkFont(size=14),
-            
         )
         self.entry_pass.place(relx=0.75, rely=0.545, anchor="center", relwidth=0.28)
 
@@ -64,34 +63,24 @@ class App(ctk.CTk):
             height=25,
             text_color="black",
             font=ctk.CTkFont(size=14, weight="bold"),
-            command=self.handle_login
+            command=self._on_login
         )
         self.btn_login.place(relx=0.75, rely=0.65, anchor="center", relwidth=0.1)
 
-    def handle_login(self):
-        """Verifica as credenciais de login"""
+    def _on_login(self):
         user = self.entry_user.get().strip()
         password = self.entry_pass.get().strip()
-        
-        if not user or not password:
-            messagebox.showerror("Erro", "Por favor, preencha usuário e senha!")
-            return
-        
-        if GerenteController.login(user, password):
-            user_info = GerenteController.obter_info(user)
-            self.withdraw()
-            dashboard = MainView(self)
-            dashboard.pack(fill="both", expand=True)
-            self.deiconify()
-            self.geometry("1200x700")
-            self.title(f"ECOPA System - {user_info['nome']}")
-        else:
-            messagebox.showerror("Erro", "Usuário ou senha inválidos!")
+        info, erro = GerenteController.login(user, password)
+        if erro:
+            messagebox.showerror("Erro", erro)
             self.entry_pass.delete(0, ctk.END)
-
-    def _on_dashboard_close(self):
-        self._dashboard.destroy()
+            return
+        self.withdraw()
+        dashboard = MainView(self)
+        dashboard.pack(fill="both", expand=True)
         self.deiconify()
+        self.geometry("1200x700")
+        self.title(f"ECOPA System - {info['nome']}")
 
     def _on_resize(self, event):
         if event.widget is self:

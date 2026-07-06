@@ -8,19 +8,17 @@ class ListaClientes(ctk.CTkFrame):
         super().__init__(master)
         self.content = content
         self.on_voltar = on_voltar
+        self._montar()
 
-        self.montar_tela()
-
-    def montar_tela(self):
+    def _montar(self):
         for widget in self.content.winfo_children():
             widget.destroy()
 
-        # Header
         header = ctk.CTkFrame(self.content, fg_color="transparent")
         header.pack(fill="x", padx=20, pady=(20, 10))
 
         label = ctk.CTkLabel(
-            header, text="Clientes Cadastrados",
+            header, text="Pontos de Coleta Cadastrados",
             font=ctk.CTkFont(size=18, weight="bold")
         )
         label.pack(side="left")
@@ -32,8 +30,7 @@ class ListaClientes(ctk.CTkFrame):
         )
         btn_voltar.pack(side="right")
 
-        # Tabela
-        colunas = ["ID Ponto", "Estabelecimento", "Endereço", "Email", "Telefone", "Proprietário", "CNPJ", "Ações"]
+        colunas = ["ID", "Estabelecimento", "Endereco", "Email", "Telefone", "Proprietario", "CNPJ", "Acoes"]
         frame_tabela = ctk.CTkFrame(self.content)
         frame_tabela.pack(fill="both", expand=True, padx=20, pady=10)
 
@@ -47,7 +44,7 @@ class ListaClientes(ctk.CTkFrame):
 
         clientes = ClienteController.listar()
         for row, cliente in enumerate(clientes, start=1):
-            ctk.CTkLabel(frame_tabela, text=str(cliente.get("id_ponto", "")), width=120).grid(row=row, column=0, padx=5, pady=4, sticky="w")
+            ctk.CTkLabel(frame_tabela, text=str(cliente.get("id_ponto", "")), width=80).grid(row=row, column=0, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=cliente.get("estabelecimento", "") or "", width=150).grid(row=row, column=1, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=cliente.get("endereco", "") or "", width=150).grid(row=row, column=2, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=cliente.get("email", "") or "", width=150).grid(row=row, column=3, padx=5, pady=4, sticky="w")
@@ -58,22 +55,26 @@ class ListaClientes(ctk.CTkFrame):
             btn_editar = ctk.CTkButton(
                 frame_tabela, text="Editar", width=70,
                 fg_color="#f39c12", hover_color="#e67e22",
-                command=lambda idp=cliente["id_ponto"]: self.editar_cliente(idp)
+                command=lambda idp=cliente["id_ponto"]: self._editar(idp)
             )
             btn_editar.grid(row=row, column=7, padx=2)
 
             btn_excluir = ctk.CTkButton(
                 frame_tabela, text="Excluir", width=70,
                 fg_color="#e74c3c", hover_color="#c0392b",
-                command=lambda idp=cliente["id_ponto"]: self.excluir_cliente(idp)
+                command=lambda idp=cliente["id_ponto"]: self._excluir(idp)
             )
             btn_excluir.grid(row=row, column=8, padx=2)
 
-    def editar_cliente(self, idponto):
+    def _editar(self, idponto):
         from views.edicao_cliente import EdicaoCliente
-        EdicaoCliente(self, self.content, idponto, on_voltar=self.montar_tela)
+        EdicaoCliente(self, self.content, idponto, on_voltar=self._montar)
 
-    def excluir_cliente(self, idponto):
-        if messagebox.askyesno("Confirmar", "Deseja excluir este cliente?"):
-            ClienteController.deletar(idponto)
-            self.montar_tela()
+    def _excluir(self, idponto):
+        if messagebox.askyesno("Confirmar", "Deseja excluir este ponto de coleta?"):
+            ok, msg = ClienteController.deletar(idponto)
+            if ok:
+                messagebox.showinfo("Sucesso", msg)
+            else:
+                messagebox.showerror("Erro", msg)
+            self._montar()
