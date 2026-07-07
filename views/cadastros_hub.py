@@ -53,9 +53,9 @@ class CadastrosHub(ctk.CTkFrame):
         btn_novo2.pack(side="right", padx=20, pady=20)
 
         btn_listar2 = ctk.CTkButton(
-            frame2, text="Listar",
+            frame2, text="Acessar",
             width=100,
-            command=self.listar_clientes
+            command=self.acessar_clientes
         )
         btn_listar2.pack(side="right", padx=(5, 20), pady=20)
 
@@ -70,6 +70,6 @@ class CadastrosHub(ctk.CTkFrame):
     def novo_cliente(self):
         CadastroCliente(self, self.content, on_voltar=self.abrir_cadastros)
 
-    def listar_clientes(self):
+    def acessar_clientes(self):
         from views.lista_clientes import ListaClientes
         ListaClientes(self, self.content, on_voltar=self.abrir_cadastros)

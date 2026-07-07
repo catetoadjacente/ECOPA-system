@@ -1,11 +1,11 @@
 import customtkinter as ctk
-from PIL import Image, ImageTk
+from PIL import Image
 import os
 from controllers.gerente_controller import GerenteController
 from views.dashboard import MainView
 from tkinter import messagebox
 
-ctk.set_appearance_mode("dark")
+ctk.set_appearance_mode("light")
 
 BG_IMAGE = r"fundo_login.png"
 IMG_W, IMG_H = 1043, 673
@@ -23,6 +23,8 @@ class App(ctk.CTk):
         img_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", BG_IMAGE)
         if os.path.exists(img_path):
             self._pil_image = Image.open(img_path)
+        else:
+            self._pil_image = None
 
         self.bg_label = ctk.CTkLabel(self, text="")
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
@@ -94,7 +96,7 @@ class App(ctk.CTk):
         if w < 2 or h < 2:
             return
         resized = self._pil_image.resize((w, h), Image.LANCZOS)
-        self.bg_photo = ImageTk.PhotoImage(resized)
+        self.bg_photo = ctk.CTkImage(resized, size=(w, h))
         self.bg_label.configure(image=self.bg_photo)
 
 
