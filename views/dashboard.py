@@ -21,6 +21,7 @@ class MainView(ctk.CTkFrame):
 
         botoes = [
             ("Dashboard",    self.abrir_dashboard),
+            ("Gerente",      self.abrir_gerente),
             ("Coletas",      self.abrir_coleta),
             ("Pontos",       self.abrir_pontos),
             ("Destinações",  self.abrir_destinacoes),
@@ -53,6 +54,12 @@ class MainView(ctk.CTkFrame):
             self.content, text="Bem-vindo!",
             font=ctk.CTkFont(size=24)
         ).pack(pady=50)
+
+    def abrir_gerente(self):
+        for widget in self.content.winfo_children():
+            widget.destroy()
+        from views.lista_gerentes import ListaGerentes
+        ListaGerentes(self, self.content, on_voltar=self.abrir_dashboard)
 
     def abrir_coleta(self):
         for widget in self.content.winfo_children():
