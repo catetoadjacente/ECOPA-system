@@ -70,12 +70,13 @@ class CadastroColeta(ctk.CTkFrame):
         dados["status"] = self.combo_status.get()
         dados["data_coleta"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        if not all(dados.values()):
+        if not all([dados["ponto"], dados["motorista"], dados["quantidade"]]):
             messagebox.showerror("Erro", "Preencha todos os campos!")
             return
 
-        if ColetaController.cadastrar(dados):
-            messagebox.showinfo("Sucesso", "Coleta cadastrada!")
+        sucesso, mensagem = ColetaController.cadastrar(dados)
+        if sucesso:
+            messagebox.showinfo("Sucesso", mensagem)
             self.on_voltar()
         else:
-            messagebox.showerror("Erro", "Falha ao cadastrar!")
+            messagebox.showerror("Erro", mensagem)

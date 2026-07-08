@@ -3,6 +3,25 @@ from database.database import get_connection
 
 class Cliente:
     @staticmethod
+    def buscar_por_estabelecimento(estabelecimento):
+        connection = get_connection()
+        if connection is None:
+            return None
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(
+                "SELECT id_ponto FROM ponto_de_coleta WHERE estabelecimento = %s LIMIT 1",
+                (estabelecimento,)
+            )
+            return cursor.fetchone()
+        except Exception as e:
+            print(f"Erro ao buscar ponto por estabelecimento: {e}")
+            return None
+        finally:
+            if connection.is_connected():
+                connection.close()
+
+    @staticmethod
     def buscar_por_idponto(idponto):
         connection = get_connection()
         if connection is None:
