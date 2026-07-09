@@ -77,11 +77,16 @@ class App(ctk.CTk):
             messagebox.showerror("Erro", erro)
             self.entry_pass.delete(0, ctk.END)
             return
-        self.withdraw()
+        # Destroi os widgets da tela de login
+        self.entry_user.destroy()
+        self.entry_pass.destroy()
+        self.btn_login.destroy()
+        self.bg_label.destroy()
+        self.unbind("<Configure>")
+
+        # Cria o dashboard sem sair do maximizado
         dashboard = MainView(self)
         dashboard.pack(fill="both", expand=True)
-        self.deiconify()
-        self.after(50, lambda: self.state("zoomed"))
         self.title(f"ECOPA System - {info['nome']}")
 
     def _on_resize(self, event):

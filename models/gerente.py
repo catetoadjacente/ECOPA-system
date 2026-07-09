@@ -46,8 +46,8 @@ class Gerente:
             query = """INSERT INTO gerente (cpf, nome, celular, email, senha, setor)
                        VALUES (%s, %s, %s, %s, %s, %s)"""
             cursor.execute(query, (
-                dados["CPF"], dados["Nome"], dados["Celular"],
-                dados["Email"], dados["Senha"], dados["Setor"]
+                dados["cpf"], dados["nome"], dados["celular"],
+                dados["email"], dados["senha"], dados["setor"]
             ))
             connection.commit()
             return True
@@ -102,8 +102,8 @@ class Gerente:
                        SET celular = %s, email = %s, setor = %s
                        WHERE cpf = %s"""
             cursor.execute(query, (
-                dados["Celular"], dados["Email"],
-                dados["Setor"], cpf
+                dados["celular"], dados["email"],
+                dados["setor"], cpf
             ))
             connection.commit()
             return True
