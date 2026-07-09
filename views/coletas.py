@@ -12,7 +12,7 @@ class ColetasView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
 
-        # Cabeçalho com título e botão Nova Coleta
+        # Cabeçalho com título
         header = ctk.CTkFrame(self.content, fg_color="transparent")
         header.pack(fill="x", padx=30, pady=(30, 5))
 
@@ -21,13 +21,6 @@ class ColetasView(ctk.CTkFrame):
             font=ctk.CTkFont(size=36, weight="bold"), anchor="w"
         )
         titulo.pack(side="left")
-
-        btn_nova = ctk.CTkButton(
-            header, text="+ Nova Coleta",
-            fg_color="#006d12", hover_color="#0a8f2c",
-            command=self.abrir_cadastro
-        )
-        btn_nova.pack(side="right")
 
         subtitulo = ctk.CTkLabel(
             self.content, text="Gerencia todas as coletas do sistema", anchor="w"
@@ -98,6 +91,4 @@ class ColetasView(ctk.CTkFrame):
                 )
                 lbl.grid(row=linha, column=coluna, padx=10, pady=6, sticky="w")
 
-    def abrir_cadastro(self):
-        from views.cadastro_coleta import CadastroColeta
-        CadastroColeta(self, self.content, on_voltar=self.montar_tela)
+

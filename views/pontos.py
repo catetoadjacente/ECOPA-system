@@ -22,13 +22,6 @@ class PontosView(ctk.CTkFrame):
         )
         titulo.pack(side="left")
 
-        btn_novo = ctk.CTkButton(
-            header, text="+ Novo Ponto",
-            fg_color="#006d12", hover_color="#0a8f2c",
-            command=self.novo_ponto
-        )
-        btn_novo.pack(side="right")
-
         subtitulo = ctk.CTkLabel(
             self.content, text="Gerencie todos os pontos de coleta do sistema", anchor="w"
         )
@@ -76,10 +69,6 @@ class PontosView(ctk.CTkFrame):
                 command=lambda idp=idponto: self.excluir_ponto(idp)
             )
             btn_excluir.grid(row=linha, column=7, padx=2)
-
-    def novo_ponto(self):
-        from views.cadastro_pontos import CadastroPonto
-        CadastroPonto(self, self.content, on_voltar=self.montar_tela)
 
     def editar_ponto(self, idponto):
         from views.edicao_ponto import EdicaoPonto
