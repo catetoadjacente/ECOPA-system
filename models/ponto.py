@@ -1,7 +1,7 @@
 from database.database import get_connection
 
 
-class Cliente:
+class Ponto:
     @staticmethod
     def buscar_por_estabelecimento(estabelecimento):
         connection = get_connection()
@@ -30,16 +30,14 @@ class Cliente:
             cursor = connection.cursor(dictionary=True)
             query = """
                 SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
-                       p.telefone, p.proprietario,
-                       d.id_destinacoes, d.cnpj, d.cliente as cliente_nome, d.data
+                       p.telefone, p.proprietario
                 FROM ponto_de_coleta p
-                LEFT JOIN destinacoes d ON p.estabelecimento = d.cliente
                 WHERE p.id_ponto = %s LIMIT 1
             """
             cursor.execute(query, (idponto,))
             return cursor.fetchone()
         except Exception as e:
-            print(f"Erro ao buscar cliente: {e}")
+            print(f"Erro ao buscar ponto de coleta: {e}")
             return None
         finally:
             if connection.is_connected():
@@ -60,17 +58,10 @@ class Cliente:
                 dados["endereco"], dados["email"],
                 dados["estabelecimento"], dados["telefone"], dados["proprietario"]
             ))
-            cursor.execute("""
-                INSERT INTO destinacoes (cnpj, cliente, data, coleta_id_coleta)
-                VALUES (%s, %s, %s, %s)
-            """, (
-                dados["cnpj"], dados["cliente"],
-                dados["data"], dados.get("coleta_id_coleta")
-            ))
             connection.commit()
             return True
         except Exception as e:
-            print(f"Erro ao criar cliente: {e}")
+            print(f"Erro ao criar ponto de coleta: {e}")
             connection.rollback()
             return False
         finally:
@@ -86,16 +77,14 @@ class Cliente:
             cursor = connection.cursor(dictionary=True)
             query = """
                 SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
-                       p.telefone, p.proprietario,
-                       d.id_destinacoes, d.cnpj, d.cliente as cliente_nome, d.data
+                       p.telefone, p.proprietario
                 FROM ponto_de_coleta p
-                LEFT JOIN destinacoes d ON p.estabelecimento = d.cliente
                 ORDER BY p.estabelecimento
             """
             cursor.execute(query)
             return cursor.fetchall()
         except Exception as e:
-            print(f"Erro ao listar clientes: {e}")
+            print(f"Erro ao listar pontos de coleta: {e}")
             return []
         finally:
             if connection.is_connected():
@@ -116,17 +105,10 @@ class Cliente:
                 dados["endereco"], dados["email"],
                 dados["telefone"], dados["proprietario"], idponto
             ))
-            if dados.get("cnpj"):
-                cursor.execute("""
-                    UPDATE destinacoes d
-                    JOIN ponto_de_coleta p ON p.estabelecimento = d.cliente
-                    SET d.cnpj = %s
-                    WHERE p.id_ponto = %s
-                """, (dados["cnpj"], idponto))
             connection.commit()
             return True
         except Exception as e:
-            print(f"Erro ao atualizar cliente: {e}")
+            print(f"Erro ao atualizar ponto de coleta: {e}")
             connection.rollback()
             return False
         finally:
@@ -140,16 +122,11 @@ class Cliente:
             return False
         try:
             cursor = connection.cursor()
-            cursor.execute("""
-                DELETE d FROM destinacoes d
-                JOIN ponto_de_coleta p ON p.estabelecimento = d.cliente
-                WHERE p.id_ponto = %s
-            """, (idponto,))
             cursor.execute("DELETE FROM ponto_de_coleta WHERE id_ponto=%s", (idponto,))
             connection.commit()
             return True
         except Exception as e:
-            print(f"Erro ao deletar cliente: {e}")
+            print(f"Erro ao deletar ponto de coleta: {e}")
             connection.rollback()
             return False
         finally:
