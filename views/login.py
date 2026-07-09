@@ -79,8 +79,6 @@ class App(ctk.CTk):
         self.withdraw()
         dashboard = MainView(self, nome_usuario=info['nome'])
         dashboard.pack(fill="both", expand=True)
-        self.deiconify()
-        self.after(50, lambda: self.state("zoomed"))
         self.title(f"ECOPA System - {info['nome']}")
 
     def _on_resize(self, event):
