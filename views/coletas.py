@@ -84,7 +84,7 @@ class ColetasView(ctk.CTkFrame):
             id_str = f"#{int(c['id']):06d}"
             data_str = c["data_coleta"].strftime("%d/%m/%Y") if c["data_coleta"] else ""
             qtd_str = f"{float(c['quantidade']):.1f}Kg" if c["quantidade"] else ""
-            registro = [id_str, c["ponto"], c["motorista"], qtd_str, data_str, c["status"]]
+            registro = [id_str, c["ponto"], c["observacao"], qtd_str, data_str, c["status"]]
 
             for coluna, valor in enumerate(registro):
                 cor = "white"
