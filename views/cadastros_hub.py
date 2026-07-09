@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from views.cadastro_gerente import CadastroGerente
-from views.cadastro_clientes import CadastroCliente
+from views.cadastro_pontos import CadastroPonto
 from views.cadastro_coleta import CadastroColeta
 
 
@@ -33,7 +33,7 @@ class CadastrosHub(ctk.CTkFrame):
         frame2.place(relx=0.5, rely=0.7, anchor="center", relwidth=0.8, relheight=0.2)
 
         label2 = ctk.CTkLabel(
-            frame2, text="Cliente",
+            frame2, text="Ponto de Coleta",
             font=ctk.CTkFont(size=18, weight="bold")
         )
         label2.pack(side="left", padx=20, pady=20)
@@ -41,7 +41,7 @@ class CadastrosHub(ctk.CTkFrame):
         btn_novo2 = ctk.CTkButton(
             frame2, text="Novo",
             width=100,
-            command=self.novo_cliente
+            command=self.novo_ponto
         )
         btn_novo2.pack(side="right", padx=20, pady=20)
 
@@ -72,12 +72,12 @@ class CadastrosHub(ctk.CTkFrame):
         from views.lista_gerentes import ListaGerentes
         ListaGerentes(self, self.content, on_voltar=self.abrir_cadastros)
 
-    def novo_cliente(self):
-        CadastroCliente(self, self.content, on_voltar=self.abrir_cadastros)
+    def novo_ponto(self):
+        CadastroPonto(self, self.content, on_voltar=self.abrir_cadastros)
 
-    def acessar_clientes(self):
-        from views.lista_clientes import ListaClientes
-        ListaClientes(self, self.content, on_voltar=self.abrir_cadastros)
+    def acessar_pontos(self):
+        from views.lista_pontos import ListaPontos
+        ListaPontos(self, self.content, on_voltar=self.abrir_cadastros)
 
     def nova_coleta(self):
         CadastroColeta(self, self.content, on_voltar=self.abrir_cadastros)

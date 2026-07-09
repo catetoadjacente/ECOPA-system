@@ -1,5 +1,5 @@
 from models.coleta import Coleta
-from models.cliente import Cliente
+from models.ponto import Ponto
 
 
 class ColetaController:
@@ -9,7 +9,7 @@ class ColetaController:
 
     @staticmethod
     def cadastrar(dados):
-        ponto_dados = Cliente.buscar_por_estabelecimento(dados["ponto"])
+        ponto_dados = Ponto.buscar_por_estabelecimento(dados["ponto"])
         if ponto_dados is None:
             return False, "Ponto de coleta nao encontrado"
 

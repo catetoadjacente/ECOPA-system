@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from tkinter import messagebox
-from controllers.cliente_controller import ClienteController
+from controllers.ponto_controller import PontoController
 
 
 class PontosView(ctk.CTkFrame):
@@ -45,7 +45,7 @@ class PontosView(ctk.CTkFrame):
             )
             lbl.grid(row=0, column=coluna, padx=10, pady=10)
 
-        pontos = ClienteController.listar()
+        pontos = PontoController.listar()
         for linha, p in enumerate(pontos, start=1):
             valores = [
                 p.get("id_ponto", ""),
@@ -78,14 +78,14 @@ class PontosView(ctk.CTkFrame):
             btn_excluir.grid(row=linha, column=7, padx=2)
 
     def novo_ponto(self):
-        from views.cadastro_clientes import CadastroCliente
-        CadastroCliente(self, self.content, on_voltar=self.montar_tela)
+        from views.cadastro_pontos import CadastroPonto
+        CadastroPonto(self, self.content, on_voltar=self.montar_tela)
 
     def editar_ponto(self, idponto):
-        from views.edicao_cliente import EdicaoCliente
-        EdicaoCliente(self, self.content, idponto, on_voltar=self.montar_tela)
+        from views.edicao_ponto import EdicaoPonto
+        EdicaoPonto(self, self.content, idponto, on_voltar=self.montar_tela)
 
     def excluir_ponto(self, idponto):
         if messagebox.askyesno("Confirmar", "Deseja excluir este ponto de coleta?"):
-            ClienteController.deletar(idponto)
+            PontoController.deletar(idponto)
             self.montar_tela()
