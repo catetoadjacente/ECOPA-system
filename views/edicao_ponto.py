@@ -1,16 +1,16 @@
 import customtkinter as ctk
 from tkinter import messagebox
-from controllers.cliente_controller import ClienteController
+from controllers.ponto_controller import PontoController
 
 
-class EdicaoCliente(ctk.CTkFrame):
+class EdicaoPonto(ctk.CTkFrame):
     def __init__(self, master, content, idponto, on_voltar):
         super().__init__(master)
         self.content = content
         self.idponto = idponto
         self.on_voltar = on_voltar
-        self.cliente = ClienteController.buscar_por_idponto(idponto)
-        if not self.cliente:
+        self.ponto = PontoController.buscar_por_idponto(idponto)
+        if not self.ponto:
             messagebox.showerror("Erro", "Ponto de coleta nao encontrado")
             self.on_voltar()
             return
@@ -32,7 +32,7 @@ class EdicaoCliente(ctk.CTkFrame):
         lbl_id = ctk.CTkLabel(frame, text="ID Ponto:")
         lbl_id.pack(anchor="w", padx=20)
         lbl_id_valor = ctk.CTkLabel(
-            frame, text=str(self.cliente.get("id_ponto", "")),
+            frame, text=str(self.ponto.get("id_ponto", "")),
             font=ctk.CTkFont(size=14), width=350, anchor="w"
         )
         lbl_id_valor.pack(padx=20, pady=(0, 10))
@@ -40,7 +40,7 @@ class EdicaoCliente(ctk.CTkFrame):
         lbl_est = ctk.CTkLabel(frame, text="Estabelecimento:")
         lbl_est.pack(anchor="w", padx=20)
         lbl_est_valor = ctk.CTkLabel(
-            frame, text=self.cliente.get("estabelecimento", "") or "",
+            frame, text=self.ponto.get("estabelecimento", "") or "",
             font=ctk.CTkFont(size=14), width=350, anchor="w"
         )
         lbl_est_valor.pack(padx=20, pady=(0, 10))
@@ -50,7 +50,6 @@ class EdicaoCliente(ctk.CTkFrame):
             "Email": "email",
             "Telefone": "telefone",
             "Proprietario": "proprietario",
-            "CNPJ": "cnpj",
         }
         self.entries = {}
 
@@ -59,7 +58,7 @@ class EdicaoCliente(ctk.CTkFrame):
             lbl.pack(anchor="w", padx=20)
             entry = ctk.CTkEntry(frame, width=350)
             entry.pack(padx=20, pady=(0, 10))
-            entry.insert(0, self.cliente.get(db_key, "") or "")
+            entry.insert(0, self.ponto.get(db_key, "") or "")
             self.entries[campo] = entry
 
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
@@ -81,7 +80,7 @@ class EdicaoCliente(ctk.CTkFrame):
 
     def _on_salvar(self):
         dados = {campo: entry.get().strip() for campo, entry in self.entries.items()}
-        ok, msg = ClienteController.atualizar(self.idponto, dados)
+        ok, msg = PontoController.atualizar(self.idponto, dados)
         if ok:
             messagebox.showinfo("Sucesso", msg)
             self.on_voltar()

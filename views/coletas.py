@@ -1,5 +1,4 @@
 import customtkinter as ctk
-from tkinter import messagebox
 from controllers.coleta_controller import ColetaController
 
 
@@ -13,7 +12,7 @@ class ColetasView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
 
-        # Cabeçalho com título e botão Nova Coleta
+        # Cabeçalho com título
         header = ctk.CTkFrame(self.content, fg_color="transparent")
         header.pack(fill="x", padx=30, pady=(30, 5))
 
@@ -22,13 +21,6 @@ class ColetasView(ctk.CTkFrame):
             font=ctk.CTkFont(size=36, weight="bold"), anchor="w"
         )
         titulo.pack(side="left")
-
-        btn_nova = ctk.CTkButton(
-            header, text="+ Nova Coleta",
-            fg_color="#006d12", hover_color="#0a8f2c",
-            command=self.abrir_cadastro
-        )
-        btn_nova.pack(side="right")
 
         subtitulo = ctk.CTkLabel(
             self.content, text="Gerencia todas as coletas do sistema", anchor="w"
@@ -66,13 +58,13 @@ class ColetasView(ctk.CTkFrame):
         frame_tabela = ctk.CTkFrame(self.content)
         frame_tabela.pack(fill="both", expand=True, padx=30, pady=(0, 20))
 
-        cabecalhos = ["ID Coleta", "Ponto", "Motorista", "Quantidade", "Data", "Status", "Ações"]
+        cabecalhos = ["ID Coleta", "Ponto", "Motorista", "Quantidade", "Data", "Status"]
         for coluna, texto in enumerate(cabecalhos):
             lbl = ctk.CTkLabel(
                 frame_tabela, text=texto,
                 font=ctk.CTkFont(size=14, weight="bold")
             )
-            lbl.grid(row=0, column=coluna, padx=15, pady=10, sticky="w")
+            lbl.grid(row=0, column=coluna, padx=20, pady=10, sticky="w")
 
         status_cores = {
             "Finalizada":  "#3adb63",
@@ -85,7 +77,7 @@ class ColetasView(ctk.CTkFrame):
             id_str = f"#{int(c['id']):06d}"
             data_str = c["data_coleta"].strftime("%d/%m/%Y") if c["data_coleta"] else ""
             qtd_str = f"{float(c['quantidade']):.1f}Kg" if c["quantidade"] else ""
-            registro = [id_str, c["ponto"], c["motorista"], qtd_str, data_str, c["status"]]
+            registro = [id_str, c["ponto"], c["observacao"], qtd_str, data_str, c["status"]]
 
             for coluna, valor in enumerate(registro):
                 cor = "white"
@@ -95,25 +87,8 @@ class ColetasView(ctk.CTkFrame):
                 lbl = ctk.CTkLabel(
                     frame_tabela, text=valor,
                     fg_color=cor, corner_radius=8,
-                    width=120 if coluna != 1 else 180, anchor="w"
+                    width=130 if coluna != 1 else 200, anchor="w"
                 )
-                lbl.grid(row=linha, column=coluna, padx=8, pady=5, sticky="w")
+                lbl.grid(row=linha, column=coluna, padx=10, pady=6, sticky="w")
 
-            id_coleta = c["id"]
-            btn_remover = ctk.CTkButton(
-                frame_tabela, text="Remover", width=80,
-                fg_color="#e74c3c", hover_color="#c0392b",
-                command=lambda idc=id_coleta: self.remover_coleta(idc)
-            )
-            btn_remover.grid(row=linha, column=6, padx=5, pady=4)
 
-    def abrir_cadastro(self):
-        from views.cadastro_coleta import CadastroColeta
-        CadastroColeta(self, self.content, on_voltar=self.montar_tela)
-
-    def remover_coleta(self, id_coleta):
-        if messagebox.askyesno("Confirmar", "Deseja remover esta coleta?"):
-            if ColetaController.deletar(id_coleta):
-                self.montar_tela()
-            else:
-                messagebox.showerror("Erro", "Falha ao remover coleta!")

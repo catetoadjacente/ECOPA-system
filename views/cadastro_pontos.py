@@ -1,9 +1,9 @@
 import customtkinter as ctk
 from tkinter import messagebox
-from controllers.cliente_controller import ClienteController
+from controllers.ponto_controller import PontoController
 
 
-class CadastroCliente(ctk.CTkFrame):
+class CadastroPonto(ctk.CTkFrame):
     def __init__(self, master, content, on_voltar):
         super().__init__(master)
         self.content = content
@@ -29,8 +29,6 @@ class CadastroCliente(ctk.CTkFrame):
             ("Estabelecimento", "estabelecimento"),
             ("Telefone", "telefone"),
             ("Proprietario", "proprietario"),
-            ("CNPJ", "cnpj"),
-            ("Cliente (Destino)", "cliente"),
         ]
 
         self.entries = {}
@@ -61,7 +59,7 @@ class CadastroCliente(ctk.CTkFrame):
 
     def _on_salvar(self):
         dados = {key: entry.get().strip() for key, entry in self.entries.items()}
-        ok, msg = ClienteController.cadastrar(dados)
+        ok, msg = PontoController.cadastrar(dados)
         if ok:
             messagebox.showinfo("Sucesso", msg)
             self.on_voltar()

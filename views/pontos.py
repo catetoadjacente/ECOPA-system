@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from tkinter import messagebox
-from controllers.cliente_controller import ClienteController
+from controllers.ponto_controller import PontoController
 
 
 class PontosView(ctk.CTkFrame):
@@ -22,13 +22,6 @@ class PontosView(ctk.CTkFrame):
         )
         titulo.pack(side="left")
 
-        btn_novo = ctk.CTkButton(
-            header, text="+ Novo Ponto",
-            fg_color="#006d12", hover_color="#0a8f2c",
-            command=self.novo_ponto
-        )
-        btn_novo.pack(side="right")
-
         subtitulo = ctk.CTkLabel(
             self.content, text="Gerencie todos os pontos de coleta do sistema", anchor="w"
         )
@@ -37,7 +30,7 @@ class PontosView(ctk.CTkFrame):
         frame_tabela = ctk.CTkFrame(self.content)
         frame_tabela.pack(fill="both", expand=True, padx=30, pady=(20, 20))
 
-        cabecalhos = ["ID Ponto", "Estabelecimento", "Endereço", "Email", "Proprietário", "Telefone", "Ações"]
+        cabecalhos = ["ID Ponto", "Estabelecimento", "Endereço", "Email", "Proprietário", "Telefone"]
         for coluna, texto in enumerate(cabecalhos):
             lbl = ctk.CTkLabel(
                 frame_tabela, text=texto,
@@ -45,10 +38,10 @@ class PontosView(ctk.CTkFrame):
             )
             lbl.grid(row=0, column=coluna, padx=10, pady=10)
 
-        pontos = ClienteController.listar()
+        pontos = PontoController.listar()
         for linha, p in enumerate(pontos, start=1):
             valores = [
-                p.get("idponto", ""),
+                p.get("id_ponto", ""),
                 p.get("estabelecimento", "") or "",
                 p.get("endereco", "") or "",
                 p.get("email", "") or "",
@@ -62,7 +55,7 @@ class PontosView(ctk.CTkFrame):
                 )
                 lbl.grid(row=linha, column=coluna, padx=8, pady=4)
 
-            idponto = p["idponto"]
+            idponto = p["id_ponto"]
             btn_editar = ctk.CTkButton(
                 frame_tabela, text="Editar", width=70,
                 fg_color="#f39c12", hover_color="#e67e22",
@@ -77,15 +70,12 @@ class PontosView(ctk.CTkFrame):
             )
             btn_excluir.grid(row=linha, column=7, padx=2)
 
-    def novo_ponto(self):
-        from views.cadastro_clientes import CadastroCliente
-        CadastroCliente(self, self.content, on_voltar=self.montar_tela)
-
     def editar_ponto(self, idponto):
-        from views.edicao_cliente import EdicaoCliente
-        EdicaoCliente(self, self.content, idponto, on_voltar=self.montar_tela)
+        from views.edicao_ponto import EdicaoPonto
+        EdicaoPonto(self, self.content, idponto, on_voltar=self.montar_tela)
 
     def excluir_ponto(self, idponto):
         if messagebox.askyesno("Confirmar", "Deseja excluir este ponto de coleta?"):
-            ClienteController.deletar(idponto)
+            PontoController.deletar(idponto)
             self.montar_tela()
+            

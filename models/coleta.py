@@ -9,7 +9,14 @@ class Coleta:
             return []
         try:
             cursor = connection.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM coletas ORDER BY data_coleta DESC")
+            cursor.execute("""
+                SELECT c.id_coleta AS id, p.estabelecimento AS ponto,
+                       c.observacao AS observacao, c.quantidade,
+                       c.data AS data_coleta, 'Pendente' AS status
+                FROM coleta c
+                JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
+                ORDER BY c.data DESC
+            """)
             return cursor.fetchall()
         except Exception as e:
             print(f"Erro ao listar coletas: {e}")
@@ -26,10 +33,12 @@ class Coleta:
         try:
             cursor = connection.cursor()
             cursor.execute("""
-                INSERT INTO coletas (ponto, motorista, quantidade, data_coleta, status)
+                INSERT INTO coleta (ponto_de_coleta_id_ponto, gerente_cpf,
+                                   quantidade, data, observacao)
                 VALUES (%s, %s, %s, %s, %s)
-            """, (dados["ponto"], dados["motorista"], dados["quantidade"],
-                  dados["data_coleta"], dados.get("status", "Pendente")))
+            """, (dados["ponto"], dados.get("gerente_cpf", "00000000000"),
+                  dados["quantidade"], dados["data_coleta"],
+                  dados.get("observacao", "")))
             connection.commit()
             return True
         except Exception as e:
@@ -47,30 +56,12 @@ class Coleta:
             return False
         try:
             cursor = connection.cursor()
-            cursor.execute("UPDATE coletas SET status=%s WHERE id=%s",
+            cursor.execute("UPDATE coleta SET observacao=%s WHERE id_coleta=%s",
                            (status, id_coleta))
             connection.commit()
             return True
         except Exception as e:
             print(f"Erro ao atualizar status: {e}")
-            return False
-        finally:
-            if connection.is_connected():
-                connection.close()
-
-    @staticmethod
-    def deletar(id_coleta):
-        connection = get_connection()
-        if connection is None:
-            return False
-        try:
-            cursor = connection.cursor()
-            cursor.execute("DELETE FROM coletas WHERE id=%s", (id_coleta,))
-            connection.commit()
-            return True
-        except Exception as e:
-            print(f"Erro ao deletar coleta: {e}")
-            connection.rollback()
             return False
         finally:
             if connection.is_connected():

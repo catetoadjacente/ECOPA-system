@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from views.cadastro_gerente import CadastroGerente
-from views.cadastro_clientes import CadastroCliente
+from views.cadastro_pontos import CadastroPonto
+from views.cadastro_coleta import CadastroColeta
 
 
 class CadastrosHub(ctk.CTkFrame):
@@ -17,10 +18,7 @@ class CadastrosHub(ctk.CTkFrame):
         frame = ctk.CTkFrame(self.content)
         frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.8, relheight=0.2)
 
-        label = ctk.CTkLabel(
-            frame, text="Gerente",
-            font=ctk.CTkFont(size=18, weight="bold")
-        )
+        label = ctk.CTkLabel(frame, text="Gerente",font=ctk.CTkFont(size=18, weight="bold"))
         label.pack(side="left", padx=20, pady=20)
 
         btn_novo = ctk.CTkButton(
@@ -29,18 +27,13 @@ class CadastrosHub(ctk.CTkFrame):
             command=self.novo_gerente
         )
         btn_novo.pack(side="right", padx=20, pady=20)
-        btn_acessar = ctk.CTkButton(
-            frame, text="Acessar",
-            width=100,
-            command=self.acessar_gerentes
-        )
-        btn_acessar.pack(side="right", padx=20, pady=20)
+        
         
         frame2 = ctk.CTkFrame(self.content)
         frame2.place(relx=0.5, rely=0.7, anchor="center", relwidth=0.8, relheight=0.2)
 
         label2 = ctk.CTkLabel(
-            frame2, text="Cliente",
+            frame2, text="Ponto de Coleta",
             font=ctk.CTkFont(size=18, weight="bold")
         )
         label2.pack(side="left", padx=20, pady=20)
@@ -48,16 +41,28 @@ class CadastrosHub(ctk.CTkFrame):
         btn_novo2 = ctk.CTkButton(
             frame2, text="Novo",
             width=100,
-            command=self.novo_cliente
+            command=self.novo_ponto
         )
         btn_novo2.pack(side="right", padx=20, pady=20)
 
-        btn_listar2 = ctk.CTkButton(
-            frame2, text="Acessar",
-            width=100,
-            command=self.acessar_clientes
+
+        frame3 = ctk.CTkFrame(self.content)
+        frame3.place(relx=0.5, rely=0.3, anchor="center", relwidth=0.8, relheight=0.2)
+
+        label3 = ctk.CTkLabel(
+            frame3, text="Coleta",
+            font=ctk.CTkFont(size=18, weight="bold")
         )
-        btn_listar2.pack(side="right", padx=(5, 20), pady=20)
+        label3.pack(side="left", padx=20, pady=20)
+
+        btn_novo3 = ctk.CTkButton(
+            frame3, text="Novo",
+            width=100,
+            command=self.nova_coleta
+        )
+        btn_novo3.pack(side="right", padx=20, pady=20)
+
+        
 
 
     def novo_gerente(self):
@@ -67,9 +72,12 @@ class CadastrosHub(ctk.CTkFrame):
         from views.lista_gerentes import ListaGerentes
         ListaGerentes(self, self.content, on_voltar=self.abrir_cadastros)
 
-    def novo_cliente(self):
-        CadastroCliente(self, self.content, on_voltar=self.abrir_cadastros)
+    def novo_ponto(self):
+        CadastroPonto(self, self.content, on_voltar=self.abrir_cadastros)
 
-    def acessar_clientes(self):
-        from views.lista_clientes import ListaClientes
-        ListaClientes(self, self.content, on_voltar=self.abrir_cadastros)
+    def acessar_pontos(self):
+        from views.lista_pontos import ListaPontos
+        ListaPontos(self, self.content, on_voltar=self.abrir_cadastros)
+
+    def nova_coleta(self):
+        CadastroColeta(self, self.content, on_voltar=self.abrir_cadastros)
