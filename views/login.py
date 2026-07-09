@@ -77,7 +77,7 @@ class App(ctk.CTk):
             self.entry_pass.delete(0, ctk.END)
             return
         self.withdraw()
-        dashboard = MainView(self)
+        dashboard = MainView(self, nome_usuario=info['nome'])
         dashboard.pack(fill="both", expand=True)
         self.deiconify()
         self.geometry("1200x700")

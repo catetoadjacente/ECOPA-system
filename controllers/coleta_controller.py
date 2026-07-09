@@ -13,3 +13,7 @@ class ColetaController:
     @staticmethod
     def atualizar_status(id_coleta, status):
         return Coleta.atualizar_status(id_coleta, status)
+
+    @staticmethod
+    def deletar(id_coleta):
+        return Coleta.deletar(id_coleta)

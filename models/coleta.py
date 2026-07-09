@@ -57,3 +57,21 @@ class Coleta:
         finally:
             if connection.is_connected():
                 connection.close()
+
+    @staticmethod
+    def deletar(id_coleta):
+        connection = get_connection()
+        if connection is None:
+            return False
+        try:
+            cursor = connection.cursor()
+            cursor.execute("DELETE FROM coletas WHERE id=%s", (id_coleta,))
+            connection.commit()
+            return True
+        except Exception as e:
+            print(f"Erro ao deletar coleta: {e}")
+            connection.rollback()
+            return False
+        finally:
+            if connection.is_connected():
+                connection.close()

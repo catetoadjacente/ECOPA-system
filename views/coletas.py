@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from tkinter import messagebox
 from controllers.coleta_controller import ColetaController
 
 
@@ -65,13 +66,13 @@ class ColetasView(ctk.CTkFrame):
         frame_tabela = ctk.CTkFrame(self.content)
         frame_tabela.pack(fill="both", expand=True, padx=30, pady=(0, 20))
 
-        cabecalhos = ["ID Coleta", "Ponto", "Motorista", "Quantidade", "Data", "Status"]
+        cabecalhos = ["ID Coleta", "Ponto", "Motorista", "Quantidade", "Data", "Status", "Ações"]
         for coluna, texto in enumerate(cabecalhos):
             lbl = ctk.CTkLabel(
                 frame_tabela, text=texto,
                 font=ctk.CTkFont(size=14, weight="bold")
             )
-            lbl.grid(row=0, column=coluna, padx=20, pady=10, sticky="w")
+            lbl.grid(row=0, column=coluna, padx=15, pady=10, sticky="w")
 
         status_cores = {
             "Finalizada":  "#3adb63",
@@ -94,10 +95,25 @@ class ColetasView(ctk.CTkFrame):
                 lbl = ctk.CTkLabel(
                     frame_tabela, text=valor,
                     fg_color=cor, corner_radius=8,
-                    width=130 if coluna != 1 else 200, anchor="w"
+                    width=120 if coluna != 1 else 180, anchor="w"
                 )
-                lbl.grid(row=linha, column=coluna, padx=10, pady=6, sticky="w")
+                lbl.grid(row=linha, column=coluna, padx=8, pady=5, sticky="w")
+
+            id_coleta = c["id"]
+            btn_remover = ctk.CTkButton(
+                frame_tabela, text="Remover", width=80,
+                fg_color="#e74c3c", hover_color="#c0392b",
+                command=lambda idc=id_coleta: self.remover_coleta(idc)
+            )
+            btn_remover.grid(row=linha, column=6, padx=5, pady=4)
 
     def abrir_cadastro(self):
         from views.cadastro_coleta import CadastroColeta
         CadastroColeta(self, self.content, on_voltar=self.montar_tela)
+
+    def remover_coleta(self, id_coleta):
+        if messagebox.askyesno("Confirmar", "Deseja remover esta coleta?"):
+            if ColetaController.deletar(id_coleta):
+                self.montar_tela()
+            else:
+                messagebox.showerror("Erro", "Falha ao remover coleta!")
