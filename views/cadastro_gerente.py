@@ -23,7 +23,7 @@ class CadastroGerente(ctk.CTkFrame):
         )
         label.pack(pady=(20, 15))
 
-        campos = ["cpf", "nome", "celular", "email", "senha", "setor"]
+        campos = ["idcpf", "nome", "Celular", "email", "senha", "setor"]
         self.entries = {}
 
         for campo in campos:

@@ -40,14 +40,8 @@ class CadastroColeta(ctk.CTkFrame):
         self.entry_quantidade = ctk.CTkEntry(frame, width=350)
         self.entry_quantidade.pack(padx=20, pady=(0, 10))
 
-        # Observação
-        lbl = ctk.CTkLabel(frame, text="Observação:")
-        lbl.pack(anchor="w", padx=20)
-        self.entry_observacao = ctk.CTkEntry(frame, width=350)
-        self.entry_observacao.pack(padx=20, pady=(0, 10))
-
-        # Gerente
-        lbl = ctk.CTkLabel(frame, text="Gerente responsavel:")
+        # Motorista
+        lbl = ctk.CTkLabel(frame, text="Motorista:")
         lbl.pack(anchor="w", padx=20)
         gerentes = GerenteController.listar()
         self.gerentes_lista = gerentes
@@ -96,23 +90,17 @@ class CadastroColeta(ctk.CTkFrame):
         nome_ponto = self.combo_ponto.get().strip()
         data_coleta = self.entry_data.get().strip()
         quantidade = self.entry_quantidade.get().strip()
-        observacao = self.entry_observacao.get().strip()
 
         if not all([nome_gerente, nome_ponto, data_coleta, quantidade]):
             messagebox.showerror("Erro", "Preencha todos os campos obrigatórios!")
             return
 
-        gerente_cpf = next(
-            (g["cpf"] for g in self.gerentes_lista if g["nome"] == nome_gerente),
-            None
-        )
-
         dados = {
             "ponto": nome_ponto,
-            "gerente_cpf": gerente_cpf,
+            "motorista": nome_gerente,
             "quantidade": quantidade,
             "data_coleta": data_coleta,
-            "observacao": observacao,
+            "status": "Pendente",
         }
 
         sucesso, mensagem = ColetaController.cadastrar(dados)

@@ -10,7 +10,7 @@ class Ponto:
         try:
             cursor = connection.cursor(dictionary=True)
             cursor.execute(
-                "SELECT id_ponto FROM ponto_de_coleta WHERE estabelecimento = %s LIMIT 1",
+                "SELECT idponto FROM ponto WHERE estabelecimento = %s LIMIT 1",
                 (estabelecimento,)
             )
             return cursor.fetchone()
@@ -28,13 +28,12 @@ class Ponto:
             return None
         try:
             cursor = connection.cursor(dictionary=True)
-            query = """
-                SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
-                       p.telefone, p.proprietario
-                FROM ponto_de_coleta p
-                WHERE p.id_ponto = %s LIMIT 1
-            """
-            cursor.execute(query, (idponto,))
+            cursor.execute("""
+                SELECT idponto, endereco, email, estabelecimento,
+                       telefone, propretario as proprietario
+                FROM ponto
+                WHERE idponto = %s LIMIT 1
+            """, (idponto,))
             return cursor.fetchone()
         except Exception as e:
             print(f"Erro ao buscar ponto de coleta: {e}")
@@ -51,8 +50,7 @@ class Ponto:
         try:
             cursor = connection.cursor()
             cursor.execute("""
-                INSERT INTO ponto_de_coleta (endereco, email, estabelecimento,
-                                             telefone, proprietario)
+                INSERT INTO ponto (endereco, email, estabelecimento, telefone, propretario)
                 VALUES (%s, %s, %s, %s, %s)
             """, (
                 dados["endereco"], dados["email"],
@@ -75,13 +73,12 @@ class Ponto:
             return []
         try:
             cursor = connection.cursor(dictionary=True)
-            query = """
-                SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
-                       p.telefone, p.proprietario
-                FROM ponto_de_coleta p
-                ORDER BY p.estabelecimento
-            """
-            cursor.execute(query)
+            cursor.execute("""
+                SELECT idponto, endereco, email, estabelecimento,
+                       telefone, propretario as proprietario
+                FROM ponto
+                ORDER BY estabelecimento
+            """)
             return cursor.fetchall()
         except Exception as e:
             print(f"Erro ao listar pontos de coleta: {e}")
@@ -98,9 +95,9 @@ class Ponto:
         try:
             cursor = connection.cursor()
             cursor.execute("""
-                UPDATE ponto_de_coleta
-                SET endereco=%s, email=%s, telefone=%s, proprietario=%s
-                WHERE id_ponto=%s
+                UPDATE ponto
+                SET endereco=%s, email=%s, telefone=%s, propretario=%s
+                WHERE idponto=%s
             """, (
                 dados["endereco"], dados["email"],
                 dados["telefone"], dados["proprietario"], idponto
@@ -122,7 +119,7 @@ class Ponto:
             return False
         try:
             cursor = connection.cursor()
-            cursor.execute("DELETE FROM ponto_de_coleta WHERE id_ponto=%s", (idponto,))
+            cursor.execute("DELETE FROM ponto WHERE idponto=%s", (idponto,))
             connection.commit()
             return True
         except Exception as e:

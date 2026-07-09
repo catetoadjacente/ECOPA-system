@@ -4,12 +4,12 @@ from controllers.gerente_controller import GerenteController
 
 
 class EdicaoGerente(ctk.CTkFrame):
-    def __init__(self, master, content, cpf, on_voltar):
+    def __init__(self, master, content, idcpf, on_voltar):
         super().__init__(master)
         self.content = content
-        self.cpf = cpf
+        self.idcpf = idcpf
         self.on_voltar = on_voltar
-        self.gerente = GerenteController.obter_por_cpf(cpf)
+        self.gerente = GerenteController.obter_por_idcpf(idcpf)
         if not self.gerente:
             messagebox.showerror("Erro", "Gerente nao encontrado")
             self.on_voltar()
@@ -37,19 +37,15 @@ class EdicaoGerente(ctk.CTkFrame):
         )
         lbl_nome_valor.pack(padx=20, pady=(0, 10))
 
-        campos = {
-            "Celular": "celular",
-            "Email": "email",
-            "Setor": "setor",
-        }
+        campos = ["Celular", "email", "setor"]
         self.entries = {}
 
-        for campo, db_key in campos.items():
+        for campo in campos:
             lbl = ctk.CTkLabel(frame, text=campo + ":")
             lbl.pack(anchor="w", padx=20)
             entry = ctk.CTkEntry(frame, width=350)
             entry.pack(padx=20, pady=(0, 10))
-            entry.insert(0, self.gerente[db_key] or "")
+            entry.insert(0, self.gerente[campo] or "")
             self.entries[campo] = entry
 
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
@@ -71,7 +67,7 @@ class EdicaoGerente(ctk.CTkFrame):
 
     def _on_salvar(self):
         dados = {campo: entry.get().strip() for campo, entry in self.entries.items()}
-        ok, msg = GerenteController.atualizar(self.cpf, dados)
+        ok, msg = GerenteController.atualizar(self.idcpf, dados)
         if ok:
             messagebox.showinfo("Sucesso", msg)
             self.on_voltar()

@@ -44,7 +44,7 @@ class ListaPontos(ctk.CTkFrame):
 
         pontos = PontoController.listar()
         for row, ponto in enumerate(pontos, start=1):
-            ctk.CTkLabel(frame_tabela, text=str(ponto.get("id_ponto", "")), width=80).grid(row=row, column=0, padx=5, pady=4, sticky="w")
+            ctk.CTkLabel(frame_tabela, text=str(ponto.get("idponto", "")), width=80).grid(row=row, column=0, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=ponto.get("estabelecimento", "") or "", width=150).grid(row=row, column=1, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=ponto.get("endereco", "") or "", width=150).grid(row=row, column=2, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=ponto.get("email", "") or "", width=150).grid(row=row, column=3, padx=5, pady=4, sticky="w")
@@ -54,14 +54,14 @@ class ListaPontos(ctk.CTkFrame):
             btn_editar = ctk.CTkButton(
                 frame_tabela, text="Editar", width=70,
                 fg_color="#f39c12", hover_color="#e67e22",
-                command=lambda idp=ponto["id_ponto"]: self._editar(idp)
+                command=lambda idp=ponto["idponto"]: self._editar(idp)
             )
             btn_editar.grid(row=row, column=6, padx=2)
 
             btn_excluir = ctk.CTkButton(
                 frame_tabela, text="Excluir", width=70,
                 fg_color="#e74c3c", hover_color="#c0392b",
-                command=lambda idp=ponto["id_ponto"]: self._excluir(idp)
+                command=lambda idp=ponto["idponto"]: self._excluir(idp)
             )
             btn_excluir.grid(row=row, column=7, padx=2)
 

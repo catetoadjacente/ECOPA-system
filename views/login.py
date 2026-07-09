@@ -76,7 +76,10 @@ class App(ctk.CTk):
             messagebox.showerror("Erro", erro)
             self.entry_pass.delete(0, ctk.END)
             return
-        self.withdraw()
+        for widget in self.winfo_children():
+            widget.destroy()
+        self.bg_photo = None
+        self._pil_image = None
         dashboard = MainView(self, nome_usuario=info['nome'])
         dashboard.pack(fill="both", expand=True)
         self.title(f"ECOPA System - {info['nome']}")
