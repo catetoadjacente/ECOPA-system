@@ -2,6 +2,8 @@ import customtkinter as ctk
 from tkinter import messagebox
 from datetime import datetime
 from controllers.coleta_controller import ColetaController
+from controllers.ponto_controller import PontoController
+from controllers.gerente_controller import GerenteController
 
 
 class CadastroColeta(ctk.CTkFrame):
@@ -25,28 +27,52 @@ class CadastroColeta(ctk.CTkFrame):
         )
         label.pack(pady=(20, 15))
 
-        campos = [
-            ("Ponto", "ponto"),
-            ("Motorista", "motorista"),
-            ("Quantidade (Kg)", "quantidade"),
-        ]
-        self.entries = {}
-
-        for label_text, key in campos:
-            lbl = ctk.CTkLabel(frame, text=label_text + ":")
-            lbl.pack(anchor="w", padx=20)
-            entry = ctk.CTkEntry(frame, width=350)
-            entry.pack(padx=20, pady=(0, 10))
-            self.entries[key] = entry
-
-        lbl = ctk.CTkLabel(frame, text="Status:")
+        # Data
+        lbl = ctk.CTkLabel(frame, text="Data:")
         lbl.pack(anchor="w", padx=20)
-        self.combo_status = ctk.CTkComboBox(
-            frame, values=["Pendente", "Em andamento", "Finalizada"],
+        self.entry_data = ctk.CTkEntry(frame, width=350, placeholder_text="AAAA-MM-DD HH:MM")
+        self.entry_data.insert(0, datetime.now().strftime("%Y-%m-%d %H:%M"))
+        self.entry_data.pack(padx=20, pady=(0, 10))
+
+        # Quantidade
+        lbl = ctk.CTkLabel(frame, text="Quantidade (Kg):")
+        lbl.pack(anchor="w", padx=20)
+        self.entry_quantidade = ctk.CTkEntry(frame, width=350)
+        self.entry_quantidade.pack(padx=20, pady=(0, 10))
+
+        # Observação
+        lbl = ctk.CTkLabel(frame, text="Observação:")
+        lbl.pack(anchor="w", padx=20)
+        self.entry_observacao = ctk.CTkEntry(frame, width=350)
+        self.entry_observacao.pack(padx=20, pady=(0, 10))
+
+        # Gerente
+        lbl = ctk.CTkLabel(frame, text="Gerente responsavel:")
+        lbl.pack(anchor="w", padx=20)
+        gerentes = GerenteController.listar()
+        self.gerentes_lista = gerentes
+        nomes_gerentes = [g["nome"] for g in gerentes]
+        self.combo_gerente = ctk.CTkComboBox(
+            frame, values=nomes_gerentes if nomes_gerentes else ["Nenhum gerente disponivel"],
             width=350, state="readonly"
         )
-        self.combo_status.set("Pendente")
-        self.combo_status.pack(padx=20, pady=(0, 10))
+        if nomes_gerentes:
+            self.combo_gerente.set(nomes_gerentes[0])
+        self.combo_gerente.pack(padx=20, pady=(0, 10))
+
+        # Ponto
+        lbl = ctk.CTkLabel(frame, text="Ponto de Coleta:")
+        lbl.pack(anchor="w", padx=20)
+        pontos = PontoController.listar()
+        self.pontos_lista = pontos
+        nomes_pontos = [p["estabelecimento"] for p in pontos]
+        self.combo_ponto = ctk.CTkComboBox(
+            frame, values=nomes_pontos if nomes_pontos else ["Nenhum ponto disponivel"],
+            width=350, state="readonly"
+        )
+        if nomes_pontos:
+            self.combo_ponto.set(nomes_pontos[0])
+        self.combo_ponto.pack(padx=20, pady=(0, 10))
 
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
         btn_frame.pack(pady=20)
@@ -66,13 +92,28 @@ class CadastroColeta(ctk.CTkFrame):
         btn_voltar.pack(side="left", padx=10)
 
     def salvar(self):
-        dados = {key: entry.get().strip() for key, entry in self.entries.items()}
-        dados["status"] = self.combo_status.get()
-        dados["data_coleta"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        nome_gerente = self.combo_gerente.get().strip()
+        nome_ponto = self.combo_ponto.get().strip()
+        data_coleta = self.entry_data.get().strip()
+        quantidade = self.entry_quantidade.get().strip()
+        observacao = self.entry_observacao.get().strip()
 
-        if not all([dados["ponto"], dados["motorista"], dados["quantidade"]]):
-            messagebox.showerror("Erro", "Preencha todos os campos!")
+        if not all([nome_gerente, nome_ponto, data_coleta, quantidade]):
+            messagebox.showerror("Erro", "Preencha todos os campos obrigatórios!")
             return
+
+        gerente_cpf = next(
+            (g["cpf"] for g in self.gerentes_lista if g["nome"] == nome_gerente),
+            None
+        )
+
+        dados = {
+            "ponto": nome_ponto,
+            "gerente_cpf": gerente_cpf,
+            "quantidade": quantidade,
+            "data_coleta": data_coleta,
+            "observacao": observacao,
+        }
 
         sucesso, mensagem = ColetaController.cadastrar(dados)
         if sucesso:
