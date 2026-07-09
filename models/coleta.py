@@ -11,7 +11,7 @@ class Coleta:
             cursor = connection.cursor(dictionary=True)
             cursor.execute("""
                 SELECT c.id_coleta AS id, p.estabelecimento AS ponto,
-                       c.observacao AS motorista, c.quantidade,
+                       c.observacao AS observacao, c.quantidade,
                        c.data AS data_coleta, 'Pendente' AS status
                 FROM coleta c
                 JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
@@ -38,7 +38,7 @@ class Coleta:
                 VALUES (%s, %s, %s, %s, %s)
             """, (dados["ponto"], dados.get("gerente_cpf", "00000000000"),
                   dados["quantidade"], dados["data_coleta"],
-                  dados.get("motorista", "")))
+                  dados.get("observacao", "")))
             connection.commit()
             return True
         except Exception as e:
