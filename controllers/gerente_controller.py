@@ -64,3 +64,4 @@ class GerenteController:
         if Gerente.deletar(idcpf):
             return True, "Gerente excluido com sucesso"
         return False, "Falha ao excluir gerente"
+    

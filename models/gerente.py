@@ -125,3 +125,4 @@ class Gerente:
         finally:
             if connection.is_connected():
                 connection.close()
+                
