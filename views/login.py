@@ -59,15 +59,15 @@ class App(ctk.CTk):
             self,
             text="Entrar",
             fg_color="#DDEEDD",
-            border_width=0,
-            bg_color="#DDEEDD",
+            border_width=0, 
             hover_color="#205b59",
-            height=25,
+            height=41,
+            corner_radius=20,
             text_color="black",
             font=ctk.CTkFont(size=14, weight="bold"),
             command=self._on_login
         )
-        self.btn_login.place(relx=0.75, rely=0.65, anchor="center", relwidth=0.1)
+        self.btn_login.place(relx=0.762, rely=0.662, anchor="center", relwidth=0.15)
 
     def _on_login(self):
         user = self.entry_user.get().strip()
@@ -85,7 +85,7 @@ class App(ctk.CTk):
         self.unbind("<Configure>")
 
         # Cria o dashboard sem sair do maximizado
-        dashboard = MainView(self)
+        dashboard = MainView(self, nome_usuario=info['nome'])
         dashboard.pack(fill="both", expand=True)
         self.title(f"ECOPA System - {info['nome']}")
 
