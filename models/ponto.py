@@ -132,3 +132,51 @@ class Ponto:
         finally:
             if connection.is_connected():
                 connection.close()
+
+    @staticmethod
+    def salvar_horarios(id_ponto, horarios):
+        connection = get_connection()
+        if connection is None:
+            return False
+        try:
+            cursor = connection.cursor()
+            cursor.start_transaction()
+            cursor.execute(
+                "DELETE FROM horario_ponto WHERE ponto_de_coleta_id_ponto = %s",
+                (id_ponto,)
+            )
+            for h in horarios:
+                cursor.execute("""
+                    INSERT INTO horario_ponto
+                    (dia_semana, abertura, fechamento, ativo, ponto_de_coleta_id_ponto)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (h["dia_semana"], h["abertura"], h["fechamento"],
+                    h["ativo"], id_ponto))
+            connection.commit()
+            return True
+        except Exception as e:
+            print(f"Erro ao salvar horarios: {e}")
+            connection.rollback()
+            return False
+        finally:
+            if connection.is_connected():
+                connection.close()
+
+    @staticmethod
+    def buscar_horarios(id_ponto):
+        connection = get_connection()
+        if connection is None:
+            return []
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(
+                "SELECT * FROM horario_ponto WHERE ponto_de_coleta_id_ponto = %s ORDER BY dia_semana",
+                (id_ponto,)
+            )
+            return cursor.fetchall()
+        except Exception as e:
+            print(f"Erro ao buscar horarios: {e}")
+            return []
+        finally:
+            if connection.is_connected():
+                connection.close()

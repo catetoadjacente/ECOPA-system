@@ -1,6 +1,12 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.ponto_controller import PontoController
+from models.ponto import Ponto
+
+DIAS_SEMANA = [
+    (1, "Dom"), (2, "Seg"), (3, "Ter"), (4, "Qua"),
+    (5, "Qui"), (6, "Sex"), (7, "Sáb")
+]
 
 
 class EdicaoPonto(ctk.CTkFrame):
@@ -61,6 +67,47 @@ class EdicaoPonto(ctk.CTkFrame):
             entry.insert(0, self.ponto.get(db_key, "") or "")
             self.entries[campo] = entry
 
+        lbl_h = ctk.CTkLabel(frame, text="Horário de Funcionamento:")
+        lbl_h.pack(anchor="w", padx=20, pady=(15, 5))
+
+        self.chk_vars = {}
+        self.entry_abertura = {}
+        self.entry_fechamento = {}
+
+        for dia_num, dia_nome in DIAS_SEMANA:
+            linha = ctk.CTkFrame(frame, fg_color="transparent")
+            linha.pack(fill="x", padx=20, pady=1)
+
+            var = ctk.BooleanVar(value=True)
+            chk = ctk.CTkCheckBox(linha, text=dia_nome, variable=var, width=50)
+            chk.pack(side="left")
+
+            ctk.CTkLabel(linha, text="Abre:", width=40).pack(side="left", padx=(10, 0))
+            ent_a = ctk.CTkEntry(linha, width=70, placeholder_text="08:00")
+            ent_a.pack(side="left", padx=(0, 5))
+            ent_a.insert(0, "08:00")
+
+            ctk.CTkLabel(linha, text="Fecha:", width=45).pack(side="left")
+            ent_f = ctk.CTkEntry(linha, width=70, placeholder_text="17:00")
+            ent_f.pack(side="left")
+            ent_f.insert(0, "17:00")
+
+            self.chk_vars[dia_num] = var
+            self.entry_abertura[dia_num] = ent_a
+            self.entry_fechamento[dia_num] = ent_f
+
+        horarios_existentes = Ponto.buscar_horarios(self.idponto)
+        horarios_map = {h["dia_semana"]: h for h in horarios_existentes}
+
+        for dia_num, _ in DIAS_SEMANA:
+            if dia_num in horarios_map:
+                h = horarios_map[dia_num]
+                self.chk_vars[dia_num].set(h["ativo"] == 1)
+                self.entry_abertura[dia_num].delete(0, ctk.END)
+                self.entry_abertura[dia_num].insert(0, str(h["abertura"]))
+                self.entry_fechamento[dia_num].delete(0, ctk.END)
+                self.entry_fechamento[dia_num].insert(0, str(h["fechamento"]))
+
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
         btn_frame.pack(pady=20)
 
@@ -80,7 +127,18 @@ class EdicaoPonto(ctk.CTkFrame):
 
     def _on_salvar(self):
         dados = {campo: entry.get().strip() for campo, entry in self.entries.items()}
-        ok, msg = PontoController.atualizar(self.idponto, dados)
+
+        horarios = []
+        for dia_num, _ in DIAS_SEMANA:
+            if self.chk_vars[dia_num].get():
+                horarios.append({
+                    "dia_semana": dia_num,
+                    "abertura": self.entry_abertura[dia_num].get().strip(),
+                    "fechamento": self.entry_fechamento[dia_num].get().strip(),
+                    "ativo": 1,
+                })
+
+        ok, msg = PontoController.atualizar(self.idponto, dados, horarios=horarios if horarios else None)
         if ok:
             messagebox.showinfo("Sucesso", msg)
             self.on_voltar()

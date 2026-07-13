@@ -3,7 +3,7 @@ from models.ponto import Ponto
 
 class PontoController:
     @staticmethod
-    def cadastrar(dados):
+    def cadastrar(dados, horarios=None):
         erros = []
         if not dados.get("endereco"):
             erros.append("Endereco")
@@ -16,6 +16,9 @@ class PontoController:
         if erros:
             return False, f"Preencha: {', '.join(erros)}"
         if Ponto.criar(dados):
+            ponto = Ponto.buscar_por_estabelecimento(dados["estabelecimento"])
+            if ponto and horarios:
+                Ponto.salvar_horarios(ponto["id_ponto"], horarios)
             return True, "Ponto de coleta cadastrado com sucesso"
         return False, "Falha ao cadastrar ponto de coleta"
 
@@ -30,7 +33,7 @@ class PontoController:
         return Ponto.buscar_por_idponto(idponto)
 
     @staticmethod
-    def atualizar(idponto, dados):
+    def atualizar(idponto, dados, horarios=None):
         erros = []
         if not dados.get("endereco"):
             erros.append("Endereco")
