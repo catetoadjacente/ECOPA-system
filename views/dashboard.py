@@ -84,9 +84,10 @@ class MainView(ctk.CTkFrame):
         pontos = PontoController.listar()
 
         total_coletas = len(coletas)
+        total_pontos = len(pontos)
+        quantidade_total = sum(float(c["quantidade"] or 0) for c in coletas)
         pendentes = sum(1 for c in coletas if c["status"] == "Pendente")
-        em_andamento = sum(1 for c in coletas if c["status"] == "Em andamento")
-        finalizadas = sum(1 for c in coletas if c["status"] == "Finalizada")
+        realizadas = sum(1 for c in coletas if c["status"] == "Realizada")
 
         frame_cards = ctk.CTkFrame(scroll, fg_color="transparent")
         frame_cards.pack(fill="x", padx=30, pady=10)
@@ -94,8 +95,9 @@ class MainView(ctk.CTkFrame):
         cards = [
             ("Total Coletas", str(total_coletas), "#2c3e50"),
             ("Pendentes", str(pendentes), "#e67e22"),
-            ("Em Andamento", str(em_andamento), "#3498db"),
-            ("Finalizadas", str(finalizadas), "#27ae60"),
+            ("Realizadas", str(realizadas), "#27ae60"),
+            ("Total Pontos", str(total_pontos), "#3498db"),
+            ("Quantidade Total", f"{quantidade_total:.1f} Kg", "#2c3e50"),
         ]
 
         for i, (tit, val, cor) in enumerate(cards):
@@ -118,7 +120,7 @@ class MainView(ctk.CTkFrame):
         # 1. Pizza - Status
         status_count = Counter(c["status"] for c in coletas)
         if status_count:
-            cores_pizza = {"Pendente": "#e67e22", "Em andamento": "#3498db", "Finalizada": "#27ae60"}
+            cores_pizza = {"Pendente": "#e67e22", "Realizada": "#27ae60"}
             labels = list(status_count.keys())
             sizes = list(status_count.values())
             colors = [cores_pizza.get(l, "#999") for l in labels]
