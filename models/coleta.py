@@ -12,7 +12,7 @@ class Coleta:
             cursor.execute("""
                 SELECT c.id_coleta AS id, p.estabelecimento AS ponto,
                        c.observacao AS observacao, c.quantidade,
-                       c.data AS data_coleta, 'Pendente' AS status
+                       c.data AS data_coleta, c.status
                 FROM coleta c
                 JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
                 ORDER BY c.data DESC
@@ -34,11 +34,11 @@ class Coleta:
             cursor = connection.cursor()
             cursor.execute("""
                 INSERT INTO coleta (ponto_de_coleta_id_ponto, gerente_cpf,
-                                   quantidade, data, observacao)
-                VALUES (%s, %s, %s, %s, %s)
+                                   quantidade, data, observacao, status)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """, (dados["ponto"], dados.get("gerente_cpf", "00000000000"),
                   dados["quantidade"], dados["data_coleta"],
-                  dados.get("observacao", "")))
+                  dados.get("observacao", ""), "Pendente"))
             connection.commit()
             return True
         except Exception as e:
@@ -56,7 +56,7 @@ class Coleta:
             return False
         try:
             cursor = connection.cursor()
-            cursor.execute("UPDATE coleta SET observacao=%s WHERE id_coleta=%s",
+            cursor.execute("UPDATE coleta SET status=%s WHERE id_coleta=%s",
                            (status, id_coleta))
             connection.commit()
             return True
