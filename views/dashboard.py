@@ -32,7 +32,7 @@ class MainView(ctk.CTkFrame):
         super().__init__(master)
         self.nome_usuario = nome_usuario
 
-        self.sidebar = ctk.CTkFrame(self, width=260, corner_radius=0, fg_color="#006d12")
+        self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color="#006d12")
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
@@ -44,11 +44,11 @@ class MainView(ctk.CTkFrame):
 
         botoes = [
             ("dashboard",    "Dashboard",    self.abrir_dashboard),
-            ("gerente",      "Gerente",      self.abrir_gerente),
+            ("cadastros",    "Cadastros",    self.abrir_cadastros),
             ("coletas",      "Coletas",      self.abrir_coleta),
             ("pontos",       "Pontos",       self.abrir_pontos),
             ("destinacoes",  "Destinações",  self.abrir_destinacoes),
-            ("cadastros",    "Cadastros",    self.abrir_cadastros),
+            ("gerente",      "Gerente",      self.abrir_gerente),
             ("relatorios",   "Relatórios",   self.abrir_relatorios),
         ]
 
