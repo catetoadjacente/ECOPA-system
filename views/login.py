@@ -8,7 +8,7 @@ from tkinter import messagebox
 ctk.set_appearance_mode("light")
 
 BG_IMAGE = r"fundo_login.png"
-IMG_W, IMG_H = 1043, 673
+IMG_W, IMG_H = 1280, 832
 
 
 class App(ctk.CTk):
@@ -41,7 +41,7 @@ class App(ctk.CTk):
             height=35,
             font=ctk.CTkFont(size=14),
         )
-        self.entry_user.place(relx=0.76, rely=0.4, anchor="center", relwidth=0.34)
+        self.entry_user.place(relx=0.762, rely=0.39, anchor="center", relwidth=0.34)
 
         self.entry_pass = ctk.CTkEntry(
             self,
@@ -53,13 +53,13 @@ class App(ctk.CTk):
             height=35,
             font=ctk.CTkFont(size=14),
         )
-        self.entry_pass.place(relx=0.76, rely=0.545, anchor="center", relwidth=0.34)
+        self.entry_pass.place(relx=0.762, rely=0.545, anchor="center", relwidth=0.34)
 
         self.btn_login = ctk.CTkButton(
             self,
             text="Entrar",
             fg_color="#DDEEDD",
-            border_width=0, 
+            border_width=0,
             hover_color="#205b59",
             height=41,
             corner_radius=20,
@@ -67,7 +67,7 @@ class App(ctk.CTk):
             font=ctk.CTkFont(size=14, weight="bold"),
             command=self._on_login
         )
-        self.btn_login.place(relx=0.762, rely=0.662, anchor="center", relwidth=0.15)
+        self.btn_login.place(relx=0.775, rely=0.65, anchor="center", relwidth=0.15)
 
     def _on_login(self):
         user = self.entry_user.get().strip()
