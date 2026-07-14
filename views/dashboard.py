@@ -1,4 +1,6 @@
 import customtkinter as ctk
+from PIL import Image
+import os
 from views.cadastros_hub import CadastrosHub
 from views.coletas import ColetasView
 from views.pontos import PontosView
@@ -13,13 +15,24 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 plt.rcParams["font.family"] = "sans-serif"
 
+ICONS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "icons")
+
+
+def carregar_icone(nome, tamanho=20):
+    """Carrega icone de assets/icons/{nome}.png. Retorna None se nao existir."""
+    caminho = os.path.join(ICONS_DIR, f"{nome}.png")
+    if os.path.exists(caminho):
+        img = Image.open(caminho).resize((tamanho, tamanho), Image.LANCZOS)
+        return ctk.CTkImage(light_image=img, dark_image=img, size=(tamanho, tamanho))
+    return None
+
 
 class MainView(ctk.CTkFrame):
     def __init__(self, master, nome_usuario=""):
         super().__init__(master)
         self.nome_usuario = nome_usuario
 
-        self.sidebar = ctk.CTkFrame(self, width=220, corner_radius=0, fg_color="#006d12")
+        self.sidebar = ctk.CTkFrame(self, width=280, corner_radius=0, fg_color="#006d12")
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
@@ -30,25 +43,34 @@ class MainView(ctk.CTkFrame):
         ).pack(pady=(30, 40))
 
         botoes = [
-            ("Dashboard",    self.abrir_dashboard),
-            ("Gerente",      self.abrir_gerente),
-            ("Coletas",      self.abrir_coleta),
-            ("Pontos",       self.abrir_pontos),
-            ("Destinações",  self.abrir_destinacoes),
-            ("Cadastros",    self.abrir_cadastros),
-            ("Relatórios",   self.abrir_relatorios),
+            ("dashboard",    "Dashboard",    self.abrir_dashboard),
+            ("gerente",      "Gerente",      self.abrir_gerente),
+            ("coletas",      "Coletas",      self.abrir_coleta),
+            ("pontos",       "Pontos",       self.abrir_pontos),
+            ("destinacoes",  "Destinações",  self.abrir_destinacoes),
+            ("cadastros",    "Cadastros",    self.abrir_cadastros),
+            ("relatorios",   "Relatórios",   self.abrir_relatorios),
         ]
 
-        for texto, comando in botoes:
-            ctk.CTkButton(
+        for nome_icone, texto, comando in botoes:
+            icone = carregar_icone(nome_icone)
+            btn = ctk.CTkButton(
                 self.sidebar, text=texto,
+                image=icone, compound="left",
                 fg_color="transparent", hover_color="#0a8f2c",
-                anchor="w", command=comando
-            ).pack(fill="x", padx=15, pady=4)
+                anchor="w", height=40,
+                font=ctk.CTkFont(size=15),
+                command=comando
+            )
+            btn.pack(fill="x", padx=15, pady=4)
 
+        icone_sair = carregar_icone("sair")
         ctk.CTkButton(
-            self.sidebar, text="Sair", fg_color="#c0392b",
-            hover_color="#e74c3c", command=self.sair
+            self.sidebar, text="Sair",
+            image=icone_sair, compound="left",
+            fg_color="#c0392b", hover_color="#e74c3c",
+            height=40, font=ctk.CTkFont(size=15),
+            command=self.sair
         ).pack(side="bottom", pady=20, padx=15, fill="x")
 
         self.content = ctk.CTkFrame(self, corner_radius=0, fg_color="#dcebdc")
