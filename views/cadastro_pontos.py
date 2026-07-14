@@ -43,36 +43,35 @@ class CadastroPonto(ctk.CTkFrame):
             entry = ctk.CTkEntry(frame, width=350)
             entry.pack(padx=20, pady=(0, 10))
             self.entries[key] = entry
-            lbl_horarios = ctk.CTkLabel(frame, text="Horário de Funcionamento:")
-            lbl_horarios.pack(anchor="w", padx=20, pady=(15, 5))
 
-            self.chk_vars = {}
-            self.entry_abertura = {}
-            self.entry_fechamento = {}
+        lbl_horarios = ctk.CTkLabel(frame, text="Horário de Funcionamento:")
+        lbl_horarios.pack(anchor="w", padx=20, pady=(15, 5))
 
-            for dia_num, dia_nome in DIAS_SEMANA:
-                linha = ctk.CTkFrame(frame, fg_color="transparent")
-                linha.pack(fill="x", padx=20, pady=1)
+        self.chk_vars = {}
+        self.entry_abertura = {}
+        self.entry_fechamento = {}
 
-                var = ctk.BooleanVar(value=True)
-                chk = ctk.CTkCheckBox(linha, text=dia_nome, variable=var, width=50)
-                chk.pack(side="left")
+        for dia_num, dia_nome in DIAS_SEMANA:
+            linha = ctk.CTkFrame(frame, fg_color="transparent")
+            linha.pack(fill="x", padx=20, pady=1)
 
-                lbl_a = ctk.CTkLabel(linha, text="Abre:", width=40)
-                lbl_a.pack(side="left", padx=(10, 0))
-                ent_a = ctk.CTkEntry(linha, width=70, placeholder_text="08:00")
-                ent_a.pack(side="left", padx=(0, 5))
-                ent_a.insert(0, "08:00")
+            var = ctk.BooleanVar(value=True)
+            chk = ctk.CTkCheckBox(linha, text=dia_nome, variable=var, width=50)
+            chk.pack(side="left")
 
-                lbl_f = ctk.CTkLabel(linha, text="Fecha:", width=45)
-                lbl_f.pack(side="left")
-                ent_f = ctk.CTkEntry(linha, width=70, placeholder_text="17:00")
-                ent_f.pack(side="left")
-                ent_f.insert(0, "17:00")
+            ctk.CTkLabel(linha, text="Abre:", width=40).pack(side="left", padx=(10, 0))
+            ent_a = ctk.CTkEntry(linha, width=70, placeholder_text="08:00")
+            ent_a.pack(side="left", padx=(0, 5))
+            ent_a.insert(0, "08:00")
 
-                self.chk_vars[dia_num] = var
-                self.entry_abertura[dia_num] = ent_a
-                self.entry_fechamento[dia_num] = ent_f
+            ctk.CTkLabel(linha, text="Fecha:", width=45).pack(side="left")
+            ent_f = ctk.CTkEntry(linha, width=70, placeholder_text="17:00")
+            ent_f.pack(side="left")
+            ent_f.insert(0, "17:00")
+
+            self.chk_vars[dia_num] = var
+            self.entry_abertura[dia_num] = ent_a
+            self.entry_fechamento[dia_num] = ent_f
 
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
         btn_frame.pack(pady=20)
@@ -102,7 +101,7 @@ class CadastroPonto(ctk.CTkFrame):
                     "fechamento": self.entry_fechamento[dia_num].get().strip(),
                     "ativo": 1,
                 })
-        ok, msg = PontoController.cadastrar(dados)
+        ok, msg = PontoController.cadastrar(dados, horarios=horarios if horarios else None)
         if ok:
             messagebox.showinfo("Sucesso", msg)
             self.on_voltar()
