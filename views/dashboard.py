@@ -32,7 +32,7 @@ class MainView(ctk.CTkFrame):
         super().__init__(master)
         self.nome_usuario = nome_usuario
 
-        self.sidebar = ctk.CTkFrame(self, width=280, corner_radius=0, fg_color="#006d12")
+        self.sidebar = ctk.CTkFrame(self, width=260, corner_radius=0, fg_color="#006d12")
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 

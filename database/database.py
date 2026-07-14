@@ -5,7 +5,7 @@ from mysql.connector import Error
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': '',  # Adicione a senha se houver
+    'password': '230409Jm@',  # Adicione a senha se houver
     'database': 'ecopa_system'
 }
 
