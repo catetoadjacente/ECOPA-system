@@ -14,14 +14,17 @@ class GerenteController:
     @staticmethod
     def cadastrar(dados):
         erros = []
-        if not dados.get("cpf"):
-            erros.append("CPF")
+        cpf = dados.get("cpf", "")
+        if not cpf or not cpf.isdigit() or len(cpf) != 11:
+            erros.append("CPF (11 dígitos)")
         if not dados.get("nome"):
             erros.append("Nome")
-        if not dados.get("celular"):
-            erros.append("Celular")
-        if not dados.get("email"):
-            erros.append("Email")
+        celular = dados.get("celular", "")
+        if not celular or not celular.isdigit():
+            erros.append("Celular (somente números)")
+        email = dados.get("email", "")
+        if not email or "@" not in email:
+            erros.append("Email inválido")
         if not dados.get("senha"):
             erros.append("Senha")
         if not dados.get("setor"):
@@ -45,10 +48,12 @@ class GerenteController:
     @staticmethod
     def atualizar(cpf, dados):
         erros = []
-        if not dados.get("celular"):
-            erros.append("Celular")
-        if not dados.get("email"):
-            erros.append("Email")
+        celular = dados.get("celular", "")
+        if not celular or not celular.isdigit():
+            erros.append("Celular (somente números)")
+        email = dados.get("email", "")
+        if not email or "@" not in email:
+            erros.append("Email inválido")
         if not dados.get("setor"):
             erros.append("Setor")
         if erros:

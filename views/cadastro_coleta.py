@@ -102,6 +102,18 @@ class CadastroColeta(ctk.CTkFrame):
             messagebox.showerror("Erro", "Preencha todos os campos obrigatórios!")
             return
 
+        try:
+            datetime.strptime(data_coleta, "%Y-%m-%d %H:%M")
+        except ValueError:
+            messagebox.showerror("Erro", "Data deve estar no formato AAAA-MM-DD HH:MM!")
+            return
+
+        try:
+            quantidade = float(quantidade)
+        except ValueError:
+            messagebox.showerror("Erro", "Quantidade deve ser um número!")
+            return
+
         gerente_cpf = next(
             (g["cpf"] for g in self.gerentes_lista if g["nome"] == nome_gerente),
             None

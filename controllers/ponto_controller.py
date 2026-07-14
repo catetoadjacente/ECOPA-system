@@ -9,8 +9,9 @@ class PontoController:
             erros.append("Endereco")
         if not dados.get("estabelecimento"):
             erros.append("Estabelecimento")
-        if not dados.get("telefone"):
-            erros.append("Telefone")
+        telefone = dados.get("telefone", "")
+        if not telefone or not telefone.isdigit():
+            erros.append("Telefone (somente números)")
         if not dados.get("proprietario"):
             erros.append("Proprietario")
         if erros:
@@ -39,13 +40,16 @@ class PontoController:
             erros.append("Endereco")
         if not dados.get("email"):
             erros.append("Email")
-        if not dados.get("telefone"):
-            erros.append("Telefone")
+        telefone = dados.get("telefone", "")
+        if not telefone or not telefone.isdigit():
+            erros.append("Telefone (somente números)")
         if not dados.get("proprietario"):
             erros.append("Proprietario")
         if erros:
             return False, f"Preencha: {', '.join(erros)}"
         if Ponto.atualizar(idponto, dados):
+            if horarios:
+                Ponto.salvar_horarios(idponto, horarios)
             return True, "Ponto de coleta atualizado com sucesso"
         return False, "Falha ao atualizar ponto de coleta"
 
