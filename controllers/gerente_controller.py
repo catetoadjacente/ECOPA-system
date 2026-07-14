@@ -31,6 +31,10 @@ class GerenteController:
             erros.append("Setor")
         if erros:
             return False, f"Preencha: {', '.join(erros)}"
+        if Gerente.buscar_por_cpf(cpf):
+            return False, "CPF já cadastrado"
+        if Gerente.buscar_por_email(email):
+            return False, "Email já cadastrado"
         if Gerente.criar(dados):
             return True, "Gerente cadastrado com sucesso"
         return False, "Falha ao cadastrar gerente"

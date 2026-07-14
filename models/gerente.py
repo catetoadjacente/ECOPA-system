@@ -75,6 +75,23 @@ class Gerente:
             if connection.is_connected():
                 connection.close()
     @staticmethod
+    def buscar_por_email(email):
+        connection = get_connection()
+        if connection is None:
+            return None
+        try:
+            cursor = connection.cursor(dictionary=True)
+            query = "SELECT * FROM gerente WHERE email = %s LIMIT 1"
+            cursor.execute(query, (email,))
+            return cursor.fetchone()
+        except Exception as e:
+            print(f"Erro ao buscar gerente por email: {e}")
+            return None
+        finally:
+            if connection.is_connected():
+                connection.close()
+
+    @staticmethod
     def buscar_por_cpf(cpf):
         connection = get_connection()
         if connection is None:
