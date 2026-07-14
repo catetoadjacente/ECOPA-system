@@ -21,3 +21,7 @@ env/
 *.log
 db.sqlite3
 .env
+
+# AI assistant config
+AGENTS.md
+.mimocode/

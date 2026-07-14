@@ -10,10 +10,19 @@ class Coleta:
         try:
             cursor = connection.cursor(dictionary=True)
             cursor.execute("""
+<<<<<<< HEAD
                 SELECT id, ponto, motorista, quantidade,
                        data_coleta, status
                 FROM coletas
                 ORDER BY data_coleta DESC
+=======
+                SELECT c.id_coleta AS id, p.estabelecimento AS ponto,
+                       c.observacao AS observacao, c.quantidade,
+                       c.data AS data_coleta, c.status
+                FROM coleta c
+                JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
+                ORDER BY c.data DESC
+>>>>>>> main
             """)
             return cursor.fetchall()
         except Exception as e:
@@ -31,11 +40,20 @@ class Coleta:
         try:
             cursor = connection.cursor()
             cursor.execute("""
+<<<<<<< HEAD
                 INSERT INTO coletas (ponto, motorista, quantidade, data_coleta, status)
                 VALUES (%s, %s, %s, %s, %s)
             """, (dados["ponto"], dados["motorista"],
                   dados["quantidade"], dados["data_coleta"],
                   dados.get("status", "Pendente")))
+=======
+                INSERT INTO coleta (ponto_de_coleta_id_ponto, gerente_cpf,
+                                   quantidade, data, observacao, status)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (dados["ponto"], dados.get("gerente_cpf", "00000000000"),
+                  dados["quantidade"], dados["data_coleta"],
+                  dados.get("observacao", ""), "Pendente"))
+>>>>>>> main
             connection.commit()
             return True
         except Exception as e:
@@ -53,7 +71,12 @@ class Coleta:
             return False
         try:
             cursor = connection.cursor()
+<<<<<<< HEAD
             cursor.execute("DELETE FROM coletas WHERE id=%s", (id_coleta,))
+=======
+            cursor.execute("UPDATE coleta SET status=%s WHERE id_coleta=%s",
+                           (status, id_coleta))
+>>>>>>> main
             connection.commit()
             return True
         except Exception as e:

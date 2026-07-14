@@ -68,16 +68,9 @@ class CadastrosHub(ctk.CTkFrame):
     def novo_gerente(self):
         CadastroGerente(self, self.content, on_voltar=self.abrir_cadastros)
     
-    def acessar_gerentes(self):
-        from views.lista_gerentes import ListaGerentes
-        ListaGerentes(self, self.content, on_voltar=self.abrir_cadastros)
 
     def novo_ponto(self):
         CadastroPonto(self, self.content, on_voltar=self.abrir_cadastros)
-
-    def acessar_pontos(self):
-        from views.lista_pontos import ListaPontos
-        ListaPontos(self, self.content, on_voltar=self.abrir_cadastros)
 
     def nova_coleta(self):
         CadastroColeta(self, self.content, on_voltar=self.abrir_cadastros)

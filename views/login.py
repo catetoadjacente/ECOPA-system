@@ -8,7 +8,7 @@ from tkinter import messagebox
 ctk.set_appearance_mode("light")
 
 BG_IMAGE = r"fundo_login.png"
-IMG_W, IMG_H = 1043, 673
+IMG_W, IMG_H = 1280, 832
 
 
 class App(ctk.CTk):
@@ -40,7 +40,7 @@ class App(ctk.CTk):
             height=35,
             font=ctk.CTkFont(size=14),
         )
-        self.entry_user.place(relx=0.76, rely=0.4, anchor="center", relwidth=0.34)
+        self.entry_user.place(relx=0.762, rely=0.39, anchor="center", relwidth=0.34)
 
         self.entry_pass = ctk.CTkEntry(
             self,
@@ -52,21 +52,21 @@ class App(ctk.CTk):
             height=35,
             font=ctk.CTkFont(size=14),
         )
-        self.entry_pass.place(relx=0.76, rely=0.545, anchor="center", relwidth=0.34)
+        self.entry_pass.place(relx=0.762, rely=0.545, anchor="center", relwidth=0.34)
 
         self.btn_login = ctk.CTkButton(
             self,
             text="Entrar",
             fg_color="#DDEEDD",
             border_width=0,
-            bg_color="#DDEEDD",
             hover_color="#205b59",
-            height=25,
+            height=41,
+            corner_radius=20,
             text_color="black",
             font=ctk.CTkFont(size=14, weight="bold"),
             command=self._on_login
         )
-        self.btn_login.place(relx=0.75, rely=0.65, anchor="center", relwidth=0.1)
+        self.btn_login.place(relx=0.775, rely=0.65, anchor="center", relwidth=0.15)
 
     def _on_login(self):
         user = self.entry_user.get().strip()
@@ -76,10 +76,21 @@ class App(ctk.CTk):
             messagebox.showerror("Erro", erro)
             self.entry_pass.delete(0, ctk.END)
             return
+<<<<<<< HEAD
         for widget in self.winfo_children():
             widget.destroy()
         self.bg_photo = None
         self._pil_image = None
+=======
+        # Destroi os widgets da tela de login
+        self.entry_user.destroy()
+        self.entry_pass.destroy()
+        self.btn_login.destroy()
+        self.bg_label.destroy()
+        self.unbind("<Configure>")
+
+        # Cria o dashboard sem sair do maximizado
+>>>>>>> main
         dashboard = MainView(self, nome_usuario=info['nome'])
         dashboard.pack(fill="both", expand=True)
         self.title(f"ECOPA System - {info['nome']}")

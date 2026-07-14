@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `ecopa_system`.`coleta` (
   `data` DATETIME NOT NULL,
   `quantidade` DECIMAL(10,2) NOT NULL,
   `observacao` TEXT NULL,
+  `status` ENUM('Pendente', 'Realizada') NOT NULL DEFAULT 'Pendente',
   `gerente_cpf` VARCHAR(11) NOT NULL,
   `ponto_de_coleta_id_ponto` INT NOT NULL,
   PRIMARY KEY (`id_coleta`),
