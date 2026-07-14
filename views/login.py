@@ -4,6 +4,8 @@ import os
 from controllers.gerente_controller import GerenteController
 from views.dashboard import MainView
 from tkinter import messagebox
+import pywinstyles
+
 
 ctk.set_appearance_mode("light")
 
@@ -50,6 +52,7 @@ class App(ctk.CTk):
             text_color="black",
             border_width=0,
             bg_color="#ffffff",
+            show="*",
             height=35,
             font=ctk.CTkFont(size=14),
         )
@@ -59,14 +62,18 @@ class App(ctk.CTk):
             self,
             text="Entrar",
             fg_color="#DDEEDD",
+            bg_color="#000001",
             border_width=0,
             hover_color="#205b59",
             height=41,
             corner_radius=20,
             text_color="black",
             font=ctk.CTkFont(size=14, weight="bold"),
-            command=self._on_login
+            command=self._on_login,
+            hover=True
+            
         )
+        pywinstyles.set_opacity(self.btn_login, color="#000001")
         self.btn_login.place(relx=0.775, rely=0.65, anchor="center", relwidth=0.15)
 
     def _on_login(self):
