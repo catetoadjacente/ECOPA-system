@@ -85,6 +85,9 @@ class PontosView(ctk.CTkFrame):
         if messagebox.askyesno("Confirmar", "Deseja excluir este ponto de coleta?"):
             PontoController.deletar(idponto)
             self.montar_tela()
+<<<<<<< HEAD
+            
+=======
 
     def _ver_horarios(self, idponto):
         horarios = PontoController.buscar_horarios(idponto)
@@ -104,3 +107,4 @@ class PontosView(ctk.CTkFrame):
             texto += f"{dia}: {h['abertura']} - {h['fechamento']}  {status}\n"
 
         messagebox.showinfo("Horários de Funcionamento", texto)
+>>>>>>> main

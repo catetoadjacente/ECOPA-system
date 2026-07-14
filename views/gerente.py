@@ -46,7 +46,7 @@ class ListaGerentes(ctk.CTkFrame):
         for row, gerente in enumerate(gerentes, start=1):
             ctk.CTkLabel(frame_tabela, text=gerente["cpf"], width=120).grid(row=row, column=0, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=gerente["nome"], width=120).grid(row=row, column=1, padx=5, pady=4, sticky="w")
-            ctk.CTkLabel(frame_tabela, text=gerente["celular"], width=120).grid(row=row, column=2, padx=5, pady=4, sticky="w")
+            ctk.CTkLabel(frame_tabela, text=gerente["Celular"], width=120).grid(row=row, column=2, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=gerente["email"], width=120).grid(row=row, column=3, padx=5, pady=4, sticky="w")
             ctk.CTkLabel(frame_tabela, text=gerente["setor"], width=120).grid(row=row, column=4, padx=5, pady=4, sticky="w")
 

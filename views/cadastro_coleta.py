@@ -46,7 +46,31 @@ class CadastroColeta(ctk.CTkFrame):
         ).pack(fill="x", padx=40, pady=(0, 2))
         self.entry_data = ctk.CTkEntry(scroll, height=35, font=ctk.CTkFont(size=13))
         self.entry_data.insert(0, datetime.now().strftime("%Y-%m-%d %H:%M"))
+<<<<<<< HEAD
+        self.entry_data.pack(padx=20, pady=(0, 10))
+
+        # Quantidade
+        lbl = ctk.CTkLabel(frame, text="Quantidade (Kg):")
+        lbl.pack(anchor="w", padx=20)
+        self.entry_quantidade = ctk.CTkEntry(frame, width=350)
+        self.entry_quantidade.pack(padx=20, pady=(0, 10))
+
+        # Motorista
+        lbl = ctk.CTkLabel(frame, text="Motorista:")
+        lbl.pack(anchor="w", padx=20)
+        gerentes = GerenteController.listar()
+        self.gerentes_lista = gerentes
+        nomes_gerentes = [g["nome"] for g in gerentes]
+        self.combo_gerente = ctk.CTkComboBox(
+            frame, values=nomes_gerentes if nomes_gerentes else ["Nenhum gerente disponivel"],
+            width=350, state="readonly"
+        )
+        if nomes_gerentes:
+            self.combo_gerente.set(nomes_gerentes[0])
+        self.combo_gerente.pack(padx=20, pady=(0, 10))
+=======
         self.entry_data.pack(fill="x", padx=40, pady=(0, 12))
+>>>>>>> main
 
         # Ponto
         ctk.CTkLabel(
@@ -122,12 +146,17 @@ class CadastroColeta(ctk.CTkFrame):
         nome_ponto = self.combo_ponto.get().strip()
         data_coleta = self.entry_data.get().strip()
         quantidade = self.entry_quantidade.get().strip()
+<<<<<<< HEAD
+=======
         observacao = self.text_observacao.get("1.0", "end-1c").strip()
+>>>>>>> main
 
         if not all([nome_gerente, nome_ponto, data_coleta, quantidade]):
             messagebox.showerror("Erro", "Preencha todos os campos obrigatórios!")
             return
 
+<<<<<<< HEAD
+=======
         try:
             datetime.strptime(data_coleta, "%Y-%m-%d %H:%M")
         except ValueError:
@@ -145,12 +174,13 @@ class CadastroColeta(ctk.CTkFrame):
             None
         )
 
+>>>>>>> main
         dados = {
             "ponto": nome_ponto,
-            "gerente_cpf": gerente_cpf,
+            "motorista": nome_gerente,
             "quantidade": quantidade,
             "data_coleta": data_coleta,
-            "observacao": observacao,
+            "status": "Pendente",
         }
 
         sucesso, mensagem = ColetaController.cadastrar(dados)

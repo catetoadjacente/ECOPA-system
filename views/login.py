@@ -20,14 +20,13 @@ class App(ctk.CTk):
         self.geometry(f"{IMG_W}x{IMG_H}")
         self.after(0, lambda: self.state("zoomed"))
 
-        self._pil_image = None
-        self.bg_photo = None
         img_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", BG_IMAGE)
         if os.path.exists(img_path):
             self._pil_image = Image.open(img_path)
         else:
             self._pil_image = None
 
+        self.bg_photo = None
         self.bg_label = ctk.CTkLabel(self, text="")
         self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
         self._update_bg_image()
@@ -84,6 +83,12 @@ class App(ctk.CTk):
             messagebox.showerror("Erro", erro)
             self.entry_pass.delete(0, ctk.END)
             return
+<<<<<<< HEAD
+        for widget in self.winfo_children():
+            widget.destroy()
+        self.bg_photo = None
+        self._pil_image = None
+=======
         # Destroi os widgets da tela de login
         self.entry_user.destroy()
         self.entry_pass.destroy()
@@ -92,6 +97,7 @@ class App(ctk.CTk):
         self.unbind("<Configure>")
 
         # Cria o dashboard sem sair do maximizado
+>>>>>>> main
         dashboard = MainView(self, nome_usuario=info['nome'])
         dashboard.pack(fill="both", expand=True)
         self.title(f"ECOPA System - {info['nome']}")

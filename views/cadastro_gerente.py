@@ -23,15 +23,22 @@ class CadastroGerente(ctk.CTkFrame):
         )
         label.pack(pady=(20, 15))
 
-        campos = ["cpf", "nome", "celular", "email", "senha", "setor"]
+        campos = [
+            ("CPF", "idcpf"),
+            ("Nome", "nome"),
+            ("Celular", "Celular"),
+            ("Email", "email"),
+            ("Senha", "senha"),
+            ("Setor", "setor"),
+        ]
         self.entries = {}
 
-        for campo in campos:
-            lbl = ctk.CTkLabel(frame, text=campo + ":")
+        for label, key in campos:
+            lbl = ctk.CTkLabel(frame, text=label + ":")
             lbl.pack(anchor="w", padx=20)
             entry = ctk.CTkEntry(frame, width=350)
             entry.pack(padx=20, pady=(0, 10))
-            self.entries[campo] = entry
+            self.entries[key] = entry
 
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
         btn_frame.pack(pady=20)

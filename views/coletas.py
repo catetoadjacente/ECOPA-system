@@ -22,6 +22,13 @@ class ColetasView(ctk.CTkFrame):
         )
         titulo.pack(side="left")
 
+        btn_nova = ctk.CTkButton(
+            header, text="+ Nova Coleta",
+            fg_color="#006d12", hover_color="#0a8f2c",
+            command=self.abrir_cadastro
+        )
+        btn_nova.pack(side="right")
+
         subtitulo = ctk.CTkLabel(
             self.content, text="Gerencia todas as coletas do sistema", anchor="w"
         )
@@ -56,7 +63,11 @@ class ColetasView(ctk.CTkFrame):
         frame_tabela._is_tabela = True
         frame_tabela.pack(fill="both", expand=True, padx=30, pady=(0, 20))
 
+<<<<<<< HEAD
+        cabecalhos = ["ID Coleta", "Ponto", "Motorista", "Quantidade", "Data", "Status", "Ações"]
+=======
         cabecalhos = ["ID Coleta", "Ponto", "Observação", "Quantidade", "Data", "Status", "Ações"]
+>>>>>>> main
         for coluna, texto in enumerate(cabecalhos):
             lbl = ctk.CTkLabel(
                 frame_tabela, text=texto,
@@ -77,7 +88,7 @@ class ColetasView(ctk.CTkFrame):
             id_str = f"#{int(c['id'])}"
             data_str = c["data_coleta"].strftime("%d/%m/%Y") if c["data_coleta"] else ""
             qtd_str = f"{float(c['quantidade']):.1f}Kg" if c["quantidade"] else ""
-            registro = [id_str, c["ponto"], c["observacao"], qtd_str, data_str, c["status"]]
+            registro = [id_str, c["ponto"], c["motorista"], qtd_str, data_str, c["status"]]
 
             for coluna, valor in enumerate(registro):
                 cor = "white"
@@ -91,6 +102,28 @@ class ColetasView(ctk.CTkFrame):
                 )
                 lbl.grid(row=linha, column=coluna, padx=8, pady=5, sticky="w")
 
+<<<<<<< HEAD
+            btn_remover = ctk.CTkButton(
+                frame_tabela, text="Remover", width=70,
+                fg_color="#e74c3c", hover_color="#c0392b",
+                command=lambda idc=c["id"]: self._remover(idc)
+            )
+            btn_remover.grid(row=linha, column=6, padx=10)
+
+    def abrir_cadastro(self):
+        from views.cadastro_coleta import CadastroColeta
+        CadastroColeta(self, self.content, on_voltar=self.montar_tela)
+
+    def _remover(self, id_coleta):
+        if messagebox.askyesno("Confirmar", "Deseja remover esta coleta?"):
+            sucesso = ColetaController.deletar(id_coleta)
+            if sucesso:
+                messagebox.showinfo("Sucesso", "Coleta removida com sucesso")
+            else:
+                messagebox.showerror("Erro", "Falha ao remover coleta")
+            self.montar_tela()
+
+=======
             id_coleta = c["id"]
             if c["status"] == "Pendente":
                 btn = ctk.CTkButton(
@@ -99,6 +132,7 @@ class ColetasView(ctk.CTkFrame):
                     command=lambda idc=id_coleta: self._marcar_realizada(idc)
                 )
                 btn.grid(row=linha, column=6, padx=5, pady=4)
+>>>>>>> main
 
     def _filtrar(self, valor):
         self._montar_tabela(filtro=valor)

@@ -43,10 +43,9 @@ class Gerente:
             return False
         try:
             cursor = connection.cursor()
-            query = """INSERT INTO gerente (cpf, nome, celular, email, senha, setor)
-                       VALUES (%s, %s, %s, %s, %s, %s)"""
+            query = "INSERT INTO gerente (idcpf, nome, Celular, email, senha, setor) VALUES (%s, %s, %s, %s, %s, %s)"
             cursor.execute(query, (
-                dados["cpf"], dados["nome"], dados["celular"],
+                dados["idcpf"], dados["nome"], dados["Celular"],
                 dados["email"], dados["senha"], dados["setor"]
             ))
             connection.commit()
@@ -65,8 +64,7 @@ class Gerente:
             return []
         try:
             cursor = connection.cursor(dictionary=True)
-            query = "SELECT cpf, nome, celular, email, setor FROM gerente"
-            cursor.execute(query)
+            cursor.execute("SELECT idcpf, nome, Celular, email, setor FROM gerente")
             return cursor.fetchall()
         except Exception as e:
             print(f"Erro ao listar gerentes: {e}")
@@ -74,7 +72,11 @@ class Gerente:
         finally:
             if connection.is_connected():
                 connection.close()
+
     @staticmethod
+<<<<<<< HEAD
+    def buscar_por_idcpf(idcpf):
+=======
     def buscar_por_email(email):
         connection = get_connection()
         if connection is None:
@@ -93,35 +95,32 @@ class Gerente:
 
     @staticmethod
     def buscar_por_cpf(cpf):
+>>>>>>> main
         connection = get_connection()
         if connection is None:
             return None
         try:
             cursor = connection.cursor(dictionary=True)
-            query = "SELECT * FROM gerente WHERE cpf = %s LIMIT 1"
-            cursor.execute(query, (cpf,))
+            cursor.execute("SELECT * FROM gerente WHERE idcpf = %s LIMIT 1", (idcpf,))
             return cursor.fetchone()
         except Exception as e:
             print(f"Erro ao buscar gerente: {e}")
             return None
         finally:
             if connection.is_connected():
-                connection.close()            
+                connection.close()
 
     @staticmethod
-    def atualizar(cpf, dados):
+    def atualizar(idcpf, dados):
         connection = get_connection()
         if connection is None:
             return False
         try:
             cursor = connection.cursor()
-            query = """UPDATE gerente 
-                       SET celular = %s, email = %s, setor = %s
-                       WHERE cpf = %s"""
-            cursor.execute(query, (
-                dados["celular"], dados["email"],
-                dados["setor"], cpf
-            ))
+            cursor.execute(
+                "UPDATE gerente SET Celular = %s, email = %s, setor = %s WHERE idcpf = %s",
+                (dados["Celular"], dados["email"], dados["setor"], idcpf)
+            )
             connection.commit()
             return True
         except Exception as e:
@@ -132,14 +131,13 @@ class Gerente:
                 connection.close()
 
     @staticmethod
-    def deletar(cpf):
+    def deletar(idcpf):
         connection = get_connection()
         if connection is None:
             return False
         try:
             cursor = connection.cursor()
-            query = "DELETE FROM gerente WHERE cpf = %s"
-            cursor.execute(query, (cpf,))
+            cursor.execute("DELETE FROM gerente WHERE idcpf = %s", (idcpf,))
             connection.commit()
             return True
         except Exception as e:
@@ -148,3 +146,4 @@ class Gerente:
         finally:
             if connection.is_connected():
                 connection.close()
+                

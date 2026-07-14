@@ -4,8 +4,13 @@ import os
 from views.cadastros_hub import CadastrosHub
 from views.coletas import ColetasView
 from views.pontos import PontosView
+<<<<<<< HEAD
+from controllers.cliente_controller import ClienteController
+from controllers.coleta_controller import ColetaController
+=======
 from controllers.coleta_controller import ColetaController
 from controllers.ponto_controller import PontoController
+>>>>>>> main
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
 import matplotlib
@@ -14,6 +19,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 plt.rcParams["font.family"] = "sans-serif"
+<<<<<<< HEAD
+=======
 
 ICONS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "icons")
 
@@ -25,6 +32,7 @@ def carregar_icone(nome, tamanho=20):
         img = Image.open(caminho).resize((tamanho, tamanho), Image.LANCZOS)
         return ctk.CTkImage(light_image=img, dark_image=img, size=(tamanho, tamanho))
     return None
+>>>>>>> main
 
 
 class MainView(ctk.CTkFrame):
@@ -32,7 +40,11 @@ class MainView(ctk.CTkFrame):
         super().__init__(master)
         self.nome_usuario = nome_usuario
 
+<<<<<<< HEAD
+        self.sidebar = ctk.CTkFrame(self, width=220, corner_radius=0, fg_color="#006d12")
+=======
         self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color="#006d12")
+>>>>>>> main
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
@@ -103,6 +115,14 @@ class MainView(ctk.CTkFrame):
         ).pack(side="right")
 
         coletas = ColetaController.listar()
+<<<<<<< HEAD
+        pontos = ClienteController.listar()
+
+        total_coletas = len(coletas)
+        pendentes = sum(1 for c in coletas if c["status"] == "Pendente")
+        em_andamento = sum(1 for c in coletas if c["status"] == "Em andamento")
+        finalizadas = sum(1 for c in coletas if c["status"] == "Finalizada")
+=======
         pontos = PontoController.listar()
 
         total_coletas = len(coletas)
@@ -110,6 +130,7 @@ class MainView(ctk.CTkFrame):
         quantidade_total = sum(float(c["quantidade"] or 0) for c in coletas)
         pendentes = sum(1 for c in coletas if c["status"] == "Pendente")
         realizadas = sum(1 for c in coletas if c["status"] == "Realizada")
+>>>>>>> main
 
         frame_cards = ctk.CTkFrame(scroll, fg_color="transparent")
         frame_cards.pack(fill="x", padx=30, pady=10)
@@ -117,9 +138,14 @@ class MainView(ctk.CTkFrame):
         cards = [
             ("Total Coletas", str(total_coletas), "#2c3e50"),
             ("Pendentes", str(pendentes), "#e67e22"),
+<<<<<<< HEAD
+            ("Em Andamento", str(em_andamento), "#3498db"),
+            ("Finalizadas", str(finalizadas), "#27ae60"),
+=======
             ("Realizadas", str(realizadas), "#27ae60"),
             ("Total Pontos", str(total_pontos), "#3498db"),
             ("Quantidade Total", f"{quantidade_total:.1f} Kg", "#2c3e50"),
+>>>>>>> main
         ]
 
         for i, (tit, val, cor) in enumerate(cards):
@@ -136,13 +162,21 @@ class MainView(ctk.CTkFrame):
             ctk.CTkLabel(card, text=val, font=ctk.CTkFont(size=28, weight="bold"),
                          text_color=cor).pack()
 
+<<<<<<< HEAD
+        # Gráficos
+=======
+>>>>>>> main
         fig, axes = plt.subplots(1, 3, figsize=(15, 4.5))
         fig.patch.set_facecolor("#dcebdc")
 
         # 1. Pizza - Status
         status_count = Counter(c["status"] for c in coletas)
         if status_count:
+<<<<<<< HEAD
+            cores_pizza = {"Pendente": "#e67e22", "Em andamento": "#3498db", "Finalizada": "#27ae60"}
+=======
             cores_pizza = {"Pendente": "#e67e22", "Realizada": "#27ae60"}
+>>>>>>> main
             labels = list(status_count.keys())
             sizes = list(status_count.values())
             colors = [cores_pizza.get(l, "#999") for l in labels]
@@ -158,7 +192,11 @@ class MainView(ctk.CTkFrame):
             ponto_qtd[c["ponto"]] += float(c["quantidade"] or 0)
         top = sorted(ponto_qtd.items(), key=lambda x: x[1], reverse=True)[:5]
         if top:
+<<<<<<< HEAD
+            nomes, qtds = zip(*top) if top else ([], [])
+=======
             nomes, qtds = zip(*top)
+>>>>>>> main
             axes[1].barh(list(nomes), list(qtds), color="#006d12", height=0.6)
             axes[1].set_title("Top 5 Pontos (Kg)", fontsize=13, fontweight="bold")
             axes[1].tick_params(labelsize=9)
@@ -227,4 +265,9 @@ class MainView(ctk.CTkFrame):
         ).pack(pady=50)
 
     def sair(self):
+<<<<<<< HEAD
         self.winfo_toplevel().destroy()
+        
+=======
+        self.winfo_toplevel().destroy()
+>>>>>>> main

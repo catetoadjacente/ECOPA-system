@@ -14,6 +14,16 @@ class GerenteController:
     @staticmethod
     def cadastrar(dados):
         erros = []
+<<<<<<< HEAD
+        if not dados.get("idcpf"):
+            erros.append("CPF")
+        if not dados.get("nome"):
+            erros.append("Nome")
+        if not dados.get("Celular"):
+            erros.append("Celular")
+        if not dados.get("email"):
+            erros.append("Email")
+=======
         cpf = dados.get("cpf", "")
         if not cpf or not cpf.isdigit() or len(cpf) != 11:
             erros.append("CPF (11 dígitos)")
@@ -25,6 +35,7 @@ class GerenteController:
         email = dados.get("email", "")
         if not email or "@" not in email:
             erros.append("Email inválido")
+>>>>>>> main
         if not dados.get("senha"):
             erros.append("Senha")
         if not dados.get("setor"):
@@ -44,32 +55,40 @@ class GerenteController:
         return Gerente.listar()
 
     @staticmethod
-    def obter_por_cpf(cpf):
-        if not cpf:
+    def obter_por_idcpf(idcpf):
+        if not idcpf:
             return None
-        return Gerente.buscar_por_cpf(cpf)
+        return Gerente.buscar_por_idcpf(idcpf)
 
     @staticmethod
-    def atualizar(cpf, dados):
+    def atualizar(idcpf, dados):
         erros = []
+<<<<<<< HEAD
+        if not dados.get("Celular"):
+            erros.append("Celular")
+        if not dados.get("email"):
+            erros.append("Email")
+=======
         celular = dados.get("celular", "")
         if not celular or not celular.isdigit():
             erros.append("Celular (somente números)")
         email = dados.get("email", "")
         if not email or "@" not in email:
             erros.append("Email inválido")
+>>>>>>> main
         if not dados.get("setor"):
             erros.append("Setor")
         if erros:
             return False, f"Preencha: {', '.join(erros)}"
-        if Gerente.atualizar(cpf, dados):
+        if Gerente.atualizar(idcpf, dados):
             return True, "Gerente atualizado com sucesso"
         return False, "Falha ao atualizar gerente"
 
     @staticmethod
-    def deletar(cpf):
-        if not cpf:
+    def deletar(idcpf):
+        if not idcpf:
             return False, "CPF invalido"
-        if Gerente.deletar(cpf):
+        if Gerente.deletar(idcpf):
             return True, "Gerente excluido com sucesso"
         return False, "Falha ao excluir gerente"
+    
