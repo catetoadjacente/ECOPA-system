@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.ponto_controller import PontoController
+from models.ponto import Ponto
 
 
 class PontosView(ctk.CTkFrame):
@@ -70,6 +71,13 @@ class PontosView(ctk.CTkFrame):
             )
             btn_excluir.grid(row=linha, column=7, padx=2)
 
+            btn_horarios = ctk.CTkButton(
+                frame_tabela, text="Horários", width=80,
+                fg_color="#3498db", hover_color="#2980b9",
+                command=lambda idp=idponto: self._ver_horarios(idp)
+            )
+            btn_horarios.grid(row=linha, column=8, padx=2)
+
     def editar_ponto(self, idponto):
         from views.edicao_ponto import EdicaoPonto
         EdicaoPonto(self, self.content, idponto, on_voltar=self.montar_tela)
@@ -78,3 +86,22 @@ class PontosView(ctk.CTkFrame):
         if messagebox.askyesno("Confirmar", "Deseja excluir este ponto de coleta?"):
             PontoController.deletar(idponto)
             self.montar_tela()
+
+    def _ver_horarios(self, idponto):
+        horarios = Ponto.buscar_horarios(idponto)
+        ponto = PontoController.buscar_por_idponto(idponto)
+        nome = ponto.get("estabelecimento", "") if ponto else ""
+
+        dias = {1: "Dom", 2: "Seg", 3: "Ter", 4: "Qua", 5: "Qui", 6: "Sex", 7: "Sáb"}
+
+        if not horarios:
+            messagebox.showinfo("Horários", f"{nome}\n\nNenhum horário cadastrado.")
+            return
+
+        texto = f"{nome}\n\n"
+        for h in sorted(horarios, key=lambda x: x["dia_semana"]):
+            dia = dias.get(h["dia_semana"], "?")
+            status = "✓" if h["ativo"] else "✗"
+            texto += f"{dia}: {h['abertura']} - {h['fechamento']}  {status}\n"
+
+        messagebox.showinfo("Horários de Funcionamento", texto)
