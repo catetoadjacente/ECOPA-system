@@ -170,7 +170,7 @@ class MainView(ctk.CTkFrame):
     def abrir_gerente(self):
         for widget in self.content.winfo_children():
             widget.destroy()
-        from views.lista_gerentes import ListaGerentes
+        from views.gerente import ListaGerentes
         ListaGerentes(self, self.content, on_voltar=self.abrir_dashboard)
 
     def abrir_coleta(self):
