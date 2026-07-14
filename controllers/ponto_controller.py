@@ -60,3 +60,11 @@ class PontoController:
         if Ponto.deletar(idponto):
             return True, "Ponto de coleta excluido com sucesso"
         return False, "Falha ao excluir ponto de coleta"
+
+    @staticmethod
+    def buscar_horarios(id_ponto):
+        return Ponto.buscar_horarios(id_ponto)
+
+    @staticmethod
+    def salvar_horarios(id_ponto, horarios):
+        return Ponto.salvar_horarios(id_ponto, horarios)

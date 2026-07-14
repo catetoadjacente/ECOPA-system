@@ -1,7 +1,6 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.ponto_controller import PontoController
-from models.ponto import Ponto
 
 
 class PontosView(ctk.CTkFrame):
@@ -88,7 +87,7 @@ class PontosView(ctk.CTkFrame):
             self.montar_tela()
 
     def _ver_horarios(self, idponto):
-        horarios = Ponto.buscar_horarios(idponto)
+        horarios = PontoController.buscar_horarios(idponto)
         ponto = PontoController.buscar_por_idponto(idponto)
         nome = ponto.get("estabelecimento", "") if ponto else ""
 

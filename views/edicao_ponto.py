@@ -1,7 +1,6 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.ponto_controller import PontoController
-from models.ponto import Ponto
 
 DIAS_SEMANA = [
     (1, "Dom"), (2, "Seg"), (3, "Ter"), (4, "Qua"),
@@ -96,7 +95,7 @@ class EdicaoPonto(ctk.CTkFrame):
             self.entry_abertura[dia_num] = ent_a
             self.entry_fechamento[dia_num] = ent_f
 
-        horarios_existentes = Ponto.buscar_horarios(self.idponto)
+        horarios_existentes = PontoController.buscar_horarios(self.idponto)
         horarios_map = {h["dia_semana"]: h for h in horarios_existentes}
 
         for dia_num, _ in DIAS_SEMANA:
