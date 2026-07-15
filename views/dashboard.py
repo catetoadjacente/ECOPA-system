@@ -483,19 +483,8 @@ class MainView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("destinacoes")
-        # Placeholder
-        frame = ctk.CTkFrame(self.content, fg_color=ECOPA_WHITE, corner_radius=16,
-                            border_width=1, border_color=ECOPA_BORDER)
-        frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.5, relheight=0.3)
-        ctk.CTkLabel(frame, text="♻️", font=ctk.CTkFont(size=48)).pack(pady=(30, 5))
-        ctk.CTkLabel(
-            frame, text="Destinações",
-            font=ctk.CTkFont(size=24, weight="bold"), text_color=ECOPA_GREEN_DARK
-        ).pack()
-        ctk.CTkLabel(
-            frame, text="Módulo em desenvolvimento",
-            font=ctk.CTkFont(size=13), text_color=ECOPA_TEXT_LIGHT
-        ).pack(pady=(5, 20))
+        from views.destinacoes import DestinacoesView
+        DestinacoesView(self, self.content)
 
     def abrir_cadastros(self):
         for widget in self.content.winfo_children():
@@ -507,19 +496,8 @@ class MainView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("relatorios")
-        # Placeholder
-        frame = ctk.CTkFrame(self.content, fg_color=ECOPA_WHITE, corner_radius=16,
-                            border_width=1, border_color=ECOPA_BORDER)
-        frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.5, relheight=0.3)
-        ctk.CTkLabel(frame, text="📈", font=ctk.CTkFont(size=48)).pack(pady=(30, 5))
-        ctk.CTkLabel(
-            frame, text="Relatórios",
-            font=ctk.CTkFont(size=24, weight="bold"), text_color=ECOPA_GREEN_DARK
-        ).pack()
-        ctk.CTkLabel(
-            frame, text="Módulo em desenvolvimento",
-            font=ctk.CTkFont(size=13), text_color=ECOPA_TEXT_LIGHT
-        ).pack(pady=(5, 20))
+        from views.relatorios import RelatoriosView
+        RelatoriosView(self, self.content)
 
     def sair(self):
         self.winfo_toplevel().destroy()
