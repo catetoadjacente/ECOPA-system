@@ -140,6 +140,7 @@ class App(ctk.CTk):
             font=ctk.CTkFont(size=13),
         )
         self.entry_pass.pack(fill="x", padx=55, pady=(0, 24))
+        self.bind("<Return>", self._on_login)
 
         # Botao Entrar
         self.btn_login = ctk.CTkButton(
@@ -166,7 +167,7 @@ class App(ctk.CTk):
         )
         forgot.pack(pady=(0, 30))
 
-    def _on_login(self):
+    def _on_login(self, event=None):
         user = self.entry_user.get().strip()
         password = self.entry_pass.get().strip()
         info, erro = GerenteController.login(user, password)
