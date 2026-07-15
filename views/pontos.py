@@ -2,6 +2,19 @@ import customtkinter as ctk
 from tkinter import messagebox
 from controllers.ponto_controller import PontoController
 
+# Paleta ECOPA
+ECOPA_GREEN = "#006d12"
+ECOPA_GREEN_LIGHT = "#0a8f2c"
+ECOPA_GREEN_DARK = "#004d0e"
+ECOPA_BG = "#f0f7f0"
+ECOPA_WHITE = "#ffffff"
+ECOPA_TEXT = "#1a1a1a"
+ECOPA_TEXT_LIGHT = "#666666"
+ECOPA_BORDER = "#e0e8e0"
+ECOPA_ORANGE = "#f39c12"
+ECOPA_LEAF = "#27ae60"
+ECOPA_BLUE = "#3498db"
+
 
 class PontosView(ctk.CTkFrame):
     def __init__(self, master, content):
@@ -13,35 +26,67 @@ class PontosView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
 
-        header = ctk.CTkFrame(self.content, fg_color="transparent")
-        header.pack(fill="x", padx=30, pady=(25, 0))
+        container = ctk.CTkFrame(self.content, fg_color=ECOPA_BG, corner_radius=0)
+        container.pack(fill="both", expand=True)
 
-        titulo = ctk.CTkLabel(
-            header, text="Pontos de coleta",
-            font=ctk.CTkFont(size=34, weight="bold"), anchor="w"
+        # Header
+        header = ctk.CTkFrame(container, fg_color="transparent")
+        header.pack(fill="x", padx=32, pady=(24, 0))
+
+        left = ctk.CTkFrame(header, fg_color="transparent")
+        left.pack(side="left")
+
+        ctk.CTkLabel(
+            left, text="Pontos de Coleta",
+            font=ctk.CTkFont(size=30, weight="bold"), anchor="w",
+            text_color=ECOPA_GREEN_DARK
+        ).pack(anchor="w")
+
+        ctk.CTkLabel(
+            left, text="Gerencie todos os pontos de coleta do sistema",
+            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
+        ).pack(anchor="w", pady=(2, 0))
+
+        # Linha verde
+        ctk.CTkFrame(container, fg_color=ECOPA_GREEN, height=3, corner_radius=2).pack(
+            fill="x", padx=32, pady=(16, 0)
         )
-        titulo.pack(side="left")
 
-        subtitulo = ctk.CTkLabel(
-            self.content, text="Gerencie todos os pontos de coleta do sistema", anchor="w"
+        # Tabela
+        frame_tabela = ctk.CTkFrame(
+            container, fg_color=ECOPA_WHITE, corner_radius=16,
+            border_width=1, border_color=ECOPA_BORDER
         )
-        subtitulo.pack(anchor="w", padx=30)
+        frame_tabela.pack(fill="both", expand=True, padx=32, pady=(20, 20))
 
-        frame_tabela = ctk.CTkFrame(self.content)
-        frame_tabela.pack(fill="both", expand=True, padx=30, pady=(20, 20))
+        cabecalhos = ["ID", "Estabelecimento", "Endereço", "Email", "Proprietário", "Telefone", "Ações"]
+        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12)
+        header_frame.pack(fill="x", padx=16, pady=(16, 0))
 
-        cabecalhos = ["ID Ponto", "Estabelecimento", "Endereço", "Email", "Proprietário", "Telefone"]
         for coluna, texto in enumerate(cabecalhos):
-            lbl = ctk.CTkLabel(
-                frame_tabela, text=texto,
-                font=ctk.CTkFont(size=14, weight="bold")
-            )
-            lbl.grid(row=0, column=coluna, padx=10, pady=10)
+            w = 180 if coluna == 2 else (100 if coluna == 0 else 130)
+            ctk.CTkLabel(
+                header_frame, text=texto,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                text_color=ECOPA_WHITE, width=w
+            ).grid(row=0, column=coluna, padx=8, pady=10, sticky="w")
 
         pontos = PontoController.listar()
+
+        if not pontos:
+            ctk.CTkLabel(
+                frame_tabela, text="Nenhum ponto de coleta cadastrado",
+                font=ctk.CTkFont(size=13), text_color=ECOPA_TEXT_LIGHT
+            ).pack(pady=40)
+            return
+
         for linha, p in enumerate(pontos, start=1):
+            bg = ECOPA_BG if linha % 2 == 0 else ECOPA_WHITE
+            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0)
+            row_frame.pack(fill="x", padx=16)
+
             valores = [
-                p.get("id_ponto", ""),
+                str(p.get("id_ponto", "")),
                 p.get("estabelecimento", "") or "",
                 p.get("endereco", "") or "",
                 p.get("email", "") or "",
@@ -49,33 +94,41 @@ class PontosView(ctk.CTkFrame):
                 p.get("telefone", "") or "",
             ]
             for coluna, valor in enumerate(valores):
-                lbl = ctk.CTkLabel(
-                    frame_tabela, text=str(valor),
-                    width=120 if coluna != 2 else 200
-                )
-                lbl.grid(row=linha, column=coluna, padx=8, pady=4)
+                w = 180 if coluna == 2 else (100 if coluna == 0 else 130)
+                ctk.CTkLabel(
+                    row_frame, text=str(valor),
+                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
+                    width=w, anchor="w"
+                ).grid(row=0, column=coluna, padx=8, pady=6, sticky="w")
 
             idponto = p["id_ponto"]
-            btn_editar = ctk.CTkButton(
-                frame_tabela, text="Editar", width=70,
-                fg_color="#f39c12", hover_color="#e67e22",
-                command=lambda idp=idponto: self.editar_ponto(idp)
-            )
-            btn_editar.grid(row=linha, column=6, padx=2)
 
-            btn_excluir = ctk.CTkButton(
-                frame_tabela, text="Excluir", width=70,
-                fg_color="#e74c3c", hover_color="#c0392b",
-                command=lambda idp=idponto: self.excluir_ponto(idp)
-            )
-            btn_excluir.grid(row=linha, column=7, padx=2)
+            acoes_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
+            acoes_frame.grid(row=0, column=6, padx=4, pady=4)
 
             btn_horarios = ctk.CTkButton(
-                frame_tabela, text="Horários", width=80,
-                fg_color="#3498db", hover_color="#2980b9",
+                acoes_frame, text="Horários", width=72, height=28,
+                fg_color=ECOPA_BLUE, hover_color="#2980b9",
+                corner_radius=8, font=ctk.CTkFont(size=10, weight="bold"),
                 command=lambda idp=idponto: self._ver_horarios(idp)
             )
-            btn_horarios.grid(row=linha, column=8, padx=2)
+            btn_horarios.pack(side="left", padx=2)
+
+            btn_editar = ctk.CTkButton(
+                acoes_frame, text="Editar", width=60, height=28,
+                fg_color=ECOPA_ORANGE, hover_color="#e67e22",
+                corner_radius=8, font=ctk.CTkFont(size=10, weight="bold"),
+                command=lambda idp=idponto: self.editar_ponto(idp)
+            )
+            btn_editar.pack(side="left", padx=2)
+
+            btn_excluir = ctk.CTkButton(
+                acoes_frame, text="Excluir", width=60, height=28,
+                fg_color="#e74c3c", hover_color="#c0392b",
+                corner_radius=8, font=ctk.CTkFont(size=10, weight="bold"),
+                command=lambda idp=idponto: self.excluir_ponto(idp)
+            )
+            btn_excluir.pack(side="left", padx=2)
 
     def editar_ponto(self, idponto):
         from views.edicao_ponto import EdicaoPonto
@@ -97,10 +150,10 @@ class PontosView(ctk.CTkFrame):
             messagebox.showinfo("Horários", f"{nome}\n\nNenhum horário cadastrado.")
             return
 
-        texto = f"{nome}\n\n"
+        texto = f"📍 {nome}\n{'─' * 30}\n\n"
         for h in sorted(horarios, key=lambda x: x["dia_semana"]):
             dia = dias.get(h["dia_semana"], "?")
             status = "✓" if h["ativo"] else "✗"
-            texto += f"{dia}: {h['abertura']} - {h['fechamento']}  {status}\n"
+            texto += f"  {dia}:  {h['abertura']} — {h['fechamento']}  {status}\n"
 
         messagebox.showinfo("Horários de Funcionamento", texto)

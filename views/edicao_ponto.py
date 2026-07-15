@@ -2,6 +2,16 @@ import customtkinter as ctk
 from tkinter import messagebox
 from controllers.ponto_controller import PontoController
 
+# Paleta ECOPA
+ECOPA_GREEN = "#006d12"
+ECOPA_GREEN_LIGHT = "#0a8f2c"
+ECOPA_GREEN_DARK = "#004d0e"
+ECOPA_BG = "#f0f7f0"
+ECOPA_WHITE = "#ffffff"
+ECOPA_TEXT = "#1a1a1a"
+ECOPA_TEXT_LIGHT = "#666666"
+ECOPA_BORDER = "#e0e8e0"
+
 DIAS_SEMANA = [
     (1, "Dom"), (2, "Seg"), (3, "Ter"), (4, "Qua"),
     (5, "Qui"), (6, "Sex"), (7, "Sáb")
@@ -16,7 +26,7 @@ class EdicaoPonto(ctk.CTkFrame):
         self.on_voltar = on_voltar
         self.ponto = PontoController.buscar_por_idponto(idponto)
         if not self.ponto:
-            messagebox.showerror("Erro", "Ponto de coleta nao encontrado")
+            messagebox.showerror("Erro", "Ponto de coleta não encontrado")
             self.on_voltar()
             return
         self._montar()
@@ -25,104 +35,152 @@ class EdicaoPonto(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
 
-        frame = ctk.CTkFrame(self.content, width=500, height=550)
+        container = ctk.CTkFrame(self.content, fg_color=ECOPA_BG, corner_radius=0)
+        container.pack(fill="both", expand=True)
+
+        frame = ctk.CTkFrame(
+            container, fg_color=ECOPA_WHITE, corner_radius=20,
+            border_width=1, border_color=ECOPA_BORDER,
+            width=560, height=620
+        )
         frame.place(relx=0.5, rely=0.5, anchor="center")
+        frame.pack_propagate(False)
 
-        label = ctk.CTkLabel(
+        # Header
+        ctk.CTkLabel(
+            frame, text="📍",
+            font=ctk.CTkFont(size=36), text_color=ECOPA_GREEN
+        ).pack(pady=(28, 0))
+
+        ctk.CTkLabel(
             frame, text="Editar Ponto de Coleta",
-            font=ctk.CTkFont(size=18, weight="bold")
-        )
-        label.pack(pady=(20, 15))
+            font=ctk.CTkFont(size=22, weight="bold"), text_color=ECOPA_GREEN_DARK
+        ).pack(pady=(8, 0))
 
-        lbl_id = ctk.CTkLabel(frame, text="ID Ponto:")
-        lbl_id.pack(anchor="w", padx=20)
-        lbl_id_valor = ctk.CTkLabel(
-            frame, text=str(self.ponto.get("id_ponto", "")),
-            font=ctk.CTkFont(size=14), width=350, anchor="w"
-        )
-        lbl_id_valor.pack(padx=20, pady=(0, 10))
+        # Separador
+        ctk.CTkFrame(frame, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(16, 12))
 
-        lbl_est = ctk.CTkLabel(frame, text="Estabelecimento:")
-        lbl_est.pack(anchor="w", padx=20)
-        lbl_est_valor = ctk.CTkLabel(
-            frame, text=self.ponto.get("estabelecimento", "") or "",
-            font=ctk.CTkFont(size=14), width=350, anchor="w"
-        )
-        lbl_est_valor.pack(padx=20, pady=(0, 10))
+        # Info read-only
+        info_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        info_frame.pack(fill="x", padx=55, pady=(0, 8))
 
+        ctk.CTkLabel(
+            info_frame, text="ID:",
+            font=ctk.CTkFont(size=11), text_color=ECOPA_TEXT_LIGHT
+        ).pack(side="left")
+        ctk.CTkLabel(
+            info_frame, text=str(self.ponto.get("id_ponto", "")),
+            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT
+        ).pack(side="left", padx=(4, 20))
+
+        ctk.CTkLabel(
+            info_frame, text="Estabelecimento:",
+            font=ctk.CTkFont(size=11), text_color=ECOPA_TEXT_LIGHT
+        ).pack(side="left")
+        ctk.CTkLabel(
+            info_frame, text=self.ponto.get("estabelecimento", "") or "",
+            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_GREEN_DARK
+        ).pack(side="left", padx=(4, 0))
+
+        # Campos editaveis
         campos = {
-            "Endereco": "endereco",
+            "Endereço": "endereco",
             "Email": "email",
             "Telefone": "telefone",
-            "Proprietario": "proprietario",
+            "Proprietário": "proprietario",
         }
         self.entries = {}
 
         for campo, db_key in campos.items():
-            lbl = ctk.CTkLabel(frame, text=campo + ":")
-            lbl.pack(anchor="w", padx=20)
-            entry = ctk.CTkEntry(frame, width=350)
-            entry.pack(padx=20, pady=(0, 10))
+            lbl = ctk.CTkLabel(
+                frame, text=campo,
+                font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
+                anchor="w"
+            )
+            lbl.pack(fill="x", padx=55, pady=(0, 3))
+            entry = ctk.CTkEntry(
+                frame, width=400, height=38,
+                fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
+                corner_radius=10, font=ctk.CTkFont(size=13), border_width=1
+            )
+            entry.pack(fill="x", padx=55, pady=(0, 8))
             entry.insert(0, self.ponto.get(db_key, "") or "")
             self.entries[campo] = entry
 
-        lbl_h = ctk.CTkLabel(frame, text="Horário de Funcionamento:")
-        lbl_h.pack(anchor="w", padx=20, pady=(15, 5))
+        # Horarios
+        ctk.CTkFrame(frame, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(8, 10))
+
+        ctk.CTkLabel(
+            frame, text="Horário de Funcionamento",
+            font=ctk.CTkFont(size=14, weight="bold"), text_color=ECOPA_GREEN_DARK,
+            anchor="w"
+        ).pack(fill="x", padx=55, pady=(0, 8))
 
         self.chk_vars = {}
         self.entry_abertura = {}
         self.entry_fechamento = {}
 
+        horarios_existentes = PontoController.buscar_horarios(self.idponto)
+        horarios_map = {h["dia_semana"]: h for h in horarios_existentes}
+
         for dia_num, dia_nome in DIAS_SEMANA:
             linha = ctk.CTkFrame(frame, fg_color="transparent")
-            linha.pack(fill="x", padx=20, pady=1)
+            linha.pack(fill="x", padx=55, pady=1)
 
-            var = ctk.BooleanVar(value=True)
-            chk = ctk.CTkCheckBox(linha, text=dia_nome, variable=var, width=50)
+            var = ctk.BooleanVar(value=(dia_num in horarios_map and horarios_map[dia_num].get("ativo", 1) == 1))
+            chk = ctk.CTkCheckBox(
+                linha, text=dia_nome, variable=var, width=55,
+                fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT
+            )
             chk.pack(side="left")
 
-            ctk.CTkLabel(linha, text="Abre:", width=40).pack(side="left", padx=(10, 0))
-            ent_a = ctk.CTkEntry(linha, width=70, placeholder_text="08:00")
+            ctk.CTkLabel(linha, text="Abre:", width=38, font=ctk.CTkFont(size=11),
+                         text_color=ECOPA_TEXT_LIGHT).pack(side="left", padx=(8, 0))
+            ent_a = ctk.CTkEntry(
+                linha, width=68, placeholder_text="08:00",
+                fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
+                corner_radius=8, font=ctk.CTkFont(size=11), border_width=1
+            )
             ent_a.pack(side="left", padx=(0, 5))
-            ent_a.insert(0, "08:00")
 
-            ctk.CTkLabel(linha, text="Fecha:", width=45).pack(side="left")
-            ent_f = ctk.CTkEntry(linha, width=70, placeholder_text="17:00")
+            ctk.CTkLabel(linha, text="Fecha:", width=42, font=ctk.CTkFont(size=11),
+                         text_color=ECOPA_TEXT_LIGHT).pack(side="left")
+            ent_f = ctk.CTkEntry(
+                linha, width=68, placeholder_text="17:00",
+                fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
+                corner_radius=8, font=ctk.CTkFont(size=11), border_width=1
+            )
             ent_f.pack(side="left")
-            ent_f.insert(0, "17:00")
 
             self.chk_vars[dia_num] = var
             self.entry_abertura[dia_num] = ent_a
             self.entry_fechamento[dia_num] = ent_f
 
-        horarios_existentes = PontoController.buscar_horarios(self.idponto)
-        horarios_map = {h["dia_semana"]: h for h in horarios_existentes}
-
-        for dia_num, _ in DIAS_SEMANA:
+            # Preencher valores existentes
             if dia_num in horarios_map:
                 h = horarios_map[dia_num]
-                self.chk_vars[dia_num].set(h["ativo"] == 1)
-                self.entry_abertura[dia_num].delete(0, ctk.END)
-                self.entry_abertura[dia_num].insert(0, str(h["abertura"]))
-                self.entry_fechamento[dia_num].delete(0, ctk.END)
-                self.entry_fechamento[dia_num].insert(0, str(h["fechamento"]))
+                ent_a.delete(0, ctk.END)
+                ent_a.insert(0, str(h["abertura"]))
+                ent_f.delete(0, ctk.END)
+                ent_f.insert(0, str(h["fechamento"]))
 
+        # Botoes
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
-        btn_frame.pack(pady=20)
+        btn_frame.pack(pady=(16, 24))
 
-        btn_salvar = ctk.CTkButton(
-            btn_frame, text="Salvar", width=120,
-            fg_color="#27ae60", hover_color="#2ecc71",
+        ctk.CTkButton(
+            btn_frame, text="Salvar", width=140, height=40,
+            fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
+            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
             command=self._on_salvar
-        )
-        btn_salvar.pack(side="left", padx=10)
+        ).pack(side="left", padx=8)
 
-        btn_voltar = ctk.CTkButton(
-            btn_frame, text="Voltar", width=120,
+        ctk.CTkButton(
+            btn_frame, text="Voltar", width=140, height=40,
             fg_color="#7f8c8d", hover_color="#95a5a6",
+            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
             command=self.on_voltar
-        )
-        btn_voltar.pack(side="left", padx=10)
+        ).pack(side="left", padx=8)
 
     def _on_salvar(self):
         dados = {campo: entry.get().strip() for campo, entry in self.entries.items()}
