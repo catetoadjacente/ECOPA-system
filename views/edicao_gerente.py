@@ -30,53 +30,52 @@ class EdicaoGerente(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
 
-        container = ctk.CTkFrame(self.content, fg_color=ECOPA_BG, corner_radius=0)
-        container.pack(fill="both", expand=True)
+        scroll = ctk.CTkScrollableFrame(self.content, fg_color=ECOPA_BG)
+        scroll.pack(fill="both", expand=True)
 
-        frame = ctk.CTkFrame(
-            container, fg_color=ECOPA_WHITE, corner_radius=20,
-            border_width=1, border_color=ECOPA_BORDER,
-            width=520, height=480
+        # Card principal
+        card = ctk.CTkFrame(
+            scroll, fg_color=ECOPA_WHITE, corner_radius=20,
+            border_width=1, border_color=ECOPA_BORDER
         )
-        frame.place(relx=0.5, rely=0.5, anchor="center")
-        frame.pack_propagate(False)
+        card.pack(fill="x", padx=40, pady=(25, 20))
 
         # Header
         ctk.CTkLabel(
-            frame, text="✏️",
+            card, text="✏️",
             font=ctk.CTkFont(size=36), text_color=ECOPA_GREEN
         ).pack(pady=(28, 0))
 
         ctk.CTkLabel(
-            frame, text="Editar Gerente",
+            card, text="Editar Gerente",
             font=ctk.CTkFont(size=22, weight="bold"), text_color=ECOPA_GREEN_DARK
         ).pack(pady=(8, 0))
 
         # Separador
-        ctk.CTkFrame(frame, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(16, 16))
+        ctk.CTkFrame(card, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(16, 16))
 
         # Nome (read-only)
         lbl_nome = ctk.CTkLabel(
-            frame, text="Nome",
+            card, text="Nome",
             font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
             anchor="w"
         )
         lbl_nome.pack(fill="x", padx=55, pady=(0, 3))
         ctk.CTkLabel(
-            frame, text=self.gerente["nome"],
+            card, text=self.gerente["nome"],
             font=ctk.CTkFont(size=14, weight="bold"),
-            text_color=ECOPA_GREEN_DARK, anchor="w", width=380
+            text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 12))
 
         # CPF (read-only)
         lbl_cpf = ctk.CTkLabel(
-            frame, text="CPF",
+            card, text="CPF",
             font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
             anchor="w"
         )
         lbl_cpf.pack(fill="x", padx=55, pady=(0, 3))
         ctk.CTkLabel(
-            frame, text=self.cpf,
+            card, text=self.cpf,
             font=ctk.CTkFont(size=13), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 12))
 
@@ -90,30 +89,30 @@ class EdicaoGerente(ctk.CTkFrame):
 
         for campo, db_key in campos.items():
             lbl = ctk.CTkLabel(
-                frame, text=campo,
+                card, text=campo,
                 font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
                 anchor="w"
             )
             lbl.pack(fill="x", padx=55, pady=(0, 3))
             entry = ctk.CTkEntry(
-                frame, width=380, height=38,
+                card, height=38,
                 fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
                 corner_radius=10, font=ctk.CTkFont(size=13), border_width=1
             )
-            entry.pack(padx=55, pady=(0, 10))
+            entry.pack(fill="x", padx=55, pady=(0, 10))
             entry.insert(0, self.gerente[db_key] or "")
             self.entries[campo] = entry
 
         # Botoes
-        btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
-        btn_frame.pack(pady=(16, 24))
+        btn_frame = ctk.CTkFrame(card, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=55, pady=(16, 24))
 
         ctk.CTkButton(
             btn_frame, text="Salvar", width=140, height=40,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
             corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
             command=self._on_salvar
-        ).pack(side="left", padx=8)
+        ).pack(side="right", padx=8)
 
         ctk.CTkButton(
             btn_frame, text="Voltar", width=140, height=40,

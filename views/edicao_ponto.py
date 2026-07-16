@@ -35,33 +35,32 @@ class EdicaoPonto(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
 
-        container = ctk.CTkFrame(self.content, fg_color=ECOPA_BG, corner_radius=0)
-        container.pack(fill="both", expand=True)
+        scroll = ctk.CTkScrollableFrame(self.content, fg_color=ECOPA_BG)
+        scroll.pack(fill="both", expand=True)
 
-        frame = ctk.CTkFrame(
-            container, fg_color=ECOPA_WHITE, corner_radius=20,
-            border_width=1, border_color=ECOPA_BORDER,
-            width=560, height=620
+        # Card principal
+        card = ctk.CTkFrame(
+            scroll, fg_color=ECOPA_WHITE, corner_radius=20,
+            border_width=1, border_color=ECOPA_BORDER
         )
-        frame.place(relx=0.5, rely=0.5, anchor="center")
-        frame.pack_propagate(False)
+        card.pack(fill="x", padx=40, pady=(25, 20))
 
         # Header
         ctk.CTkLabel(
-            frame, text="📍",
+            card, text="📍",
             font=ctk.CTkFont(size=36), text_color=ECOPA_GREEN
         ).pack(pady=(28, 0))
 
         ctk.CTkLabel(
-            frame, text="Editar Ponto de Coleta",
+            card, text="Editar Ponto de Coleta",
             font=ctk.CTkFont(size=22, weight="bold"), text_color=ECOPA_GREEN_DARK
         ).pack(pady=(8, 0))
 
         # Separador
-        ctk.CTkFrame(frame, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(16, 12))
+        ctk.CTkFrame(card, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(16, 12))
 
         # Info read-only
-        info_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        info_frame = ctk.CTkFrame(card, fg_color="transparent")
         info_frame.pack(fill="x", padx=55, pady=(0, 8))
 
         ctk.CTkLabel(
@@ -93,13 +92,13 @@ class EdicaoPonto(ctk.CTkFrame):
 
         for campo, db_key in campos.items():
             lbl = ctk.CTkLabel(
-                frame, text=campo,
+                card, text=campo,
                 font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
                 anchor="w"
             )
             lbl.pack(fill="x", padx=55, pady=(0, 3))
             entry = ctk.CTkEntry(
-                frame, width=400, height=38,
+                card, height=38,
                 fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
                 corner_radius=10, font=ctk.CTkFont(size=13), border_width=1
             )
@@ -108,10 +107,10 @@ class EdicaoPonto(ctk.CTkFrame):
             self.entries[campo] = entry
 
         # Horarios
-        ctk.CTkFrame(frame, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(8, 10))
+        ctk.CTkFrame(card, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(8, 10))
 
         ctk.CTkLabel(
-            frame, text="Horário de Funcionamento",
+            card, text="Horário de Funcionamento",
             font=ctk.CTkFont(size=14, weight="bold"), text_color=ECOPA_GREEN_DARK,
             anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 8))
@@ -124,7 +123,7 @@ class EdicaoPonto(ctk.CTkFrame):
         horarios_map = {h["dia_semana"]: h for h in horarios_existentes}
 
         for dia_num, dia_nome in DIAS_SEMANA:
-            linha = ctk.CTkFrame(frame, fg_color="transparent")
+            linha = ctk.CTkFrame(card, fg_color="transparent")
             linha.pack(fill="x", padx=55, pady=1)
 
             var = ctk.BooleanVar(value=(dia_num in horarios_map and horarios_map[dia_num].get("ativo", 1) == 1))
@@ -165,15 +164,15 @@ class EdicaoPonto(ctk.CTkFrame):
                 ent_f.insert(0, str(h["fechamento"]))
 
         # Botoes
-        btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
-        btn_frame.pack(pady=(16, 24))
+        btn_frame = ctk.CTkFrame(card, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=55, pady=(16, 24))
 
         ctk.CTkButton(
             btn_frame, text="Salvar", width=140, height=40,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
             corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
             command=self._on_salvar
-        ).pack(side="left", padx=8)
+        ).pack(side="right", padx=8)
 
         ctk.CTkButton(
             btn_frame, text="Voltar", width=140, height=40,
