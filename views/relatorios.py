@@ -2,6 +2,8 @@ import customtkinter as ctk
 from tkinter import messagebox, filedialog
 from controllers.coleta_controller import ColetaController
 from controllers.ponto_controller import PontoController
+from controllers.lote_controller import LoteController
+from controllers.pedido_controller import PedidoController
 from models.relatorio import Relatorio
 from datetime import datetime
 from collections import defaultdict

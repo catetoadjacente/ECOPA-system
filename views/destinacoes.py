@@ -2,7 +2,6 @@ import customtkinter as ctk
 from tkinter import messagebox
 from controllers.destinacao_controller import DestinacaoController
 
-# Paleta ECOPA
 ECOPA_GREEN = "#006d12"
 ECOPA_GREEN_LIGHT = "#0a8f2c"
 ECOPA_GREEN_DARK = "#004d0e"
@@ -15,6 +14,14 @@ ECOPA_ORANGE = "#f39c12"
 ECOPA_LEAF = "#27ae60"
 ECOPA_BLUE = "#3498db"
 ECOPA_RED = "#e74c3c"
+
+TIPO_CORES = {
+    "Reciclagem": (ECOPA_BLUE, "#e8f0f8"),
+    "Biomassa": (ECOPA_GREEN, "#e8f5e8"),
+    "Compostagem": (ECOPA_LEAF, "#e8f8e8"),
+    "Aterro": (ECOPA_ORANGE, "#fdf5e8"),
+    "Outro": (ECOPA_TEXT_LIGHT, "#f0f0f0"),
+}
 
 
 class DestinacoesView(ctk.CTkFrame):
@@ -30,7 +37,6 @@ class DestinacoesView(ctk.CTkFrame):
         container = ctk.CTkFrame(self.content, fg_color=ECOPA_BG, corner_radius=0)
         container.pack(fill="both", expand=True)
 
-        # Header
         header = ctk.CTkFrame(container, fg_color="transparent")
         header.pack(fill="x", padx=32, pady=(24, 0))
 
@@ -44,7 +50,7 @@ class DestinacoesView(ctk.CTkFrame):
         ).pack(anchor="w")
 
         ctk.CTkLabel(
-            left, text="Gerencia todas as destinacoes de residuos",
+            left, text="Locais de destino dos materiais coletados",
             font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
@@ -52,41 +58,35 @@ class DestinacoesView(ctk.CTkFrame):
         right.pack(side="right", anchor="ne")
 
         ctk.CTkButton(
-            right, text="+ Nova Destinacao", width=160, height=38,
+            right, text="+ Nova Destinacao", width=180, height=38,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
             corner_radius=10, font=ctk.CTkFont(size=12, weight="bold"),
             command=self._cadastrar
         ).pack(anchor="e")
 
-        # Linha verde
         ctk.CTkFrame(container, fg_color=ECOPA_GREEN, height=3, corner_radius=2).pack(
-            fill="x", padx=32, pady=(16, 0)
-        )
+            fill="x", padx=32, pady=(16, 0))
 
-        # Tabela
         self._montar_tabela(container)
 
     def _montar_tabela(self, parent):
         frame_tabela = ctk.CTkFrame(
             parent, fg_color=ECOPA_WHITE, corner_radius=16,
-            border_width=1, border_color=ECOPA_BORDER
-        )
+            border_width=1, border_color=ECOPA_BORDER)
         frame_tabela.pack(fill="both", expand=True, padx=32, pady=(20, 20))
 
-        # Cabecalho
-        cabecalhos = ["ID", "Cliente", "CNPJ", "Coleta", "Ponto Origem", "Quantidade", "Data", "Acoes"]
+        cabecalhos = ["ID", "Nome", "Tipo", "Endereco", "CNPJ", "Telefone", "Acoes"]
         header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12)
         header_frame.pack(fill="x", padx=16, pady=(16, 0))
 
-        larguras = [50, 130, 130, 70, 150, 90, 100, 140]
-        for coluna, texto in enumerate(cabecalhos):
+        larguras = [50, 180, 100, 200, 130, 120, 130]
+        for col, texto in enumerate(cabecalhos):
             ctk.CTkLabel(
                 header_frame, text=texto,
                 font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=ECOPA_WHITE, width=larguras[coluna]
-            ).grid(row=0, column=coluna, padx=6, pady=10, sticky="w")
+                text_color=ECOPA_WHITE, width=larguras[col]
+            ).grid(row=0, column=col, padx=6, pady=10, sticky="w")
 
-        # Dados
         dados = DestinacaoController.listar()
 
         if not dados:
@@ -101,28 +101,33 @@ class DestinacoesView(ctk.CTkFrame):
             row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0)
             row_frame.pack(fill="x", padx=16)
 
-            data_str = d["data_dest"].strftime("%d/%m/%Y") if d["data_dest"] else ""
-            qtd_str = f"{float(d['quantidade'] or 0):.1f} Kg"
+            tipo = d.get("tipo", "Outro")
+            badge_cor, badge_bg = TIPO_CORES.get(tipo, (ECOPA_TEXT_LIGHT, "#f0f0f0"))
 
             valores = [
                 str(d["id"]),
-                d["cliente"],
-                d["cnpj"],
-                f"#{d['coleta_id_coleta']}",
-                d["ponto"],
-                qtd_str,
-                data_str,
+                d["nome"],
+                "",
+                d.get("endereco", ""),
+                d.get("cnpj", "") or "",
+                d.get("telefone", "") or "",
             ]
 
-            for coluna, valor in enumerate(valores):
+            for col, valor in enumerate(valores):
                 ctk.CTkLabel(
                     row_frame, text=valor,
                     font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
-                    width=larguras[coluna], anchor="w"
-                ).grid(row=0, column=coluna, padx=6, pady=6, sticky="w")
+                    width=larguras[col], anchor="w"
+                ).grid(row=0, column=col, padx=6, pady=6, sticky="w")
+
+            badge = ctk.CTkLabel(
+                row_frame, text=tipo, font=ctk.CTkFont(size=11, weight="bold"),
+                fg_color=badge_bg, text_color=badge_cor,
+                corner_radius=8, width=90, height=26)
+            badge.grid(row=0, column=2, padx=6, pady=6, sticky="w")
 
             acoes_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
-            acoes_frame.grid(row=0, column=7, padx=4, pady=4)
+            acoes_frame.grid(row=0, column=6, padx=4, pady=4)
 
             id_dest = d["id"]
             ctk.CTkButton(

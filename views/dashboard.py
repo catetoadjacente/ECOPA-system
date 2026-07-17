@@ -88,6 +88,8 @@ class MainView(ctk.CTkFrame):
         botoes = [
             ("dashboard",    "Dashboard",    self.abrir_dashboard,    "📊"),
             ("coletas",      "Coletas",      self.abrir_coleta,      "🚛"),
+            ("lotes",        "Estoque",      self.abrir_lotes,       "📦"),
+            ("pedidos",      "Pedidos",      self.abrir_pedidos,     "📑"),
             ("destinacoes",  "Destinações",  self.abrir_destinacoes,  "♻️"),
             ("cadastros",    "Cadastros",    self.abrir_cadastros,   "📋"),
             ("relatorios",   "Relatórios",   self.abrir_relatorios,  "📈"),
@@ -227,16 +229,23 @@ class MainView(ctk.CTkFrame):
         pendentes = sum(1 for c in coletas if c["status"] == "Pendente")
         realizadas = sum(1 for c in coletas if c["status"] == "Realizada")
 
+        from controllers.lote_controller import LoteController
+        from controllers.pedido_controller import PedidoController
+        lotes = LoteController.listar_todos()
+        estoque_total = sum(float(l["quantidade_restante"]) for l in lotes)
+        pedidos = PedidoController.listar()
+        total_pedidos = len(pedidos)
+
         # === KPI CARDS ===
         frame_cards = ctk.CTkFrame(scroll, fg_color="transparent")
         frame_cards.pack(fill="x", padx=32, pady=(20, 0))
         frame_cards.grid_columnconfigure((0, 1, 2, 3), weight=1)
 
         cards_data = [
-            ("🚛", "COLETAS HOJE", str(total_coletas), ECOPA_GREEN, "#e8f5e8"),
-            ("📍", "PONTOS ATIVOS", str(total_pontos), ECOPA_BLUE, "#e8f0f8"),
-            ("⏳", "PENDENTES", str(pendentes), ECOPA_ORANGE, "#fdf5e8"),
-            ("✅", "REALIZADAS", str(realizadas), ECOPA_LEAF, "#e8f8e8"),
+            ("🚛", "COLETAS",       str(total_coletas),    ECOPA_GREEN, "#e8f5e8"),
+            ("📦", "ESTOQUE (Kg)",  f"{estoque_total:.0f}", ECOPA_BLUE,  "#e8f0f8"),
+            ("📑", "PEDIDOS",       str(total_pedidos),    ECOPA_ORANGE, "#fdf5e8"),
+            ("✅", "REALIZADAS",    str(realizadas),       ECOPA_LEAF,   "#e8f8e8"),
         ]
 
         for i, (emoji, titulo, valor, cor, bg_cor) in enumerate(cards_data):
@@ -498,6 +507,20 @@ class MainView(ctk.CTkFrame):
         self._destacar_menu("relatorios")
         from views.relatorios import RelatoriosView
         RelatoriosView(self, self.content)
+
+    def abrir_lotes(self):
+        for widget in self.content.winfo_children():
+            widget.destroy()
+        self._destacar_menu("lotes")
+        from views.lotes import LotesView
+        LotesView(self, self.content)
+
+    def abrir_pedidos(self):
+        for widget in self.content.winfo_children():
+            widget.destroy()
+        self._destacar_menu("pedidos")
+        from views.pedidos import PedidosView
+        PedidosView(self, self.content)
 
     def sair(self):
         self.winfo_toplevel().destroy()
