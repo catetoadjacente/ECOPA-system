@@ -83,26 +83,73 @@ class Relatorio:
         try:
             cursor = connection.cursor(dictionary=True)
             query = """
-                SELECT d.cliente, d.cnpj, d.data AS data_dest,
-                       p.estabelecimento AS ponto, c.quantidade
-                FROM destinacoes d
-                JOIN coleta c ON d.coleta_id_coleta = c.id_coleta
-                JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
-                WHERE 1=1
+                SELECT d.nome AS destinacao, d.tipo,
+                       COUNT(pe.id_pedido) AS total_pedidos,
+                       SUM(pe.quantidade_solicitada) AS total_kg
+                FROM pedido pe
+                JOIN destinacao d ON pe.id_destinacao = d.id_destinacao
+                WHERE pe.status != 'Cancelado'
             """
             params = []
             if data_inicio:
-                query += " AND d.data >= %s"
+                query += " AND pe.data >= %s"
                 params.append(data_inicio)
             if data_fim:
-                query += " AND d.data <= %s"
+                query += " AND pe.data <= %s"
                 params.append(data_fim)
-            query += " ORDER BY d.data DESC"
+            query += " GROUP BY d.nome, d.tipo ORDER BY total_kg DESC"
             cursor.execute(query, params)
             return cursor.fetchall()
         except Exception as e:
-            print(f"Erro ao buscar destinacoes: {e}")
+            print(f"Erro ao resumir destinacoes: {e}")
             return []
+        finally:
+            if connection.is_connected():
+                connection.close()
+
+    @staticmethod
+    def resumo_estoque():
+        connection = get_connection()
+        if connection is None:
+            return {}
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT
+                    COUNT(*) AS total_lotes,
+                    COALESCE(SUM(quantidade_restante), 0) AS estoque_total,
+                    SUM(CASE WHEN status = 'Disponivel' THEN 1 ELSE 0 END) AS lotes_disponiveis,
+                    SUM(CASE WHEN status = 'Parcialmente Consumido' THEN 1 ELSE 0 END) AS lotes_parciais,
+                    SUM(CASE WHEN status = 'Esgotado' THEN 1 ELSE 0 END) AS lotes_esgotados
+                FROM lote
+            """)
+            return cursor.fetchone()
+        except Exception as e:
+            print(f"Erro ao resumir estoque: {e}")
+            return {}
+        finally:
+            if connection.is_connected():
+                connection.close()
+
+    @staticmethod
+    def resumo_pedidos():
+        connection = get_connection()
+        if connection is None:
+            return {}
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT
+                    COUNT(*) AS total_pedidos,
+                    SUM(CASE WHEN status = 'Aberto' THEN 1 ELSE 0 END) AS pedidos_abertos,
+                    SUM(CASE WHEN status = 'Atendido' THEN 1 ELSE 0 END) AS pedidos_atendidos,
+                    SUM(CASE WHEN status = 'Cancelado' THEN 1 ELSE 0 END) AS pedidos_cancelados
+                FROM pedido
+            """)
+            return cursor.fetchone()
+        except Exception as e:
+            print(f"Erro ao resumir pedidos: {e}")
+            return {}
         finally:
             if connection.is_connected():
                 connection.close()

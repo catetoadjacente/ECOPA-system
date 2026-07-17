@@ -2,6 +2,7 @@ from database.database import get_connection
 
 
 class Destinacao:
+
     @staticmethod
     def listar_todas():
         connection = get_connection()
@@ -10,14 +11,10 @@ class Destinacao:
         try:
             cursor = connection.cursor(dictionary=True)
             cursor.execute("""
-                SELECT d.id_destinacoes AS id, d.cliente, d.cnpj,
-                       d.data AS data_dest, d.coleta_id_coleta,
-                       c.quantidade, c.observacao,
-                       p.estabelecimento AS ponto
-                FROM destinacoes d
-                JOIN coleta c ON d.coleta_id_coleta = c.id_coleta
-                JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
-                ORDER BY d.data DESC
+                SELECT id_destinacao AS id, nome, tipo, endereco,
+                       telefone, email, cnpj
+                FROM destinacao
+                ORDER BY nome ASC
             """)
             return cursor.fetchall()
         except Exception as e:
@@ -34,10 +31,12 @@ class Destinacao:
             return False
         try:
             cursor = connection.cursor()
-            cursor.execute("""
-                INSERT INTO destinacoes (cnpj, cliente, data, coleta_id_coleta)
-                VALUES (%s, %s, %s, %s)
-            """, (dados["cnpj"], dados["cliente"], dados["data"], dados["coleta_id_coleta"]))
+            cursor.execute(
+                "INSERT INTO destinacao (nome, tipo, endereco, telefone, email, cnpj) "
+                "VALUES (%s, %s, %s, %s, %s, %s)",
+                (dados["nome"], dados["tipo"], dados["endereco"],
+                 dados.get("telefone", ""), dados.get("email", ""),
+                 dados.get("cnpj", "")))
             connection.commit()
             return True
         except Exception as e:
@@ -55,12 +54,12 @@ class Destinacao:
             return False
         try:
             cursor = connection.cursor()
-            cursor.execute("""
-                UPDATE destinacoes
-                SET cnpj=%s, cliente=%s, data=%s, coleta_id_coleta=%s
-                WHERE id_destinacoes=%s
-            """, (dados["cnpj"], dados["cliente"], dados["data"],
-                  dados["coleta_id_coleta"], id_dest))
+            cursor.execute(
+                "UPDATE destinacao SET nome=%s, tipo=%s, endereco=%s, telefone=%s, email=%s, cnpj=%s "
+                "WHERE id_destinacao=%s",
+                (dados["nome"], dados["tipo"], dados["endereco"],
+                 dados.get("telefone", ""), dados.get("email", ""),
+                 dados.get("cnpj", ""), id_dest))
             connection.commit()
             return True
         except Exception as e:
@@ -78,7 +77,7 @@ class Destinacao:
             return False
         try:
             cursor = connection.cursor()
-            cursor.execute("DELETE FROM destinacoes WHERE id_destinacoes=%s", (id_dest,))
+            cursor.execute("DELETE FROM destinacao WHERE id_destinacao=%s", (id_dest,))
             connection.commit()
             return True
         except Exception as e:
@@ -90,26 +89,43 @@ class Destinacao:
                 connection.close()
 
     @staticmethod
-    def listar_coletas_disponiveis():
+    def buscar_por_id(id_dest):
         connection = get_connection()
         if connection is None:
-            return []
+            return None
         try:
             cursor = connection.cursor(dictionary=True)
             cursor.execute("""
-                SELECT c.id_coleta AS id, c.quantidade, c.data,
-                       p.estabelecimento AS ponto
-                FROM coleta c
-                JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
-                WHERE c.id_coleta NOT IN (
-                    SELECT coleta_id_coleta FROM destinacoes
-                )
-                ORDER BY c.data DESC
-            """)
-            return cursor.fetchall()
+                SELECT id_destinacao AS id, nome, tipo, endereco,
+                       telefone, email, cnpj
+                FROM destinacao
+                WHERE id_destinacao = %s
+            """, (id_dest,))
+            return cursor.fetchone()
         except Exception as e:
-            print(f"Erro ao listar coletas disponiveis: {e}")
-            return []
+            print(f"Erro ao buscar destinacao: {e}")
+            return None
+        finally:
+            if connection.is_connected():
+                connection.close()
+
+    @staticmethod
+    def buscar_por_cnpj(cnpj):
+        connection = get_connection()
+        if connection is None:
+            return None
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT id_destinacao AS id, nome, tipo, endereco,
+                       telefone, email, cnpj
+                FROM destinacao
+                WHERE cnpj = %s
+            """, (cnpj,))
+            return cursor.fetchone()
+        except Exception as e:
+            print(f"Erro ao buscar destinacao por CNPJ: {e}")
+            return None
         finally:
             if connection.is_connected():
                 connection.close()
