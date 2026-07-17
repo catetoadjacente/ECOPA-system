@@ -1,5 +1,6 @@
 from models.coleta import Coleta
 from models.ponto import Ponto
+from models.lote import Lote
 
 
 class ColetaController:
@@ -21,4 +22,11 @@ class ColetaController:
 
     @staticmethod
     def atualizar_status(id_coleta, status):
+        if status == "Realizada":
+            lote_existente = Lote.buscar_por_coleta(id_coleta)
+            if lote_existente is None:
+                coletas = Coleta.listar_todas()
+                coleta = next((c for c in coletas if c["id"] == id_coleta), None)
+                if coleta:
+                    Lote.criar_por_coleta(id_coleta, coleta["quantidade"])
         return Coleta.atualizar_status(id_coleta, status)

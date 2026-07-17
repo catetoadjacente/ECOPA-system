@@ -2,6 +2,7 @@ from models.destinacao import Destinacao
 
 
 class DestinacaoController:
+
     @staticmethod
     def listar():
         return Destinacao.listar_todas()
@@ -9,16 +10,18 @@ class DestinacaoController:
     @staticmethod
     def cadastrar(dados):
         erros = []
-        if not dados.get("cnpj") or not dados["cnpj"].strip():
-            erros.append("CNPJ")
-        if not dados.get("cliente") or not dados["cliente"].strip():
-            erros.append("Cliente")
-        if not dados.get("data") or not dados["data"].strip():
-            erros.append("Data")
-        if not dados.get("coleta_id_coleta"):
-            erros.append("Coleta vinculada")
+        if not dados.get("nome") or not dados["nome"].strip():
+            erros.append("Nome")
+        if not dados.get("tipo"):
+            erros.append("Tipo")
+        if not dados.get("endereco") or not dados["endereco"].strip():
+            erros.append("Endereco")
         if erros:
             return False, f"Preencha: {', '.join(erros)}"
+        if dados.get("cnpj"):
+            existente = Destinacao.buscar_por_cnpj(dados["cnpj"].strip())
+            if existente:
+                return False, "CNPJ ja cadastrado"
         if Destinacao.criar(dados):
             return True, "Destinacao cadastrada com sucesso"
         return False, "Falha ao cadastrar destinacao"
@@ -26,14 +29,12 @@ class DestinacaoController:
     @staticmethod
     def atualizar(id_dest, dados):
         erros = []
-        if not dados.get("cnpj") or not dados["cnpj"].strip():
-            erros.append("CNPJ")
-        if not dados.get("cliente") or not dados["cliente"].strip():
-            erros.append("Cliente")
-        if not dados.get("data") or not dados["data"].strip():
-            erros.append("Data")
-        if not dados.get("coleta_id_coleta"):
-            erros.append("Coleta vinculada")
+        if not dados.get("nome") or not dados["nome"].strip():
+            erros.append("Nome")
+        if not dados.get("tipo"):
+            erros.append("Tipo")
+        if not dados.get("endereco") or not dados["endereco"].strip():
+            erros.append("Endereco")
         if erros:
             return False, f"Preencha: {', '.join(erros)}"
         if Destinacao.atualizar(id_dest, dados):
@@ -49,5 +50,5 @@ class DestinacaoController:
         return False, "Falha ao excluir destinacao"
 
     @staticmethod
-    def coletas_disponiveis():
-        return Destinacao.listar_coletas_disponiveis()
+    def obter_por_id(id_dest):
+        return Destinacao.buscar_por_id(id_dest)
