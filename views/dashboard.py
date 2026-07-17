@@ -87,14 +87,14 @@ class MainView(ctk.CTkFrame):
         self._botoes_menu = {}
         botoes = [
             ("dashboard",    "Dashboard",    self.abrir_dashboard,    "📊"),
-            ("coletas",      "Coletas",      self.abrir_coleta,      "🚛"),
             ("lotes",        "Estoque",      self.abrir_lotes,       "📦"),
             ("pedidos",      "Pedidos",      self.abrir_pedidos,     "📑"),
-            ("destinacoes",  "Destinações",  self.abrir_destinacoes,  "♻️"),
             ("cadastros",    "Cadastros",    self.abrir_cadastros,   "📋"),
-            ("relatorios",   "Relatórios",   self.abrir_relatorios,  "📈"),
-            ("pontos",       "Pontos",       self.abrir_pontos,      "📍"),
             ("gerente",      "Gerente",      self.abrir_gerente,     "👤"),
+            ("coletas",      "Coletas",      self.abrir_coleta,      "🚛"),
+            ("pontos",       "Pontos",       self.abrir_pontos,      "📍"),
+            ("destinacoes",  "Destinações",  self.abrir_destinacoes,  "♻️"),
+            ("relatorios",   "Relatórios",   self.abrir_relatorios,  "📈"),
         ]
 
         for nome_icone, texto, comando, emoji in botoes:
