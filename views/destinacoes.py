@@ -44,7 +44,7 @@ class DestinacoesView(ctk.CTkFrame):
         left.pack(side="left")
 
         ctk.CTkLabel(
-            left, text="Destinacoes",
+            left, text="Destinações",
             font=ctk.CTkFont(size=30, weight="bold"), anchor="w",
             text_color=ECOPA_GREEN_DARK
         ).pack(anchor="w")
