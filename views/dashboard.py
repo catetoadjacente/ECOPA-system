@@ -186,7 +186,7 @@ class MainView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             left_header,
-            text="Supervisor de residuos e coleta",
+            text="Supervisor de resíduos e coletas",
             font=ctk.CTkFont(size=12), anchor="w",
             text_color=ECOPA_TEXT_LIGHT
         ).pack(anchor="w", pady=(2, 0))

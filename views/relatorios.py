@@ -525,7 +525,7 @@ class RelatoriosView(ctk.CTkFrame):
         card.pack(fill="x", pady=(0, 16))
 
         ctk.CTkLabel(
-            card, text="Resumo de Destinacoes",
+            card, text="Resumo de Destinações",
             font=ctk.CTkFont(size=15, weight="bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(16, 8))

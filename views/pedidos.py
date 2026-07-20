@@ -42,7 +42,7 @@ class PedidosView(ctk.CTkFrame):
         ).pack(anchor="w")
 
         ctk.CTkLabel(
-            left, text="Remessas de material para destinacoes",
+            left, text="Remessas de material para destinações",
             font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 

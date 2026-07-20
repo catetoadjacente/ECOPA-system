@@ -41,7 +41,7 @@ class LotesView(ctk.CTkFrame):
         ).pack(anchor="w")
 
         ctk.CTkLabel(
-            left, text="Material disponivel para distribuicao",
+            left, text="Material disponível para distribuição",
             font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
