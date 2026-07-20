@@ -55,7 +55,7 @@ class RelatoriosView(ctk.CTkFrame):
         left.pack(side="left")
 
         ctk.CTkLabel(
-            left, text="Relatorios",
+            left, text="Relatórios",
             font=ctk.CTkFont(size=30, weight="bold"), anchor="w",
             text_color=ECOPA_GREEN_DARK
         ).pack(anchor="w")
