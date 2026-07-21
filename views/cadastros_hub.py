@@ -144,9 +144,6 @@ class CadastrosHub(ctk.CTkFrame):
             command=self.novo_ponto
         ).pack(pady=(0, 30))
 
-    def novo_gerente(self):
-        CadastroGerente(self, self.content, on_voltar=self.abrir_cadastros)
-
         # Card Destinacao
         card_dest = ctk.CTkFrame(
             cards_frame, fg_color=ECOPA_WHITE, corner_radius=20,
