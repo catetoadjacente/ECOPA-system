@@ -532,7 +532,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         dados = Relatorio.resumo_destinacoes()
 
-        cabecalhos = ["Cliente", "CNPJ", "Ponto Origem", "Quantidade", "Data"]
+        cabecalhos = ["Destinação", "Tipo", "Total Pedidos", "Total Kg"]
         header_frame = ctk.CTkFrame(card, fg_color=ECOPA_GREEN, corner_radius=10)
         header_frame.pack(fill="x", padx=16, pady=(0, 4))
 
@@ -540,7 +540,7 @@ class RelatoriosView(ctk.CTkFrame):
             ctk.CTkLabel(
                 header_frame, text=texto,
                 font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=ECOPA_WHITE, width=150
+                text_color=ECOPA_WHITE, width=180
             ).grid(row=0, column=col, padx=12, pady=8, sticky="w")
 
         if not dados:
@@ -555,14 +555,13 @@ class RelatoriosView(ctk.CTkFrame):
             row = ctk.CTkFrame(card, fg_color=bg, corner_radius=0)
             row.pack(fill="x", padx=16)
 
-            data_str = d["data_dest"].strftime("%d/%m/%Y") if d["data_dest"] else ""
-            qtd_str = f"{float(d['quantidade'] or 0):.1f} Kg"
-            valores = [d["cliente"], d["cnpj"], d["ponto"], qtd_str, data_str]
+            qtd_str = f"{float(d['total_kg'] or 0):.1f} Kg"
+            valores = [d["destinacao"], d["tipo"], str(d["total_pedidos"] or 0), qtd_str]
 
             for col, val in enumerate(valores):
                 ctk.CTkLabel(
                     row, text=val, font=ctk.CTkFont(size=12),
-                    text_color=ECOPA_TEXT, width=150, anchor="w"
+                    text_color=ECOPA_TEXT, width=180, anchor="w"
                 ).grid(row=0, column=col, padx=12, pady=6, sticky="w")
 
     def _gerar_pdf(self):
