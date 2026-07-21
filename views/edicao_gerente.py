@@ -101,7 +101,7 @@ class EdicaoGerente(ctk.CTkFrame):
             )
             entry.pack(fill="x", padx=55, pady=(0, 10))
             entry.insert(0, self.gerente[db_key] or "")
-            self.entries[campo] = entry
+            self.entries[db_key] = entry
 
         # Botoes
         btn_frame = ctk.CTkFrame(card, fg_color="transparent")
