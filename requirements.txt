@@ -3,3 +3,4 @@ Pillow>=10.0.0
 mysql-connector-python>=8.0.0
 matplotlib>=3.7.0
 pywinstyles>=1.8
+python-dotenv>=1.0.0

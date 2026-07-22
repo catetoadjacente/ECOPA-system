@@ -56,6 +56,7 @@ class App(ctk.CTk):
             font=ctk.CTkFont(size=14),
         )
         self.entry_pass.place(relx=0.762, rely=0.545, anchor="center", relwidth=0.34)
+        self.bind("<Return>", self._on_login)
 
         self.btn_login = ctk.CTkButton(
             self,
@@ -75,7 +76,7 @@ class App(ctk.CTk):
         pywinstyles.set_opacity(self.btn_login, color="#000001")
         self.btn_login.place(relx=0.775, rely=0.65, anchor="center", relwidth=0.15)
 
-    def _on_login(self):
+    def _on_login(self, event=None):
         user = self.entry_user.get().strip()
         password = self.entry_pass.get().strip()
         info, erro = GerenteController.login(user, password)

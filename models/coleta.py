@@ -1,4 +1,4 @@
-from database.database import get_connection
+from database.conecta_database import get_connection
 
 
 class Coleta:
@@ -18,7 +18,10 @@ class Coleta:
 =======
                 SELECT c.id_coleta AS id, p.estabelecimento AS ponto,
                        c.observacao AS observacao, c.quantidade,
-                       c.data AS data_coleta, c.status
+                       c.data AS data_coleta, c.status,
+                       CASE WHEN EXISTS (
+                           SELECT 1 FROM lote l WHERE l.id_coleta = c.id_coleta
+                       ) THEN 1 ELSE 0 END AS tem_lote
                 FROM coleta c
                 JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
                 ORDER BY c.data DESC

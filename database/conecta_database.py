@@ -1,12 +1,18 @@
 import mysql.connector
 from mysql.connector import Error
+from dotenv import load_dotenv
+import os
 
-# Configuração do banco de dados
+
+load_dotenv()
+
+# Configuração do banco de dados (lida do .env)
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '230409Jm@',  # Adicione a senha se houver
-    'database': 'ecopa_system'
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'database': os.getenv('DB_NAME')
 }
 
 
