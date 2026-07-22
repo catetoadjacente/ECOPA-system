@@ -59,18 +59,24 @@ class PontosView(ctk.CTkFrame):
         )
         frame_tabela.pack(fill="both", expand=True, padx=32, pady=(20, 20))
 
+        # Posições relativas (0.0 a 1.0) para cada coluna — escala com a janela
+        COL_RELX = [0.01, 0.05, 0.16, 0.31, 0.46, 0.61, 0.74]
+
         cabecalhos = ["ID", "Estabelecimento", "Endereço", "Email", "Proprietário", "Telefone", "Ações"]
-        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12)
-        header_frame.pack(fill="x", padx=16, pady=(16, 0))
+
+        # Cabeçalho
+        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12, height=40)
+        header_frame.pack(fill="x", padx=16, pady=(16, 4))
+        header_frame.pack_propagate(False)
 
         for coluna, texto in enumerate(cabecalhos):
-            w = 180 if coluna == 2 else (100 if coluna == 0 else 130)
             ctk.CTkLabel(
                 header_frame, text=texto,
                 font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=ECOPA_WHITE, width=w
-            ).grid(row=0, column=coluna, padx=8, pady=10, sticky="w")
+                text_color=ECOPA_WHITE, anchor="w"
+            ).place(relx=COL_RELX[coluna], rely=0.5, anchor="w", y=0)
 
+        # Linhas de dados
         pontos = PontoController.listar()
 
         if not pontos:
@@ -80,10 +86,11 @@ class PontosView(ctk.CTkFrame):
             ).pack(pady=40)
             return
 
-        for linha, p in enumerate(pontos, start=1):
+        for linha, p in enumerate(pontos):
             bg = ECOPA_BG if linha % 2 == 0 else ECOPA_WHITE
-            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0)
-            row_frame.pack(fill="x", padx=16)
+            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0, height=36)
+            row_frame.pack(fill="x", padx=16, pady=0)
+            row_frame.pack_propagate(False)
 
             valores = [
                 str(p.get("id_ponto", "")),
@@ -94,41 +101,37 @@ class PontosView(ctk.CTkFrame):
                 p.get("telefone", "") or "",
             ]
             for coluna, valor in enumerate(valores):
-                w = 180 if coluna == 2 else (100 if coluna == 0 else 130)
                 ctk.CTkLabel(
                     row_frame, text=str(valor),
                     font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
-                    width=w, anchor="w"
-                ).grid(row=0, column=coluna, padx=8, pady=6, sticky="w")
+                    anchor="w"
+                ).place(relx=COL_RELX[coluna], rely=0.5, anchor="w", y=0)
 
             idponto = p["id_ponto"]
 
             acoes_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
-            acoes_frame.grid(row=0, column=6, padx=4, pady=4)
+            acoes_frame.place(relx=COL_RELX[6], rely=0.5, anchor="w", y=0)
 
-            btn_horarios = ctk.CTkButton(
+            ctk.CTkButton(
                 acoes_frame, text="Horários", width=72, height=28,
                 fg_color=ECOPA_BLUE, hover_color="#2980b9",
                 corner_radius=8, font=ctk.CTkFont(size=10, weight="bold"),
                 command=lambda idp=idponto: self._ver_horarios(idp)
-            )
-            btn_horarios.pack(side="left", padx=2)
+            ).pack(side="left", padx=2)
 
-            btn_editar = ctk.CTkButton(
+            ctk.CTkButton(
                 acoes_frame, text="Editar", width=60, height=28,
                 fg_color=ECOPA_ORANGE, hover_color="#e67e22",
                 corner_radius=8, font=ctk.CTkFont(size=10, weight="bold"),
                 command=lambda idp=idponto: self.editar_ponto(idp)
-            )
-            btn_editar.pack(side="left", padx=2)
+            ).pack(side="left", padx=2)
 
-            btn_excluir = ctk.CTkButton(
+            ctk.CTkButton(
                 acoes_frame, text="Excluir", width=60, height=28,
                 fg_color="#e74c3c", hover_color="#c0392b",
                 corner_radius=8, font=ctk.CTkFont(size=10, weight="bold"),
                 command=lambda idp=idponto: self.excluir_ponto(idp)
-            )
-            btn_excluir.pack(side="left", padx=2)
+            ).pack(side="left", padx=2)
 
     def editar_ponto(self, idponto):
         from views.edicao_ponto import EdicaoPonto
