@@ -104,7 +104,7 @@ class EdicaoPonto(ctk.CTkFrame):
             )
             entry.pack(fill="x", padx=55, pady=(0, 8))
             entry.insert(0, self.ponto.get(db_key, "") or "")
-            self.entries[campo] = entry
+            self.entries[db_key] = entry
 
         # Horarios
         ctk.CTkFrame(card, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(8, 10))
