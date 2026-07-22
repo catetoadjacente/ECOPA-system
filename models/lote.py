@@ -1,4 +1,4 @@
-from database.database import get_connection
+from database.conecta_database import get_connection
 
 
 class Lote:
