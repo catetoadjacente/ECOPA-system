@@ -109,16 +109,18 @@ class ColetasView(ctk.CTkFrame):
 
         # Cabecalho da tabela
         cabecalhos = ["ID", "Ponto", "Observação", "Quantidade", "Data", "Status", "Ações"]
-        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12)
-        header_frame.pack(fill="x", padx=16, pady=(16, 0))
+        COL_RELX = [0.01, 0.06, 0.20, 0.38, 0.50, 0.60, 0.72]
+
+        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12, height=40)
+        header_frame.pack(fill="x", padx=16, pady=(16, 4))
+        header_frame.pack_propagate(False)
 
         for coluna, texto in enumerate(cabecalhos):
             ctk.CTkLabel(
                 header_frame, text=texto,
                 font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=ECOPA_WHITE,
-                width=130 if coluna != 1 else 180
-            ).grid(row=0, column=coluna, padx=10, pady=10, sticky="w")
+                text_color=ECOPA_WHITE, anchor="w"
+            ).place(relx=COL_RELX[coluna], rely=0.5, anchor="w")
 
         # Dados
         coletas = ColetaController.listar()
@@ -132,10 +134,11 @@ class ColetasView(ctk.CTkFrame):
             ).pack(pady=40)
             return
 
-        for linha, c in enumerate(coletas, start=1):
+        for linha, c in enumerate(coletas):
             bg = ECOPA_BG if linha % 2 == 0 else ECOPA_WHITE
-            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0)
-            row_frame.pack(fill="x", padx=16)
+            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0, height=36)
+            row_frame.pack(fill="x", padx=16, pady=0)
+            row_frame.pack_propagate(False)
 
             id_str = f"#{int(c['id'])}"
             data_str = c["data_coleta"].strftime("%d/%m/%Y") if c["data_coleta"] else ""
@@ -144,32 +147,29 @@ class ColetasView(ctk.CTkFrame):
 
             for coluna, valor in enumerate(registro):
                 if coluna == 5:
-                    # Status badge
                     badge_cor = ECOPA_LEAF if valor == "Realizada" else ECOPA_ORANGE
                     badge_bg = "#e8f8e8" if valor == "Realizada" else "#fdf5e8"
                     badge = ctk.CTkLabel(
                         row_frame, text=valor, font=ctk.CTkFont(size=11, weight="bold"),
                         fg_color=badge_bg, text_color=badge_cor,
-                        corner_radius=8, width=90, height=26
+                        corner_radius=8, height=26
                     )
-                    badge.grid(row=0, column=coluna, padx=6, pady=6, sticky="w")
+                    badge.place(relx=COL_RELX[coluna], rely=0.5, anchor="w")
                 else:
                     ctk.CTkLabel(
                         row_frame, text=valor,
                         font=ctk.CTkFont(size=12),
-                        text_color=ECOPA_TEXT,
-                        width=130 if coluna != 1 else 180, anchor="w"
-                    ).grid(row=0, column=coluna, padx=6, pady=6, sticky="w")
+                        text_color=ECOPA_TEXT, anchor="w"
+                    ).place(relx=COL_RELX[coluna], rely=0.5, anchor="w")
 
             id_coleta = c["id"]
             if c["status"] == "Pendente":
-                btn = ctk.CTkButton(
+                ctk.CTkButton(
                     row_frame, text="Realizar", width=80, height=28,
                     fg_color=ECOPA_LEAF, hover_color="#2ecc71",
                     corner_radius=8, font=ctk.CTkFont(size=11, weight="bold"),
                     command=lambda idc=id_coleta: self._marcar_realizada(idc)
-                )
-                btn.grid(row=0, column=6, padx=6, pady=6)
+                ).place(relx=COL_RELX[6], rely=0.5, anchor="w")
 
     def _filtrar(self, valor):
         self._montar_tabela(filtro=valor)

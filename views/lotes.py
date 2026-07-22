@@ -83,16 +83,18 @@ class LotesView(ctk.CTkFrame):
         frame_tabela.pack(fill="both", expand=True, padx=32, pady=(20, 20))
 
         cabecalhos = ["ID", "Fonte", "Qtd Coletada", "Qtd Restante", "Status", "Data"]
-        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12)
-        header_frame.pack(fill="x", padx=16, pady=(16, 0))
+        COL_RELX = [0.01, 0.08, 0.28, 0.45, 0.62, 0.78]
+
+        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12, height=40)
+        header_frame.pack(fill="x", padx=16, pady=(16, 4))
+        header_frame.pack_propagate(False)
 
         for col, texto in enumerate(cabecalhos):
-            w = 200 if col == 1 else 120
             ctk.CTkLabel(
                 header_frame, text=texto,
                 font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=ECOPA_WHITE, width=w
-            ).grid(row=0, column=col, padx=8, pady=10, sticky="w")
+                text_color=ECOPA_WHITE, anchor="w"
+            ).place(relx=COL_RELX[col], rely=0.5, anchor="w")
 
         lotes = LoteController.listar_todos()
 
@@ -103,10 +105,11 @@ class LotesView(ctk.CTkFrame):
             ).pack(pady=40)
             return
 
-        for linha, l in enumerate(lotes, start=1):
+        for linha, l in enumerate(lotes):
             bg = ECOPA_BG if linha % 2 == 0 else ECOPA_WHITE
-            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0)
-            row_frame.pack(fill="x", padx=16)
+            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0, height=36)
+            row_frame.pack(fill="x", padx=16, pady=0)
+            row_frame.pack_propagate(False)
 
             status = l["status"]
             if status == "Disponivel":
@@ -122,21 +125,18 @@ class LotesView(ctk.CTkFrame):
 
             valores = [f"#{l['id']}", l["ponto"], qtd_colet, qtd_rest]
             for col, valor in enumerate(valores):
-                w = 200 if col == 1 else 120
                 ctk.CTkLabel(
                     row_frame, text=valor,
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
-                    width=w, anchor="w"
-                ).grid(row=0, column=col, padx=8, pady=6, sticky="w")
+                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT, anchor="w"
+                ).place(relx=COL_RELX[col], rely=0.5, anchor="w")
 
             badge = ctk.CTkLabel(
                 row_frame, text=status, font=ctk.CTkFont(size=11, weight="bold"),
                 fg_color=badge_bg, text_color=badge_cor,
-                corner_radius=8, width=100, height=26)
-            badge.grid(row=0, column=4, padx=6, pady=6, sticky="w")
+                corner_radius=8, height=26)
+            badge.place(relx=COL_RELX[4], rely=0.5, anchor="w")
 
             ctk.CTkLabel(
                 row_frame, text=data_str,
-                font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
-                width=120, anchor="w"
-            ).grid(row=0, column=5, padx=8, pady=6, sticky="w")
+                font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT, anchor="w"
+            ).place(relx=COL_RELX[5], rely=0.5, anchor="w")
