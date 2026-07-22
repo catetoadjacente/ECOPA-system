@@ -68,16 +68,18 @@ class PedidosView(ctk.CTkFrame):
         frame_tabela.pack(fill="both", expand=True, padx=32, pady=(20, 20))
 
         cabecalhos = ["ID", "Destino", "Tipo", "Qtd Solicitada", "Qtd Atendida", "Status", "Data", "Acoes"]
-        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12)
-        header_frame.pack(fill="x", padx=16, pady=(16, 0))
+        COL_RELX = [0.01, 0.06, 0.22, 0.32, 0.44, 0.56, 0.68, 0.80]
 
-        larguras = [50, 150, 100, 110, 110, 120, 100, 130]
+        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12, height=40)
+        header_frame.pack(fill="x", padx=16, pady=(16, 4))
+        header_frame.pack_propagate(False)
+
         for col, texto in enumerate(cabecalhos):
             ctk.CTkLabel(
                 header_frame, text=texto,
                 font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=ECOPA_WHITE, width=larguras[col]
-            ).grid(row=0, column=col, padx=6, pady=10, sticky="w")
+                text_color=ECOPA_WHITE, anchor="w"
+            ).place(relx=COL_RELX[col], rely=0.5, anchor="w")
 
         dados = PedidoController.listar()
 
@@ -88,10 +90,11 @@ class PedidosView(ctk.CTkFrame):
             ).pack(pady=40)
             return
 
-        for linha, d in enumerate(dados, start=1):
+        for linha, d in enumerate(dados):
             bg = ECOPA_BG if linha % 2 == 0 else ECOPA_WHITE
-            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0)
-            row_frame.pack(fill="x", padx=16)
+            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0, height=36)
+            row_frame.pack(fill="x", padx=16, pady=0)
+            row_frame.pack_propagate(False)
 
             status = d["status"]
             if status == "Aberto":
@@ -111,24 +114,22 @@ class PedidosView(ctk.CTkFrame):
             for col, valor in enumerate(valores):
                 ctk.CTkLabel(
                     row_frame, text=valor,
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
-                    width=larguras[col], anchor="w"
-                ).grid(row=0, column=col, padx=6, pady=6, sticky="w")
+                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT, anchor="w"
+                ).place(relx=COL_RELX[col], rely=0.5, anchor="w")
 
             badge = ctk.CTkLabel(
                 row_frame, text=status, font=ctk.CTkFont(size=11, weight="bold"),
                 fg_color=badge_bg, text_color=badge_cor,
-                corner_radius=8, width=100, height=26)
-            badge.grid(row=0, column=5, padx=6, pady=6, sticky="w")
+                corner_radius=8, height=26)
+            badge.place(relx=COL_RELX[5], rely=0.5, anchor="w")
 
             ctk.CTkLabel(
                 row_frame, text=data_str,
-                font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
-                width=larguras[6], anchor="w"
-            ).grid(row=0, column=6, padx=6, pady=6, sticky="w")
+                font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT, anchor="w"
+            ).place(relx=COL_RELX[6], rely=0.5, anchor="w")
 
             acoes_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
-            acoes_frame.grid(row=0, column=7, padx=4, pady=4)
+            acoes_frame.place(relx=COL_RELX[7], rely=0.5, anchor="w")
 
             id_pedido = d["id"]
             if d["status"] in ("Aberto", "Atendido Parcialmente"):
