@@ -6,9 +6,9 @@ class GerenteController:
     def login(nome, senha):
         if not nome or not senha:
             return None, "Preencha usuario e senha"
-        if Gerente.verificar_login(nome, senha):
-            info = Gerente.buscar_por_nome(nome)
-            return info, None
+        gerente = Gerente.autenticar_e_buscar(nome, senha)
+        if gerente:
+            return gerente, None
         return None, "Usuario ou senha invalidos"
 
     @staticmethod

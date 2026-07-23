@@ -20,6 +20,25 @@ class Gerente:
                 connection.close()
 
     @staticmethod
+    def autenticar_e_buscar(nome, senha):
+        connection = get_connection()
+        if connection is None:
+            return None
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(
+                "SELECT cpf, nome, celular, email, setor FROM gerente WHERE nome = %s AND senha = %s LIMIT 1",
+                (nome, senha)
+            )
+            return cursor.fetchone()
+        except Exception as e:
+            print(f"Erro ao autenticar: {e}")
+            return None
+        finally:
+            if connection.is_connected():
+                connection.close()
+
+    @staticmethod
     def buscar_por_nome(nome):
         connection = get_connection()
         if connection is None:

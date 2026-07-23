@@ -1,4 +1,5 @@
 from database.conecta_database import get_connection
+from database.cache import get_cached, invalidate
 
 
 class Ponto:
@@ -59,6 +60,7 @@ class Ponto:
                 dados["estabelecimento"], dados["telefone"], dados["proprietario"]
             ))
             connection.commit()
+            invalidate("pontos_listar")
             return True
         except Exception as e:
             print(f"Erro ao criar ponto de coleta: {e}")
@@ -70,25 +72,26 @@ class Ponto:
 
     @staticmethod
     def listar():
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
-            query = """
-                SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
-                       p.telefone, p.proprietario
-                FROM ponto_de_coleta p
-                ORDER BY p.estabelecimento
-            """
-            cursor.execute(query)
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao listar pontos de coleta: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+        def _fetch():
+            connection = get_connection()
+            if connection is None:
+                return []
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
+                           p.telefone, p.proprietario
+                    FROM ponto_de_coleta p
+                    ORDER BY p.estabelecimento
+                """)
+                return cursor.fetchall()
+            except Exception as e:
+                print(f"Erro ao listar pontos de coleta: {e}")
+                return []
+            finally:
+                if connection.is_connected():
+                    connection.close()
+        return get_cached("pontos_listar", 60, _fetch)
 
     @staticmethod
     def atualizar(idponto, dados):
@@ -106,6 +109,7 @@ class Ponto:
                 dados["telefone"], dados["proprietario"], idponto
             ))
             connection.commit()
+            invalidate("pontos_listar")
             return True
         except Exception as e:
             print(f"Erro ao atualizar ponto de coleta: {e}")
@@ -124,6 +128,7 @@ class Ponto:
             cursor = connection.cursor()
             cursor.execute("DELETE FROM ponto_de_coleta WHERE id_ponto=%s", (idponto,))
             connection.commit()
+            invalidate("pontos_listar")
             return True
         except Exception as e:
             print(f"Erro ao deletar ponto de coleta: {e}")

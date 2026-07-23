@@ -1,4 +1,5 @@
 from database.conecta_database import get_connection
+from database.cache import get_cached
 
 
 class Relatorio:
@@ -77,35 +78,40 @@ class Relatorio:
 
     @staticmethod
     def resumo_destinacoes(data_inicio=None, data_fim=None):
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
-            query = """
-                SELECT d.nome AS destinacao, d.tipo,
-                       COUNT(pe.id_pedido) AS total_pedidos,
-                       SUM(pe.quantidade_solicitada) AS total_kg
-                FROM pedido pe
-                JOIN destinacao d ON pe.id_destinacao = d.id_destinacao
-                WHERE pe.status != 'Cancelado'
-            """
-            params = []
-            if data_inicio:
-                query += " AND pe.data >= %s"
-                params.append(data_inicio)
-            if data_fim:
-                query += " AND pe.data <= %s"
-                params.append(data_fim)
-            query += " GROUP BY d.nome, d.tipo ORDER BY total_kg DESC"
-            cursor.execute(query, params)
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao resumir destinacoes: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+        cache_key = f"relatorio_resumo_dest_{data_inicio}_{data_fim}"
+        def _fetch():
+            connection = get_connection()
+            if connection is None:
+                return []
+            try:
+                cursor = connection.cursor(dictionary=True)
+                query = """
+                    SELECT d.nome AS destinacao, d.tipo,
+                           COUNT(pe.id_pedido) AS total_pedidos,
+                           SUM(pe.quantidade_solicitada) AS total_kg
+                    FROM pedido pe
+                    JOIN destinacao d ON pe.id_destinacao = d.id_destinacao
+                    WHERE pe.status != 'Cancelado'
+                """
+                params = []
+                if data_inicio:
+                    query += " AND pe.data >= %s"
+                    params.append(data_inicio)
+                if data_fim:
+                    query += " AND pe.data <= %s"
+                    params.append(data_fim)
+                query += " GROUP BY d.nome, d.tipo ORDER BY total_kg DESC"
+                cursor.execute(query, params)
+                return cursor.fetchall()
+            except Exception as e:
+                print(f"Erro ao resumir destinacoes: {e}")
+                return []
+            finally:
+                if connection.is_connected():
+                    connection.close()
+        if data_inicio or data_fim:
+            return _fetch()
+        return get_cached(cache_key, 60, _fetch)
 
     @staticmethod
     def resumo_estoque():
@@ -156,18 +162,20 @@ class Relatorio:
 
     @staticmethod
     def listar_pontos():
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute(
-                "SELECT id_ponto, estabelecimento FROM ponto_de_coleta ORDER BY estabelecimento"
-            )
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao listar pontos: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+        def _fetch():
+            connection = get_connection()
+            if connection is None:
+                return []
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute(
+                    "SELECT id_ponto, estabelecimento FROM ponto_de_coleta ORDER BY estabelecimento"
+                )
+                return cursor.fetchall()
+            except Exception as e:
+                print(f"Erro ao listar pontos: {e}")
+                return []
+            finally:
+                if connection.is_connected():
+                    connection.close()
+        return get_cached("relatorio_listar_pontos", 60, _fetch)

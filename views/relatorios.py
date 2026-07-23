@@ -270,16 +270,18 @@ class RelatoriosView(ctk.CTkFrame):
         graficos_frame.pack(fill="x", pady=(0, 16))
         graficos_frame.grid_columnconfigure((0, 1), weight=1)
 
+        destino = Relatorio.resumo_destinacoes()
+
         self._grafico_pizza(graficos_frame, coletas)
         self._grafico_barras_pontos(graficos_frame, coletas)
         self._grafico_linha(graficos_frame, coletas)
-        self._grafico_destinacoes(graficos_frame)
+        self._grafico_destinacoes(graficos_frame, destino)
 
         # Tabela coletas por ponto
         self._tabela_por_ponto(conteudo)
 
         # Tabela destinacoes
-        self._tabela_destinacoes(conteudo)
+        self._tabela_destinacoes(conteudo, destino)
 
         # Rodape
         ctk.CTkLabel(
@@ -411,7 +413,7 @@ class RelatoriosView(ctk.CTkFrame):
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=(4, 8))
 
-    def _grafico_destinacoes(self, parent):
+    def _grafico_destinacoes(self, parent, dest):
         card = ctk.CTkFrame(
             parent, fg_color=ECOPA_WHITE, corner_radius=16,
             border_width=1, border_color=ECOPA_BORDER
@@ -428,7 +430,6 @@ class RelatoriosView(ctk.CTkFrame):
         fig.patch.set_facecolor(ECOPA_WHITE)
         ax.set_facecolor(ECOPA_WHITE)
 
-        dest = Relatorio.resumo_destinacoes()
         cliente_qtd = defaultdict(float)
         for d in dest:
             cliente_qtd[d["cliente"]] += float(d["quantidade"] or 0)
@@ -517,7 +518,7 @@ class RelatoriosView(ctk.CTkFrame):
                         text_color=ECOPA_TEXT, width=160, anchor="w"
                     ).grid(row=0, column=col, padx=12, pady=6, sticky="w")
 
-    def _tabela_destinacoes(self, parent):
+    def _tabela_destinacoes(self, parent, dest):
         card = ctk.CTkFrame(
             parent, fg_color=ECOPA_WHITE, corner_radius=16,
             border_width=1, border_color=ECOPA_BORDER
@@ -530,7 +531,7 @@ class RelatoriosView(ctk.CTkFrame):
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(16, 8))
 
-        dados = Relatorio.resumo_destinacoes()
+        dados = dest
 
         cabecalhos = ["Destinação", "Tipo", "Total Pedidos", "Total Kg"]
         header_frame = ctk.CTkFrame(card, fg_color=ECOPA_GREEN, corner_radius=10)

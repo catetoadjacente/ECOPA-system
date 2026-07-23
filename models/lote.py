@@ -1,4 +1,5 @@
 from database.conecta_database import get_connection
+from database.cache import get_cached, invalidate
 
 
 class Lote:
@@ -15,6 +16,7 @@ class Lote:
                 "VALUES (%s, %s, %s, 'Disponivel')",
                 (id_coleta, quantidade, quantidade))
             connection.commit()
+            invalidate("lotes_listar_todos")
             return True
         except Exception as e:
             print(f"Erro ao criar lote: {e}")
@@ -53,29 +55,31 @@ class Lote:
 
     @staticmethod
     def listar_todos():
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT l.id_lote AS id, l.id_coleta,
-                       l.quantidade_coletada, l.quantidade_restante,
-                       l.status, l.data_criacao,
-                       c.data AS data_coleta,
-                       p.estabelecimento AS ponto
-                FROM lote l
-                JOIN coleta c ON l.id_coleta = c.id_coleta
-                JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
-                ORDER BY l.data_criacao DESC
-            """)
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao listar lotes: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+        def _fetch():
+            connection = get_connection()
+            if connection is None:
+                return []
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT l.id_lote AS id, l.id_coleta,
+                           l.quantidade_coletada, l.quantidade_restante,
+                           l.status, l.data_criacao,
+                           c.data AS data_coleta,
+                           p.estabelecimento AS ponto
+                    FROM lote l
+                    JOIN coleta c ON l.id_coleta = c.id_coleta
+                    JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
+                    ORDER BY l.data_criacao DESC
+                """)
+                return cursor.fetchall()
+            except Exception as e:
+                print(f"Erro ao listar lotes: {e}")
+                return []
+            finally:
+                if connection.is_connected():
+                    connection.close()
+        return get_cached("lotes_listar_todos", 30, _fetch)
 
     @staticmethod
     def consumir(id_lote, quantidade):
@@ -102,6 +106,7 @@ class Lote:
                 "UPDATE lote SET quantidade_restante = %s, status = %s WHERE id_lote = %s",
                 (nova_qtd, novo_status, id_lote))
             connection.commit()
+            invalidate("lotes_listar_todos")
             return True
         except Exception as e:
             print(f"Erro ao consumir lote: {e}")
@@ -151,6 +156,28 @@ class Lote:
         except Exception as e:
             print(f"Erro ao buscar lote por coleta: {e}")
             return None
+        finally:
+            if connection.is_connected():
+                connection.close()
+
+    @staticmethod
+    def resumo_estoque_dashboard():
+        connection = get_connection()
+        if connection is None:
+            return {"total_lotes": 0, "estoque_total": 0}
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT
+                    COUNT(*) AS total_lotes,
+                    COALESCE(SUM(quantidade_restante), 0) AS estoque_total
+                FROM lote
+                WHERE status != 'Esgotado'
+            """)
+            return cursor.fetchone()
+        except Exception as e:
+            print(f"Erro ao buscar resumo estoque: {e}")
+            return {"total_lotes": 0, "estoque_total": 0}
         finally:
             if connection.is_connected():
                 connection.close()

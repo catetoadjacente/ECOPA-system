@@ -1,4 +1,5 @@
 from database.conecta_database import get_connection
+from database.cache import invalidate
 
 
 class Coleta:
@@ -43,6 +44,7 @@ class Coleta:
                   dados["quantidade"], dados["data_coleta"],
                   dados.get("observacao", ""), "Pendente"))
             connection.commit()
+            invalidate("coletas_listar")
             return True
         except Exception as e:
             print(f"Erro ao criar coleta: {e}")
@@ -62,10 +64,34 @@ class Coleta:
             cursor.execute("UPDATE coleta SET status=%s WHERE id_coleta=%s",
                            (status, id_coleta))
             connection.commit()
+            invalidate("coletas_listar")
             return True
         except Exception as e:
             print(f"Erro ao atualizar status: {e}")
             return False
+        finally:
+            if connection.is_connected():
+                connection.close()
+
+    @staticmethod
+    def resumo_dashboard():
+        connection = get_connection()
+        if connection is None:
+            return {"total_coletas": 0, "quantidade_total": 0, "pendentes": 0, "realizadas": 0}
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT
+                    COUNT(*) AS total_coletas,
+                    COALESCE(SUM(quantidade), 0) AS quantidade_total,
+                    SUM(CASE WHEN status = 'Pendente' THEN 1 ELSE 0 END) AS pendentes,
+                    SUM(CASE WHEN status = 'Realizada' THEN 1 ELSE 0 END) AS realizadas
+                FROM coleta
+            """)
+            return cursor.fetchone()
+        except Exception as e:
+            print(f"Erro ao buscar resumo dashboard: {e}")
+            return {"total_coletas": 0, "quantidade_total": 0, "pendentes": 0, "realizadas": 0}
         finally:
             if connection.is_connected():
                 connection.close()

@@ -220,21 +220,25 @@ class MainView(ctk.CTkFrame):
         )
 
         # === DADOS ===
-        coletas = ColetaController.listar()
-        pontos = PontoController.listar()
-
-        total_coletas = len(coletas)
-        total_pontos = len(pontos)
-        quantidade_total = sum(float(c["quantidade"] or 0) for c in coletas)
-        pendentes = sum(1 for c in coletas if c["status"] == "Pendente")
-        realizadas = sum(1 for c in coletas if c["status"] == "Realizada")
-
-        from controllers.lote_controller import LoteController
+        from models.coleta import Coleta
+        from models.lote import Lote
         from controllers.pedido_controller import PedidoController
-        lotes = LoteController.listar_todos()
-        estoque_total = sum(float(l["quantidade_restante"]) for l in lotes)
+        resumo_c = Coleta.resumo_dashboard()
+        total_coletas = resumo_c["total_coletas"]
+        quantidade_total = float(resumo_c["quantidade_total"] or 0)
+        pendentes = resumo_c["pendentes"] or 0
+        realizadas = resumo_c["realizadas"] or 0
+
+        resumo_l = Lote.resumo_estoque_dashboard()
+        estoque_total = float(resumo_l["estoque_total"] or 0)
+
         pedidos = PedidoController.listar()
         total_pedidos = len(pedidos)
+
+        # Coletas e pontos para graficos
+        coletas = ColetaController.listar()
+        pontos = PontoController.listar()
+        total_pontos = len(pontos)
 
         # === KPI CARDS ===
         frame_cards = ctk.CTkFrame(scroll, fg_color="transparent")

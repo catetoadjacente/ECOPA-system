@@ -1,4 +1,5 @@
 from database.conecta_database import get_connection
+from database.cache import get_cached, invalidate
 
 
 class Pedido:
@@ -16,6 +17,7 @@ class Pedido:
                 (dados["id_destinacao"], dados["quantidade_solicitada"],
                  dados.get("observacao", "")))
             connection.commit()
+            invalidate("pedidos_listar_todos")
             return cursor.lastrowid
         except Exception as e:
             print(f"Erro ao criar pedido: {e}")
@@ -27,29 +29,31 @@ class Pedido:
 
     @staticmethod
     def listar_todos():
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT pe.id_pedido AS id, pe.quantidade_solicitada,
-                       pe.data AS data_pedido, pe.status, pe.observacao,
-                       d.nome AS destinacao, d.tipo AS tipo_destinacao,
-                       COALESCE(SUM(pl.quantidade_consumida), 0) AS quantidade_atendida
-                FROM pedido pe
-                JOIN destinacao d ON pe.id_destinacao = d.id_destinacao
-                LEFT JOIN pedido_lote pl ON pe.id_pedido = pl.id_pedido
-                GROUP BY pe.id_pedido
-                ORDER BY pe.data DESC
-            """)
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao listar pedidos: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+        def _fetch():
+            connection = get_connection()
+            if connection is None:
+                return []
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT pe.id_pedido AS id, pe.quantidade_solicitada,
+                           pe.data AS data_pedido, pe.status, pe.observacao,
+                           d.nome AS destinacao, d.tipo AS tipo_destinacao,
+                           COALESCE(SUM(pl.quantidade_consumida), 0) AS quantidade_atendida
+                    FROM pedido pe
+                    JOIN destinacao d ON pe.id_destinacao = d.id_destinacao
+                    LEFT JOIN pedido_lote pl ON pe.id_pedido = pl.id_pedido
+                    GROUP BY pe.id_pedido
+                    ORDER BY pe.data DESC
+                """)
+                return cursor.fetchall()
+            except Exception as e:
+                print(f"Erro ao listar pedidos: {e}")
+                return []
+            finally:
+                if connection.is_connected():
+                    connection.close()
+        return get_cached("pedidos_listar_todos", 30, _fetch)
 
     @staticmethod
     def obter_por_id(id_pedido):
@@ -136,6 +140,7 @@ class Pedido:
                 "UPDATE pedido SET status=%s WHERE id_pedido=%s",
                 (status, id_pedido))
             connection.commit()
+            invalidate("pedidos_listar_todos")
             return True
         except Exception as e:
             print(f"Erro ao atualizar status do pedido: {e}")
@@ -155,6 +160,7 @@ class Pedido:
             cursor.execute("DELETE FROM pedido_lote WHERE id_pedido=%s", (id_pedido,))
             cursor.execute("DELETE FROM pedido WHERE id_pedido=%s", (id_pedido,))
             connection.commit()
+            invalidate("pedidos_listar_todos")
             return True
         except Exception as e:
             print(f"Erro ao deletar pedido: {e}")

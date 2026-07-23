@@ -1,5 +1,5 @@
 import mysql.connector
-from mysql.connector import Error
+from mysql.connector import pooling, Error
 from dotenv import load_dotenv
 import os
 
@@ -15,14 +15,32 @@ DB_CONFIG = {
     'database': os.getenv('DB_NAME')
 }
 
+_pool = None
+
+
+def _init_pool():
+    global _pool
+    if _pool is not None:
+        return
+    try:
+        _pool = mysql.connector.pooling.MySQLConnectionPool(
+            pool_name="ecopa_pool",
+            pool_size=5,
+            pool_reset_session=True,
+            **DB_CONFIG
+        )
+    except Error as e:
+        print(f"Erro ao criar pool de conexoes: {e}")
+        _pool = None
+
 
 def get_connection():
-    """Estabelece conexão com o banco de dados"""
-    try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        if connection.is_connected():
-            return connection
-    except Error as e:
-        print(f"Erro ao conectar ao banco de dados: {e}")
+    """Retorna uma conexao do pool (reutilizavel)"""
+    _init_pool()
+    if _pool is None:
         return None
-            
+    try:
+        return _pool.get_connection()
+    except Error as e:
+        print(f"Erro ao obter conexao do pool: {e}")
+        return None

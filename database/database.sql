@@ -145,3 +145,11 @@ CREATE TABLE IF NOT EXISTS pedido_lote (
     REFERENCES lote (id_lote)
     ON DELETE NO ACTION ON UPDATE NO ACTION)
 ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb3;
+
+-- =============================================================
+-- Indices para performance (consultas com filtro de data/status)
+-- =============================================================
+CREATE INDEX idx_coleta_data ON coleta(data);
+CREATE INDEX idx_coleta_status ON coleta(status);
+CREATE INDEX idx_pedido_data ON pedido(data);
+CREATE INDEX idx_pedido_status ON pedido(status);
