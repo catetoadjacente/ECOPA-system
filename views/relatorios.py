@@ -271,8 +271,6 @@ class RelatoriosView(ctk.CTkFrame):
         graficos_frame.pack(fill="x", pady=(0, 16))
         graficos_frame.grid_columnconfigure((0, 1), weight=1)
 
-        destino = Relatorio.resumo_destinacoes()
-
         self._grafico_pizza(graficos_frame, coletas)
         self._grafico_barras_pontos(graficos_frame, coletas)
         self._grafico_linha(graficos_frame, coletas)

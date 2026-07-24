@@ -5,6 +5,8 @@ import threading
 from views.cadastros_hub import CadastrosHub
 from views.coletas import ColetasView
 from views.pontos import PontosView
+from views.destinacoes import DestinacoesView
+from views.loading import LoadingOverlay, executar_com_loading
 from controllers.coleta_controller import ColetaController
 from controllers.ponto_controller import PontoController
 from utils.fonts import get_font
@@ -167,52 +169,55 @@ class MainView(ctk.CTkFrame):
             widget.destroy()
         self._destacar_menu("dashboard")
 
-        # Mostra indicador de carregamento
-        self._loading_label = ctk.CTkLabel(
-            self.content, text="Carregando dashboard...",
-            font=ctk.CTkFont(size=16), text_color=ECOPA_TEXT_LIGHT
-        )
-        self._loading_label.pack(expand=True)
+        overlay = LoadingOverlay(self.content, text="Carregando dashboard...")
+        overlay.start()
 
-        # Carrega dados em thread separada
-        threading.Thread(target=self._carregar_dados_dashboard, daemon=True).start()
+        def _carregar():
+            try:
+                from models.coleta import Coleta
+                from models.lote import Lote
+                from controllers.pedido_controller import PedidoController
 
-    def _carregar_dados_dashboard(self):
-        """Carrega todos os dados do dashboard em background."""
-        try:
-            from models.coleta import Coleta
-            from models.lote import Lote
-            from controllers.pedido_controller import PedidoController
+                resumo_c = Coleta.resumo_dashboard()
+                resumo_l = Lote.resumo_estoque_dashboard()
+                pedidos = PedidoController.listar()
+                coletas = ColetaController.listar()
+                pontos = PontoController.listar()
 
-            resumo_c = Coleta.resumo_dashboard()
-            resumo_l = Lote.resumo_estoque_dashboard()
-            pedidos = PedidoController.listar()
-            coletas = ColetaController.listar()
-            pontos = PontoController.listar()
+                grafico_data = self._preparar_graficos(coletas)
 
-            # Prepara dados dos graficos em background
-            grafico_data = self._preparar_graficos(coletas)
+                self.after(0, lambda: _montar(resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data))
+            except Exception as e:
+                print(f"Erro ao carregar dashboard: {e}")
+                self.after(0, lambda: _erro())
 
-            # Atualiza UI na main thread
-            self.after(0, lambda: self._montar_dashboard(
-                resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data
-            ))
-        except Exception as e:
-            print(f"Erro ao carregar dashboard: {e}")
-            self.after(0, self._mostrar_erro_dashboard)
+        def _montar(resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data):
+            overlay.stop()
+            self._montar_dashboard(resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data)
+
+        def _erro():
+            overlay.stop()
+            self._mostrar_erro_dashboard()
+
+        threading.Thread(target=_carregar, daemon=True).start()
+
+    def _mostrar_erro_dashboard(self):
+        if hasattr(self, '_loading_label'):
+            self._loading_label.destroy()
+        ctk.CTkLabel(
+            self.content, text="Erro ao carregar dashboard. Tente novamente.",
+            font=ctk.CTkFont(size=14), text_color=ECOPA_RED
+        ).pack(expand=True)
 
     def _preparar_graficos(self, coletas):
         """Prepara dados dos graficos em background (CPU intensivo)."""
-        # Dados pizza
         status_count = Counter(c["status"] for c in coletas)
 
-        # Dados barras top pontos
         ponto_qtd = defaultdict(float)
         for c in coletas:
             ponto_qtd[c["ponto"]] += float(c["quantidade"] or 0)
         top_pontos = sorted(ponto_qtd.items(), key=lambda x: x[1], reverse=True)[:5]
 
-        # Dados linha coletas por dia
         hoje = datetime.now().date()
         dias = [(hoje - timedelta(days=i)) for i in range(6, -1, -1)]
         qtd_por_dia = defaultdict(int)
@@ -230,14 +235,6 @@ class MainView(ctk.CTkFrame):
             "dias_str": dias_str,
             "valores_dias": valores_dias,
         }
-
-    def _mostrar_erro_dashboard(self):
-        if hasattr(self, '_loading_label'):
-            self._loading_label.destroy()
-        ctk.CTkLabel(
-            self.content, text="Erro ao carregar dashboard. Tente novamente.",
-            font=ctk.CTkFont(size=14), text_color=ECOPA_RED
-        ).pack(expand=True)
 
     def _montar_dashboard(self, resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data):
         if hasattr(self, '_loading_label'):
@@ -531,7 +528,28 @@ class MainView(ctk.CTkFrame):
     # ============================================================
     # NAVEGACAO
     # ============================================================
+    def _navegar_com_loading(self, nome_menu, funcao_carregar):
+        """Navega para uma tela com loading visual."""
+        for widget in self.content.winfo_children():
+            widget.destroy()
+        self._destacar_menu(nome_menu)
+
+        overlay = LoadingOverlay(self.content, text=f"Carregando {nome_menu}...")
+        overlay.start()
+
+        def _tarefa():
+            try:
+                funcao_carregar()
+            except Exception as e:
+                print(f"Erro ao carregar {nome_menu}: {e}")
+            finally:
+                self.after(0, lambda: overlay.stop())
+
+        threading.Thread(target=_tarefa, daemon=True).start()
+
     def abrir_gerente(self):
+        def _carregar():
+            pass
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("gerente")

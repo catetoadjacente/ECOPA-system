@@ -25,8 +25,7 @@ class ColetaController:
         if status == "Realizada":
             lote_existente = Lote.buscar_por_coleta(id_coleta)
             if lote_existente is None:
-                coletas = Coleta.listar_todas()
-                coleta = next((c for c in coletas if c["id"] == id_coleta), None)
+                coleta = Coleta.buscar_por_id(id_coleta)
                 if coleta:
                     Lote.criar_por_coleta(id_coleta, coleta["quantidade"])
         return Coleta.atualizar_status(id_coleta, status)

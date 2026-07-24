@@ -30,13 +30,7 @@ class PedidoController:
     def vincular_lotes(id_pedido, lotes):
         if not id_pedido:
             return False, "Pedido invalido"
-        total_atendido = 0
-        for id_lote, quantidade in lotes:
-            if float(quantidade) > 0:
-                ok = Pedido.vincular_lote(id_pedido, id_lote, quantidade)
-                if ok:
-                    Lote.consumir(id_lote, quantidade)
-                    total_atendido += float(quantidade)
+        total_atendido = Pedido.vincular_lotes_batch(id_pedido, lotes)
         pedido = Pedido.obter_por_id(id_pedido)
         if pedido:
             solicitada = float(pedido["quantidade_solicitada"])

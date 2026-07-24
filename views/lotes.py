@@ -1,6 +1,8 @@
 import customtkinter as ctk
 from controllers.lote_controller import LoteController
 from models.relatorio import Relatorio
+from views.loading import LoadingOverlay
+import threading
 
 ECOPA_GREEN = "#006d12"
 ECOPA_GREEN_LIGHT = "#0a8f2c"

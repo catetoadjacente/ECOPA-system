@@ -2,6 +2,8 @@ import customtkinter as ctk
 from tkinter import messagebox
 from controllers.coleta_controller import ColetaController
 from utils.fonts import get_font
+from views.loading import LoadingOverlay
+import threading
 
 # Paleta ECOPA
 ECOPA_GREEN = "#006d12"
@@ -123,54 +125,64 @@ class ColetasView(ctk.CTkFrame):
                 text_color=ECOPA_WHITE, anchor="w"
             ).place(relx=COL_RELX[coluna], rely=0.5, anchor="w")
 
-        # Dados
-        coletas = ColetaController.listar()
-        if filtro and filtro != "TODOS":
-            coletas = [c for c in coletas if c["status"] == filtro]
+        # Loading overlay
+        overlay = LoadingOverlay(frame_tabela, text="Carregando coletas...")
+        overlay.start()
 
-        if not coletas:
-            ctk.CTkLabel(
-                frame_tabela, text="Nenhuma coleta encontrada",
-                font=ctk.CTkFont(size=13), text_color=ECOPA_TEXT_LIGHT
-            ).pack(pady=40)
-            return
+        def _carregar_dados():
+            dados = ColetaController.listar()
+            self.after(0, lambda: _renderizar_tabela(dados, filtro, frame_tabela, overlay))
 
-        for linha, c in enumerate(coletas):
-            bg = ECOPA_BG if linha % 2 == 0 else ECOPA_WHITE
-            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0, height=36)
-            row_frame.pack(fill="x", padx=16, pady=0)
-            row_frame.pack_propagate(False)
+        def _renderizar_tabela(dados, filtro, frame, ov):
+            ov.stop()
+            if filtro and filtro != "TODOS":
+                dados = [c for c in dados if c["status"] == filtro]
 
-            id_str = f"#{int(c['id'])}"
-            data_str = c["data_coleta"].strftime("%d/%m/%Y") if c["data_coleta"] else ""
-            qtd_str = f"{float(c['quantidade']):.1f} Kg" if c["quantidade"] else ""
-            registro = [id_str, c["ponto"], c["observacao"], qtd_str, data_str, c["status"]]
+            if not dados:
+                ctk.CTkLabel(
+                    frame, text="Nenhuma coleta encontrada",
+                    font=ctk.CTkFont(size=13), text_color=ECOPA_TEXT_LIGHT
+                ).pack(pady=40)
+                return
 
-            for coluna, valor in enumerate(registro):
-                if coluna == 5:
-                    badge_cor = ECOPA_LEAF if valor == "Realizada" else ECOPA_ORANGE
-                    badge_bg = "#e8f8e8" if valor == "Realizada" else "#fdf5e8"
-                    badge = ctk.CTkLabel(
-                        row_frame, text=valor, font=ctk.CTkFont(size=11, weight="bold"),
-                        fg_color=badge_bg, text_color=badge_cor,
-                        corner_radius=8, height=26
-                    )
-                    badge.place(relx=COL_RELX[coluna], rely=0.5, anchor="w")
-                else:
-                    ctk.CTkLabel(
-                        row_frame, text=valor,
-                        font=ctk.CTkFont(size=12),
-                        text_color=ECOPA_TEXT, anchor="w"
-                    ).place(relx=COL_RELX[coluna], rely=0.5, anchor="w")
+            for linha, c in enumerate(dados):
+                bg = ECOPA_BG if linha % 2 == 0 else ECOPA_WHITE
+                row_frame = ctk.CTkFrame(frame, fg_color=bg, corner_radius=0, height=36)
+                row_frame.pack(fill="x", padx=16, pady=0)
+                row_frame.pack_propagate(False)
 
-            id_coleta = c["id"]
-            if c["status"] == "Pendente":
-                ctk.CTkButton(
-                    row_frame, text="Realizar", width=80, height=28,
-                    fg_color=ECOPA_LEAF, hover_color="#2ecc71",
-                    corner_radius=8, font=ctk.CTkFont(size=11, weight="bold"),
-                    command=lambda idc=id_coleta: self._marcar_realizada(idc)
-                ).place(relx=COL_RELX[6], rely=0.5, anchor="w")
+                id_str = f"#{int(c['id'])}"
+                data_str = c["data_coleta"].strftime("%d/%m/%Y") if c["data_coleta"] else ""
+                qtd_str = f"{float(c['quantidade']):.1f} Kg" if c["quantidade"] else ""
+                registro = [id_str, c["ponto"], c["observacao"], qtd_str, data_str, c["status"]]
+
+                for coluna, valor in enumerate(registro):
+                    if coluna == 5:
+                        badge_cor = ECOPA_LEAF if valor == "Realizada" else ECOPA_ORANGE
+                        badge_bg = "#e8f8e8" if valor == "Realizada" else "#fdf5e8"
+                        badge = ctk.CTkLabel(
+                            row_frame, text=valor, font=ctk.CTkFont(size=11, weight="bold"),
+                            fg_color=badge_bg, text_color=badge_cor,
+                            corner_radius=8, height=26
+                        )
+                        badge.place(relx=COL_RELX[coluna], rely=0.5, anchor="w")
+                    else:
+                        ctk.CTkLabel(
+                            row_frame, text=valor,
+                            font=ctk.CTkFont(size=12),
+                            text_color=ECOPA_TEXT, anchor="w"
+                        ).place(relx=COL_RELX[coluna], rely=0.5, anchor="w")
+
+                id_coleta = c["id"]
+                if c["status"] == "Pendente":
+                    ctk.CTkButton(
+                        row_frame, text="Realizar", width=80, height=28,
+                        fg_color=ECOPA_LEAF, hover_color="#2ecc71",
+                        corner_radius=8, font=ctk.CTkFont(size=11, weight="bold"),
+                        command=lambda idc=id_coleta: self._marcar_realizada(idc)
+                    ).place(relx=COL_RELX[6], rely=0.5, anchor="w")
+
+        threading.Thread(target=_carregar_dados, daemon=True).start()
 
     def _filtrar(self, valor):
         self._montar_tabela(filtro=valor)

@@ -2,11 +2,10 @@ import mysql.connector
 from mysql.connector import pooling, Error
 from dotenv import load_dotenv
 import os
-
+from contextlib import contextmanager
 
 load_dotenv()
 
-# Configuração do banco de dados (lida do .env)
 DB_CONFIG = {
     'host': os.getenv('DB_HOST'),
     'port': os.getenv('DB_PORT'),
@@ -25,7 +24,7 @@ def _init_pool():
     try:
         _pool = mysql.connector.pooling.MySQLConnectionPool(
             pool_name="ecopa_pool",
-            pool_size=5,
+            pool_size=10,
             pool_reset_session=True,
             **DB_CONFIG
         )
@@ -35,7 +34,6 @@ def _init_pool():
 
 
 def get_connection():
-    """Retorna uma conexao do pool (reutilizavel)"""
     _init_pool()
     if _pool is None:
         return None
@@ -44,3 +42,17 @@ def get_connection():
     except Error as e:
         print(f"Erro ao obter conexao do pool: {e}")
         return None
+
+
+@contextmanager
+def db_connection():
+    """Context manager que garante fechamento da conexao."""
+    conn = get_connection()
+    if conn is None:
+        yield None
+        return
+    try:
+        yield conn
+    finally:
+        if conn.is_connected():
+            conn.close()
