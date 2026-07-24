@@ -1,33 +1,35 @@
 from database.conecta_database import get_connection
-from database.cache import invalidate
+from database.cache import get_cached, invalidate
 
 
 class Coleta:
     @staticmethod
     def listar_todas():
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT c.id_coleta AS id, p.estabelecimento AS ponto,
-                       c.observacao AS observacao, c.quantidade,
-                       c.data AS data_coleta, c.status,
-                       CASE WHEN EXISTS (
-                           SELECT 1 FROM lote l WHERE l.id_coleta = c.id_coleta
-                       ) THEN 1 ELSE 0 END AS tem_lote
-                FROM coleta c
-                JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
-                ORDER BY c.data DESC
-            """)
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao listar coletas: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+        def _fetch():
+            connection = get_connection()
+            if connection is None:
+                return []
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT c.id_coleta AS id, p.estabelecimento AS ponto,
+                           c.observacao AS observacao, c.quantidade,
+                           c.data AS data_coleta, c.status,
+                           CASE WHEN EXISTS (
+                               SELECT 1 FROM lote l WHERE l.id_coleta = c.id_coleta
+                           ) THEN 1 ELSE 0 END AS tem_lote
+                    FROM coleta c
+                    JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
+                    ORDER BY c.data DESC
+                """)
+                return cursor.fetchall()
+            except Exception as e:
+                print(f"Erro ao listar coletas: {e}")
+                return []
+            finally:
+                if connection.is_connected():
+                    connection.close()
+        return get_cached("coletas_listar", 30, _fetch)
 
     @staticmethod
     def criar(dados):
@@ -45,6 +47,7 @@ class Coleta:
                   dados.get("observacao", ""), "Pendente"))
             connection.commit()
             invalidate("coletas_listar")
+            invalidate("dashboard_resumo")
             return True
         except Exception as e:
             print(f"Erro ao criar coleta: {e}")
@@ -65,6 +68,7 @@ class Coleta:
                            (status, id_coleta))
             connection.commit()
             invalidate("coletas_listar")
+            invalidate("dashboard_resumo")
             return True
         except Exception as e:
             print(f"Erro ao atualizar status: {e}")
@@ -75,23 +79,25 @@ class Coleta:
 
     @staticmethod
     def resumo_dashboard():
-        connection = get_connection()
-        if connection is None:
-            return {"total_coletas": 0, "quantidade_total": 0, "pendentes": 0, "realizadas": 0}
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT
-                    COUNT(*) AS total_coletas,
-                    COALESCE(SUM(quantidade), 0) AS quantidade_total,
-                    SUM(CASE WHEN status = 'Pendente' THEN 1 ELSE 0 END) AS pendentes,
-                    SUM(CASE WHEN status = 'Realizada' THEN 1 ELSE 0 END) AS realizadas
-                FROM coleta
-            """)
-            return cursor.fetchone()
-        except Exception as e:
-            print(f"Erro ao buscar resumo dashboard: {e}")
-            return {"total_coletas": 0, "quantidade_total": 0, "pendentes": 0, "realizadas": 0}
-        finally:
-            if connection.is_connected():
-                connection.close()
+        def _fetch():
+            connection = get_connection()
+            if connection is None:
+                return {"total_coletas": 0, "quantidade_total": 0, "pendentes": 0, "realizadas": 0}
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT
+                        COUNT(*) AS total_coletas,
+                        COALESCE(SUM(quantidade), 0) AS quantidade_total,
+                        SUM(CASE WHEN status = 'Pendente' THEN 1 ELSE 0 END) AS pendentes,
+                        SUM(CASE WHEN status = 'Realizada' THEN 1 ELSE 0 END) AS realizadas
+                    FROM coleta
+                """)
+                return cursor.fetchone()
+            except Exception as e:
+                print(f"Erro ao buscar resumo dashboard: {e}")
+                return {"total_coletas": 0, "quantidade_total": 0, "pendentes": 0, "realizadas": 0}
+            finally:
+                if connection.is_connected():
+                    connection.close()
+        return get_cached("dashboard_resumo", 30, _fetch)

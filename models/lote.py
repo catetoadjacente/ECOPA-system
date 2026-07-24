@@ -17,6 +17,7 @@ class Lote:
                 (id_coleta, quantidade, quantidade))
             connection.commit()
             invalidate("lotes_listar_todos")
+            invalidate("dashboard_estoque")
             return True
         except Exception as e:
             print(f"Erro ao criar lote: {e}")
@@ -107,6 +108,7 @@ class Lote:
                 (nova_qtd, novo_status, id_lote))
             connection.commit()
             invalidate("lotes_listar_todos")
+            invalidate("dashboard_estoque")
             return True
         except Exception as e:
             print(f"Erro ao consumir lote: {e}")
@@ -162,22 +164,24 @@ class Lote:
 
     @staticmethod
     def resumo_estoque_dashboard():
-        connection = get_connection()
-        if connection is None:
-            return {"total_lotes": 0, "estoque_total": 0}
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT
-                    COUNT(*) AS total_lotes,
-                    COALESCE(SUM(quantidade_restante), 0) AS estoque_total
-                FROM lote
-                WHERE status != 'Esgotado'
-            """)
-            return cursor.fetchone()
-        except Exception as e:
-            print(f"Erro ao buscar resumo estoque: {e}")
-            return {"total_lotes": 0, "estoque_total": 0}
-        finally:
-            if connection.is_connected():
-                connection.close()
+        def _fetch():
+            connection = get_connection()
+            if connection is None:
+                return {"total_lotes": 0, "estoque_total": 0}
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT
+                        COUNT(*) AS total_lotes,
+                        COALESCE(SUM(quantidade_restante), 0) AS estoque_total
+                    FROM lote
+                    WHERE status != 'Esgotado'
+                """)
+                return cursor.fetchone()
+            except Exception as e:
+                print(f"Erro ao buscar resumo estoque: {e}")
+                return {"total_lotes": 0, "estoque_total": 0}
+            finally:
+                if connection.is_connected():
+                    connection.close()
+        return get_cached("dashboard_estoque", 30, _fetch)

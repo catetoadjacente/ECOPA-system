@@ -5,6 +5,7 @@ from controllers.ponto_controller import PontoController
 from controllers.lote_controller import LoteController
 from controllers.pedido_controller import PedidoController
 from models.relatorio import Relatorio
+from utils.fonts import get_font
 from datetime import datetime
 from collections import defaultdict
 import matplotlib
@@ -326,6 +327,7 @@ class RelatoriosView(ctk.CTkFrame):
         canvas = FigureCanvasTkAgg(fig, master=card)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=(4, 8))
+        plt.close(fig)
 
     def _grafico_barras_pontos(self, parent, coletas):
         card = ctk.CTkFrame(
@@ -366,6 +368,7 @@ class RelatoriosView(ctk.CTkFrame):
         canvas = FigureCanvasTkAgg(fig, master=card)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=(4, 8))
+        plt.close(fig)
 
     def _grafico_linha(self, parent, coletas):
         card = ctk.CTkFrame(
@@ -412,6 +415,7 @@ class RelatoriosView(ctk.CTkFrame):
         canvas = FigureCanvasTkAgg(fig, master=card)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=(4, 8))
+        plt.close(fig)
 
     def _grafico_destinacoes(self, parent, dest):
         card = ctk.CTkFrame(
@@ -453,6 +457,7 @@ class RelatoriosView(ctk.CTkFrame):
         canvas = FigureCanvasTkAgg(fig, master=card)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=(4, 8))
+        plt.close(fig)
 
     def _tabela_por_ponto(self, parent):
         card = ctk.CTkFrame(

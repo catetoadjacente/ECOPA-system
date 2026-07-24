@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.coleta_controller import ColetaController
+from utils.fonts import get_font
 
 # Paleta ECOPA
 ECOPA_GREEN = "#006d12"

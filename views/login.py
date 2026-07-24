@@ -22,6 +22,7 @@ class App(ctk.CTk):
 
         self._pil_image = None
         self.bg_photo = None
+        self._resize_after_id = None
         img_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", BG_IMAGE)
         if os.path.exists(img_path):
             self._pil_image = Image.open(img_path)
@@ -99,7 +100,10 @@ class App(ctk.CTk):
 
     def _on_resize(self, event):
         if event.widget is self:
-            self._update_bg_image()
+            # Debounce: cancela resize anterior e agenda novo em 50ms
+            if self._resize_after_id is not None:
+                self.after_cancel(self._resize_after_id)
+            self._resize_after_id = self.after(50, self._update_bg_image)
 
     def _update_bg_image(self):
         if self._pil_image is None:

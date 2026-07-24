@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.pedido_controller import PedidoController
+from utils.fonts import get_font
 
 ECOPA_GREEN = "#006d12"
 ECOPA_GREEN_LIGHT = "#0a8f2c"

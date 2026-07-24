@@ -1,11 +1,13 @@
 import customtkinter as ctk
 from PIL import Image
 import os
+import threading
 from views.cadastros_hub import CadastrosHub
 from views.coletas import ColetasView
 from views.pontos import PontosView
 from controllers.coleta_controller import ColetaController
 from controllers.ponto_controller import PontoController
+from utils.fonts import get_font
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
 import matplotlib
@@ -164,9 +166,83 @@ class MainView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("dashboard")
-        self.after(100, self._montar_dashboard)
 
-    def _montar_dashboard(self):
+        # Mostra indicador de carregamento
+        self._loading_label = ctk.CTkLabel(
+            self.content, text="Carregando dashboard...",
+            font=ctk.CTkFont(size=16), text_color=ECOPA_TEXT_LIGHT
+        )
+        self._loading_label.pack(expand=True)
+
+        # Carrega dados em thread separada
+        threading.Thread(target=self._carregar_dados_dashboard, daemon=True).start()
+
+    def _carregar_dados_dashboard(self):
+        """Carrega todos os dados do dashboard em background."""
+        try:
+            from models.coleta import Coleta
+            from models.lote import Lote
+            from controllers.pedido_controller import PedidoController
+
+            resumo_c = Coleta.resumo_dashboard()
+            resumo_l = Lote.resumo_estoque_dashboard()
+            pedidos = PedidoController.listar()
+            coletas = ColetaController.listar()
+            pontos = PontoController.listar()
+
+            # Prepara dados dos graficos em background
+            grafico_data = self._preparar_graficos(coletas)
+
+            # Atualiza UI na main thread
+            self.after(0, lambda: self._montar_dashboard(
+                resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data
+            ))
+        except Exception as e:
+            print(f"Erro ao carregar dashboard: {e}")
+            self.after(0, self._mostrar_erro_dashboard)
+
+    def _preparar_graficos(self, coletas):
+        """Prepara dados dos graficos em background (CPU intensivo)."""
+        # Dados pizza
+        status_count = Counter(c["status"] for c in coletas)
+
+        # Dados barras top pontos
+        ponto_qtd = defaultdict(float)
+        for c in coletas:
+            ponto_qtd[c["ponto"]] += float(c["quantidade"] or 0)
+        top_pontos = sorted(ponto_qtd.items(), key=lambda x: x[1], reverse=True)[:5]
+
+        # Dados linha coletas por dia
+        hoje = datetime.now().date()
+        dias = [(hoje - timedelta(days=i)) for i in range(6, -1, -1)]
+        qtd_por_dia = defaultdict(int)
+        for c in coletas:
+            if c["data_coleta"]:
+                dia = c["data_coleta"].date()
+                if (hoje - dia).days <= 6:
+                    qtd_por_dia[dia] += 1
+        valores_dias = [qtd_por_dia.get(d, 0) for d in dias]
+        dias_str = [d.strftime("%d/%m") for d in dias]
+
+        return {
+            "status_count": status_count,
+            "top_pontos": top_pontos,
+            "dias_str": dias_str,
+            "valores_dias": valores_dias,
+        }
+
+    def _mostrar_erro_dashboard(self):
+        if hasattr(self, '_loading_label'):
+            self._loading_label.destroy()
+        ctk.CTkLabel(
+            self.content, text="Erro ao carregar dashboard. Tente novamente.",
+            font=ctk.CTkFont(size=14), text_color=ECOPA_RED
+        ).pack(expand=True)
+
+    def _montar_dashboard(self, resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data):
+        if hasattr(self, '_loading_label'):
+            self._loading_label.destroy()
+
         scroll = ctk.CTkScrollableFrame(self.content, fg_color=ECOPA_GREEN_BG)
         scroll.pack(fill="both", expand=True)
 
@@ -220,24 +296,14 @@ class MainView(ctk.CTkFrame):
         )
 
         # === DADOS ===
-        from models.coleta import Coleta
-        from models.lote import Lote
-        from controllers.pedido_controller import PedidoController
-        resumo_c = Coleta.resumo_dashboard()
         total_coletas = resumo_c["total_coletas"]
         quantidade_total = float(resumo_c["quantidade_total"] or 0)
         pendentes = resumo_c["pendentes"] or 0
         realizadas = resumo_c["realizadas"] or 0
 
-        resumo_l = Lote.resumo_estoque_dashboard()
         estoque_total = float(resumo_l["estoque_total"] or 0)
 
-        pedidos = PedidoController.listar()
         total_pedidos = len(pedidos)
-
-        # Coletas e pontos para graficos
-        coletas = ColetaController.listar()
-        pontos = PontoController.listar()
         total_pontos = len(pontos)
 
         # === KPI CARDS ===
@@ -306,11 +372,11 @@ class MainView(ctk.CTkFrame):
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(16, 0))
 
+        status_count = grafico_data["status_count"]
         fig1, ax1 = plt.subplots(figsize=(4.5, 3.2))
         fig1.patch.set_facecolor(ECOPA_WHITE)
         ax1.set_facecolor(ECOPA_WHITE)
 
-        status_count = Counter(c["status"] for c in coletas)
         if status_count:
             cores_pizza = {"Pendente": ECOPA_ORANGE, "Realizada": ECOPA_LEAF}
             labels = list(status_count.keys())
@@ -331,6 +397,7 @@ class MainView(ctk.CTkFrame):
         canvas1 = FigureCanvasTkAgg(fig1, master=card_pizza)
         canvas1.draw()
         canvas1.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=(5, 10))
+        plt.close(fig1)
 
         # Grafico 2 - Barras Top Pontos
         card_barras = ctk.CTkFrame(
@@ -349,12 +416,9 @@ class MainView(ctk.CTkFrame):
         fig2.patch.set_facecolor(ECOPA_WHITE)
         ax2.set_facecolor(ECOPA_WHITE)
 
-        ponto_qtd = defaultdict(float)
-        for c in coletas:
-            ponto_qtd[c["ponto"]] += float(c["quantidade"] or 0)
-        top = sorted(ponto_qtd.items(), key=lambda x: x[1], reverse=True)[:5]
-        if top:
-            nomes, qtds = zip(*top)
+        top_pontos = grafico_data["top_pontos"]
+        if top_pontos:
+            nomes, qtds = zip(*top_pontos)
             bars = ax2.barh(list(nomes), list(qtds), color=ECOPA_GREEN, height=0.55,
                            edgecolor=ECOPA_GREEN_LIGHT, linewidth=0.5)
             ax2.tick_params(labelsize=9)
@@ -370,6 +434,7 @@ class MainView(ctk.CTkFrame):
         canvas2 = FigureCanvasTkAgg(fig2, master=card_barras)
         canvas2.draw()
         canvas2.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=(5, 10))
+        plt.close(fig2)
 
         # === SEGUNDA ROW GRAFICOS ===
         graficos2_frame = ctk.CTkFrame(scroll, fg_color="transparent")
@@ -393,16 +458,8 @@ class MainView(ctk.CTkFrame):
         fig3.patch.set_facecolor(ECOPA_WHITE)
         ax3.set_facecolor(ECOPA_WHITE)
 
-        hoje = datetime.now().date()
-        dias = [(hoje - timedelta(days=i)) for i in range(6, -1, -1)]
-        qtd_por_dia = defaultdict(int)
-        for c in coletas:
-            if c["data_coleta"]:
-                dia = c["data_coleta"].date()
-                if (hoje - dia).days <= 6:
-                    qtd_por_dia[dia] += 1
-        valores = [qtd_por_dia.get(d, 0) for d in dias]
-        dias_str = [d.strftime("%d/%m") for d in dias]
+        dias_str = grafico_data["dias_str"]
+        valores = grafico_data["valores_dias"]
 
         ax3.plot(dias_str, valores, marker="o", color=ECOPA_GREEN, linewidth=2.5,
                 markersize=7, markerfacecolor=ECOPA_WHITE, markeredgecolor=ECOPA_GREEN, markeredgewidth=2)
@@ -419,6 +476,7 @@ class MainView(ctk.CTkFrame):
         canvas3 = FigureCanvasTkAgg(fig3, master=card_linha)
         canvas3.draw()
         canvas3.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=(5, 10))
+        plt.close(fig3)
 
         # Card informativo ao lado
         card_info = ctk.CTkFrame(
@@ -496,7 +554,6 @@ class MainView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("destinacoes")
-        from views.destinacoes import DestinacoesView
         DestinacoesView(self, self.content)
 
     def abrir_cadastros(self):
