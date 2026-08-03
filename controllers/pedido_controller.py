@@ -18,9 +18,15 @@ class PedidoController:
         if erros:
             return False, f"Preencha: {', '.join(erros)}", None
         lotes = Lote.listar_disponiveis()
+        if not lotes:
+            return False, "Nenhum lote disponivel no estoque", None
         estoque_total = sum(float(l["quantidade_restante"]) for l in lotes)
-        if estoque_total < float(dados["quantidade_solicitada"]):
-            return False, f"Estoque insuficiente (disponivel: {estoque_total:.1f})", None
+        qtd_solicitada = float(dados["quantidade_solicitada"])
+        if estoque_total < qtd_solicitada:
+            return False, f"Estoque insuficiente (disponivel: {estoque_total:.1f}, solicitado: {qtd_solicitada:.1f})", None
+        max_por_lote = max(float(l["quantidade_restante"]) for l in lotes)
+        if max_por_lote < qtd_solicitada:
+            return False, f"Nenhum lote individual tem quantidade suficiente (maior lote: {max_por_lote:.1f} Kg)", None
         pedido_id = Pedido.criar(dados)
         if pedido_id:
             return True, f"Pedido #{pedido_id} criado com sucesso", pedido_id
