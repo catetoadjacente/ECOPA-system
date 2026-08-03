@@ -23,9 +23,14 @@ class ColetaController:
     @staticmethod
     def atualizar_status(id_coleta, status):
         if status == "Realizada":
+            coleta = Coleta.buscar_por_id(id_coleta)
+            if not coleta:
+                return False
             lote_existente = Lote.buscar_por_coleta(id_coleta)
-            if lote_existente is None:
-                coleta = Coleta.buscar_por_id(id_coleta)
-                if coleta:
-                    Lote.criar_por_coleta(id_coleta, coleta["quantidade"])
+            if lote_existente is not None:
+                return Coleta.atualizar_status(id_coleta, status)
+            if float(coleta["quantidade"]) <= 0:
+                return False
+            if not Lote.criar_por_coleta(id_coleta, coleta["quantidade"]):
+                return False
         return Coleta.atualizar_status(id_coleta, status)
