@@ -434,7 +434,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         cliente_qtd = defaultdict(float)
         for d in dest:
-            cliente_qtd[d["cliente"]] += float(d["quantidade"] or 0)
+            cliente_qtd[d["destinacao"]] += float(d["total_kg"] or 0)
         top = sorted(cliente_qtd.items(), key=lambda x: x[1], reverse=True)[:7]
 
         if top:
