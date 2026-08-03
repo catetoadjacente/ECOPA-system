@@ -26,27 +26,29 @@ class Lote:
 
     @staticmethod
     def listar_disponiveis():
-        with db_connection() as conn:
-            if conn is None:
-                return []
-            try:
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("""
-                    SELECT l.id_lote AS id, l.id_coleta,
-                           l.quantidade_coletada, l.quantidade_restante,
-                           l.status, l.data_criacao,
-                           c.data AS data_coleta,
-                           p.estabelecimento AS ponto
-                    FROM lote l
-                    JOIN coleta c ON l.id_coleta = c.id_coleta
-                    JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
-                    WHERE l.quantidade_restante > 0
-                    ORDER BY l.data_criacao DESC
-                """)
-                return cursor.fetchall()
-            except Exception as e:
-                print(f"Erro ao listar lotes: {e}")
-                return []
+        def _fetch():
+            with db_connection() as conn:
+                if conn is None:
+                    return []
+                try:
+                    cursor = conn.cursor(dictionary=True)
+                    cursor.execute("""
+                        SELECT l.id_lote AS id, l.id_coleta,
+                               l.quantidade_coletada, l.quantidade_restante,
+                               l.status, l.data_criacao,
+                               c.data AS data_coleta,
+                               p.estabelecimento AS ponto
+                        FROM lote l
+                        JOIN coleta c ON l.id_coleta = c.id_coleta
+                        JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
+                        WHERE l.quantidade_restante > 0
+                        ORDER BY l.data_criacao DESC
+                    """)
+                    return cursor.fetchall()
+                except Exception as e:
+                    print(f"Erro ao listar lotes: {e}")
+                    return []
+        return get_cached("lotes_disponiveis", 30, _fetch)
 
     @staticmethod
     def listar_todos():

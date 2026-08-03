@@ -1,5 +1,5 @@
 from database.conecta_database import db_connection
-from database.cache import get_cached
+from database.cache import get_cached, invalidate_prefix
 
 
 class Relatorio:
@@ -110,44 +110,48 @@ class Relatorio:
 
     @staticmethod
     def resumo_estoque():
-        with db_connection() as conn:
-            if conn is None:
-                return {}
-            try:
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("""
-                    SELECT
-                        COUNT(*) AS total_lotes,
-                        COALESCE(SUM(quantidade_restante), 0) AS estoque_total,
-                        SUM(CASE WHEN status = 'Disponivel' THEN 1 ELSE 0 END) AS lotes_disponiveis,
-                        SUM(CASE WHEN status = 'Parcialmente Consumido' THEN 1 ELSE 0 END) AS lotes_parciais,
-                        SUM(CASE WHEN status = 'Esgotado' THEN 1 ELSE 0 END) AS lotes_esgotados
-                    FROM lote
-                """)
-                return cursor.fetchone()
-            except Exception as e:
-                print(f"Erro ao resumir estoque: {e}")
-                return {}
+        def _fetch():
+            with db_connection() as conn:
+                if conn is None:
+                    return {}
+                try:
+                    cursor = conn.cursor(dictionary=True)
+                    cursor.execute("""
+                        SELECT
+                            COUNT(*) AS total_lotes,
+                            COALESCE(SUM(quantidade_restante), 0) AS estoque_total,
+                            SUM(CASE WHEN status = 'Disponivel' THEN 1 ELSE 0 END) AS lotes_disponiveis,
+                            SUM(CASE WHEN status = 'Parcialmente Consumido' THEN 1 ELSE 0 END) AS lotes_parciais,
+                            SUM(CASE WHEN status = 'Esgotado' THEN 1 ELSE 0 END) AS lotes_esgotados
+                        FROM lote
+                    """)
+                    return cursor.fetchone()
+                except Exception as e:
+                    print(f"Erro ao resumir estoque: {e}")
+                    return {}
+        return get_cached("relatorio_estoque", 30, _fetch)
 
     @staticmethod
     def resumo_pedidos():
-        with db_connection() as conn:
-            if conn is None:
-                return {}
-            try:
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("""
-                    SELECT
-                        COUNT(*) AS total_pedidos,
-                        SUM(CASE WHEN status = 'Aberto' THEN 1 ELSE 0 END) AS pedidos_abertos,
-                        SUM(CASE WHEN status = 'Atendido' THEN 1 ELSE 0 END) AS pedidos_atendidos,
-                        SUM(CASE WHEN status = 'Cancelado' THEN 1 ELSE 0 END) AS pedidos_cancelados
-                    FROM pedido
-                """)
-                return cursor.fetchone()
-            except Exception as e:
-                print(f"Erro ao resumir pedidos: {e}")
-                return {}
+        def _fetch():
+            with db_connection() as conn:
+                if conn is None:
+                    return {}
+                try:
+                    cursor = conn.cursor(dictionary=True)
+                    cursor.execute("""
+                        SELECT
+                            COUNT(*) AS total_pedidos,
+                            SUM(CASE WHEN status = 'Aberto' THEN 1 ELSE 0 END) AS pedidos_abertos,
+                            SUM(CASE WHEN status = 'Atendido' THEN 1 ELSE 0 END) AS pedidos_atendidos,
+                            SUM(CASE WHEN status = 'Cancelado' THEN 1 ELSE 0 END) AS pedidos_cancelados
+                        FROM pedido
+                    """)
+                    return cursor.fetchone()
+                except Exception as e:
+                    print(f"Erro ao resumir pedidos: {e}")
+                    return {}
+        return get_cached("relatorio_pedidos", 30, _fetch)
 
     @staticmethod
     def listar_pontos():

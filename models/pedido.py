@@ -19,6 +19,7 @@ class Pedido:
                 conn.commit()
                 invalidate_prefix("pedidos")
                 invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
                 return cursor.lastrowid
             except Exception as e:
                 print(f"Erro ao criar pedido: {e}")
@@ -122,27 +123,44 @@ class Pedido:
                 return 0
             try:
                 cursor = conn.cursor(dictionary=True)
-                total = 0
+                inserts = []
+                lotes_validos = []
                 for id_lote, quantidade in lotes:
-                    if float(quantidade) <= 0:
+                    qtd = float(quantidade)
+                    if qtd <= 0:
                         continue
-                    cursor.execute(
-                        "INSERT INTO pedido_lote (id_pedido, id_lote, quantidade_consumida) "
-                        "VALUES (%s, %s, %s)",
-                        (id_pedido, id_lote, quantidade))
-                    cursor.execute(
-                        "SELECT quantidade_restante FROM lote WHERE id_lote = %s",
-                        (id_lote,))
-                    lote = cursor.fetchone()
-                    if lote and float(lote["quantidade_restante"]) >= float(quantidade):
-                        nova_qtd = float(lote["quantidade_restante"]) - float(quantidade)
+                    inserts.append((id_pedido, id_lote, qtd))
+                    lotes_validos.append((id_lote, qtd))
+                if not inserts:
+                    return 0
+                cursor.executemany(
+                    "INSERT INTO pedido_lote (id_pedido, id_lote, quantidade_consumida) "
+                    "VALUES (%s, %s, %s)",
+                    inserts)
+                ids_lotes = [l[0] for l in lotes_validos]
+                placeholders = ", ".join(["%s"] * len(ids_lotes))
+                cursor.execute(
+                    f"SELECT id_lote, quantidade_restante FROM lote WHERE id_lote IN ({placeholders})",
+                    ids_lotes)
+                lotes_map = {r["id_lote"]: float(r["quantidade_restante"]) for r in cursor.fetchall()}
+                total = 0
+                updates = []
+                for id_lote, qtd in lotes_validos:
+                    restante = lotes_map.get(id_lote, 0)
+                    if restante >= qtd:
+                        nova_qtd = restante - qtd
                         novo_status = "Esgotado" if nova_qtd <= 0 else "Parcialmente Consumido"
-                        nova_qtd = max(nova_qtd, 0)
-                        cursor.execute(
-                            "UPDATE lote SET quantidade_restante = %s, status = %s WHERE id_lote = %s",
-                            (nova_qtd, novo_status, id_lote))
-                        total += float(quantidade)
+                        updates.append((max(nova_qtd, 0), novo_status, id_lote))
+                        total += qtd
+                if updates:
+                    cursor.executemany(
+                        "UPDATE lote SET quantidade_restante = %s, status = %s WHERE id_lote = %s",
+                        updates)
                 conn.commit()
+                invalidate_prefix("lotes")
+                invalidate_prefix("pedidos")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
                 return total
             except Exception as e:
                 print(f"Erro ao vincular lotes em batch: {e}")
@@ -162,6 +180,7 @@ class Pedido:
                 conn.commit()
                 invalidate_prefix("pedidos")
                 invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
                 return True
             except Exception as e:
                 print(f"Erro ao atualizar status do pedido: {e}")
@@ -180,6 +199,7 @@ class Pedido:
                 conn.commit()
                 invalidate_prefix("pedidos")
                 invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
                 return True
             except Exception as e:
                 print(f"Erro ao deletar pedido: {e}")

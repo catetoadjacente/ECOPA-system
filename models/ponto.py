@@ -145,6 +145,7 @@ class Ponto:
                     """, (h["dia_semana"], h["abertura"], h["fechamento"],
                         h["ativo"], id_ponto))
                 conn.commit()
+                invalidate(f"pontos_horarios_{id_ponto}")
                 return True
             except Exception as e:
                 print(f"Erro ao salvar horarios: {e}")
@@ -153,16 +154,18 @@ class Ponto:
 
     @staticmethod
     def buscar_horarios(id_ponto):
-        with db_connection() as conn:
-            if conn is None:
-                return []
-            try:
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute(
-                    "SELECT * FROM horario_ponto WHERE ponto_de_coleta_id_ponto = %s ORDER BY dia_semana",
-                    (id_ponto,)
-                )
-                return cursor.fetchall()
-            except Exception as e:
-                print(f"Erro ao buscar horarios: {e}")
-                return []
+        def _fetch():
+            with db_connection() as conn:
+                if conn is None:
+                    return []
+                try:
+                    cursor = conn.cursor(dictionary=True)
+                    cursor.execute(
+                        "SELECT * FROM horario_ponto WHERE ponto_de_coleta_id_ponto = %s ORDER BY dia_semana",
+                        (id_ponto,)
+                    )
+                    return cursor.fetchall()
+                except Exception as e:
+                    print(f"Erro ao buscar horarios: {e}")
+                    return []
+        return get_cached(f"pontos_horarios_{id_ponto}", 120, _fetch)
