@@ -78,7 +78,7 @@ O script cria o schema `ecopa_system` com as tabelas:
 - `pedido` — remessas para destinações
 - `pedido_lote` — relação N:N entre pedidos e lotes
 
-> Dica: use sempre aspas simples (`'`) para valores de string no MySQL. Aspas duplas (`"`) são interpretadas como nomes de colunas.
+- use sempre aspas simples (`'`) para valores de string no MySQL. Aspas duplas (`"`) são interpretadas como nomes de colunas.
 
 ## Executando
 
