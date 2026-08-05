@@ -80,7 +80,7 @@ class Ponto:
                 except Exception as e:
                     print(f"Erro ao listar pontos de coleta: {e}")
                     return []
-        return get_cached("pontos_listar", 60, _fetch)
+        return get_cached("pontos_listar", 120, _fetch)
 
     @staticmethod
     def atualizar(idponto, dados):

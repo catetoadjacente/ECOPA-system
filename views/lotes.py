@@ -1,20 +1,13 @@
 import customtkinter as ctk
 from controllers.lote_controller import LoteController
 from models.relatorio import Relatorio
-from views.loading import LoadingOverlay
-import threading
-
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_BG = "#f0f7f0"
-ECOPA_WHITE = "#ffffff"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
-ECOPA_ORANGE = "#f39c12"
-ECOPA_LEAF = "#27ae60"
-ECOPA_BLUE = "#3498db"
+from views.loading import LoadingOverlay, carregar_em_bg
+from utils.theme import (
+    ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE,
+    ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_ORANGE, ECOPA_LEAF,
+    ECOPA_BLUE, font, font_title, font_small, font_small_bold,
+)
+from utils.widgets import TabelaPaginada
 
 
 class LotesView(ctk.CTkFrame):
@@ -38,22 +31,46 @@ class LotesView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             left, text="Estoque (Lotes)",
-            font=ctk.CTkFont(size=30, weight="bold"), anchor="w",
+            font=font_title(30), anchor="w",
             text_color=ECOPA_GREEN_DARK
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             left, text="Material disponível para distribuição",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
+            font=font_small(12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
         ctk.CTkFrame(container, fg_color=ECOPA_GREEN, height=3, corner_radius=2).pack(
             fill="x", padx=32, pady=(16, 0))
 
-        # KPIs
-        resumo = Relatorio.resumo_estoque()
-        kpi_frame = ctk.CTkFrame(container, fg_color="transparent")
-        kpi_frame.pack(fill="x", padx=32, pady=(20, 0))
+        # KPIs placeholder
+        self._kpi_frame = ctk.CTkFrame(container, fg_color="transparent")
+        self._kpi_frame.pack(fill="x", padx=32, pady=(20, 0))
+
+        # Tabela placeholder
+        self._tabela_frame = ctk.CTkFrame(
+            container, fg_color=ECOPA_WHITE, corner_radius=16,
+            border_width=1, border_color=ECOPA_BORDER)
+        self._tabela_frame.pack(fill="both", expand=True, padx=32, pady=(20, 20))
+
+        overlay = LoadingOverlay(self._tabela_frame, text="Carregando estoque...")
+        overlay.start()
+
+        def _carregar():
+            resumo = Relatorio.resumo_estoque()
+            lotes = LoteController.listar_todos()
+            return resumo, lotes
+
+        def _montar(resultado):
+            overlay.stop()
+            resumo, lotes = resultado
+            self._montar_kpis(resumo)
+            self._montar_tabela_lotes(lotes)
+
+        carregar_em_bg(container, _carregar, _montar)
+
+    def _montar_kpis(self, resumo):
+        kpi_frame = self._kpi_frame
         kpi_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
         kpis = [
@@ -72,47 +89,37 @@ class LotesView(ctk.CTkFrame):
             inner = ctk.CTkFrame(card, fg_color="transparent")
             inner.pack(fill="both", expand=True, padx=14, pady=(8, 10))
             ctk.CTkLabel(inner, text=titulo,
-                font=ctk.CTkFont(size=10, weight="bold"),
+                font=font(10, "bold"),
                 text_color=ECOPA_TEXT_LIGHT, anchor="w").pack(anchor="w")
             ctk.CTkLabel(inner, text=valor,
-                font=ctk.CTkFont(size=22, weight="bold"),
+                font=font(22, "bold"),
                 text_color=ECOPA_GREEN_DARK, anchor="w").pack(anchor="w")
 
-        # Tabela
-        frame_tabela = ctk.CTkFrame(
-            container, fg_color=ECOPA_WHITE, corner_radius=16,
-            border_width=1, border_color=ECOPA_BORDER)
-        frame_tabela.pack(fill="both", expand=True, padx=32, pady=(20, 20))
+    def _montar_tabela_lotes(self, lotes):
+        for w in self._tabela_frame.winfo_children():
+            w.destroy()
 
-        cabecalhos = ["ID", "Fonte", "Qtd Coletada", "Qtd Restante", "Status", "Data"]
-        COL_RELX = [0.01, 0.08, 0.28, 0.45, 0.62, 0.78]
+        colunas = ["ID", "Fonte", "Qtd Coletada", "Qtd Restante", "Status", "Data"]
+        relx = [0.01, 0.08, 0.28, 0.45, 0.62, 0.78]
 
-        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12, height=40)
-        header_frame.pack(fill="x", padx=16, pady=(16, 4))
-        header_frame.pack_propagate(False)
+        def _render_row(frame, item, rlx):
+            valores = [item["id"], item["ponto"], item["qtd_colet"], item["qtd_rest"]]
+            for i, v in enumerate(valores):
+                ctk.CTkLabel(frame, text=v, font=font_small(12),
+                             text_color=ECOPA_TEXT, anchor="w").place(relx=rlx[i], rely=0.5, anchor="w")
 
-        for col, texto in enumerate(cabecalhos):
-            ctk.CTkLabel(
-                header_frame, text=texto,
-                font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=ECOPA_WHITE, anchor="w"
-            ).place(relx=COL_RELX[col], rely=0.5, anchor="w")
+            ctk.CTkLabel(frame, text=item["status"], font=font_small_bold(11),
+                         fg_color=item["badge_bg"], text_color=item["badge_cor"],
+                         corner_radius=8, height=26).place(relx=rlx[4], rely=0.5, anchor="w")
 
-        lotes = LoteController.listar_todos()
+            ctk.CTkLabel(frame, text=item["data"], font=font_small(12),
+                         text_color=ECOPA_TEXT, anchor="w").place(relx=rlx[5], rely=0.5, anchor="w")
 
-        if not lotes:
-            ctk.CTkLabel(
-                frame_tabela, text="Nenhum lote cadastrado",
-                font=ctk.CTkFont(size=13), text_color=ECOPA_TEXT_LIGHT
-            ).pack(pady=40)
-            return
+        self._tabela = TabelaPaginada(self._tabela_frame, colunas=colunas, relx=relx, on_render=_render_row)
+        self._tabela.pack(fill="both", expand=True)
 
-        for linha, l in enumerate(lotes):
-            bg = ECOPA_BG if linha % 2 == 0 else ECOPA_WHITE
-            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0, height=36)
-            row_frame.pack(fill="x", padx=16, pady=0)
-            row_frame.pack_propagate(False)
-
+        dados = []
+        for l in lotes:
             status = l["status"]
             if status == "Disponivel":
                 badge_cor, badge_bg = ECOPA_LEAF, "#e8f8e8"
@@ -122,23 +129,16 @@ class LotesView(ctk.CTkFrame):
                 badge_cor, badge_bg = ECOPA_TEXT_LIGHT, "#f0f0f0"
 
             data_str = l["data_criacao"].strftime("%d/%m/%Y") if l["data_criacao"] else ""
-            qtd_colet = f"{float(l['quantidade_coletada']):.1f} Kg"
-            qtd_rest = f"{float(l['quantidade_restante']):.1f} Kg"
 
-            valores = [f"#{l['id']}", l["ponto"], qtd_colet, qtd_rest]
-            for col, valor in enumerate(valores):
-                ctk.CTkLabel(
-                    row_frame, text=valor,
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT, anchor="w"
-                ).place(relx=COL_RELX[col], rely=0.5, anchor="w")
+            dados.append({
+                "id": f"#{l['id']}",
+                "ponto": l["ponto"],
+                "qtd_colet": f"{float(l['quantidade_coletada']):.1f} Kg",
+                "qtd_rest": f"{float(l['quantidade_restante']):.1f} Kg",
+                "status": status,
+                "badge_cor": badge_cor,
+                "badge_bg": badge_bg,
+                "data": data_str,
+            })
 
-            badge = ctk.CTkLabel(
-                row_frame, text=status, font=ctk.CTkFont(size=11, weight="bold"),
-                fg_color=badge_bg, text_color=badge_cor,
-                corner_radius=8, height=26)
-            badge.place(relx=COL_RELX[4], rely=0.5, anchor="w")
-
-            ctk.CTkLabel(
-                row_frame, text=data_str,
-                font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT, anchor="w"
-            ).place(relx=COL_RELX[5], rely=0.5, anchor="w")
+        self._tabela.carregar(dados)

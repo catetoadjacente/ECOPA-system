@@ -1,17 +1,8 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.gerente_controller import GerenteController
-
-# Paleta ECOPA
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_BG = "#f0f7f0"
-ECOPA_WHITE = "#ffffff"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
-ECOPA_ORANGE = "#f39c12"
+from utils.theme import font, font_small, font_small_bold, ECOPA_GREEN, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_ORANGE
+from utils.widgets import TabelaPaginada
 
 
 class ListaGerentes(ctk.CTkFrame):
@@ -37,19 +28,19 @@ class ListaGerentes(ctk.CTkFrame):
 
         ctk.CTkLabel(
             left, text="Gerentes Cadastrados",
-            font=ctk.CTkFont(size=30, weight="bold"), anchor="w",
+            font=font(30, "bold"), anchor="w",
             text_color=ECOPA_GREEN_DARK
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             left, text="Gerencie os gerentes do sistema",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
+            font=font_small(12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
         btn_voltar = ctk.CTkButton(
             header, text="← Voltar", width=110, height=36,
             fg_color=ECOPA_TEXT_LIGHT, hover_color="#888888",
-            corner_radius=10, font=ctk.CTkFont(size=12, weight="bold"),
+            corner_radius=10, font=font_small_bold(12),
             command=self.on_voltar
         )
         btn_voltar.pack(side="right")
@@ -67,57 +58,40 @@ class ListaGerentes(ctk.CTkFrame):
         frame_tabela.pack(fill="both", expand=True, padx=32, pady=(20, 20))
 
         colunas = ["CPF", "Nome", "Celular", "Email", "Setor", "Ações"]
-        COL_RELX = [0.01, 0.12, 0.28, 0.44, 0.60, 0.75]
+        relx = [0.01, 0.12, 0.28, 0.44, 0.60, 0.75]
 
-        header_frame = ctk.CTkFrame(frame_tabela, fg_color=ECOPA_GREEN, corner_radius=12, height=40)
-        header_frame.pack(fill="x", padx=16, pady=(16, 4))
-        header_frame.pack_propagate(False)
+        def _render_row(frame, item, rlx):
+            valores = [item["cpf"], item["nome"], item["celular"], item["email"], item["setor"]]
+            for i, v in enumerate(valores):
+                ctk.CTkLabel(frame, text=v, font=font_small(12),
+                             text_color=ECOPA_TEXT, anchor="w").place(relx=rlx[i], rely=0.5, anchor="w")
 
-        for i, col in enumerate(colunas):
-            ctk.CTkLabel(
-                header_frame, text=col,
-                font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=ECOPA_WHITE, anchor="w"
-            ).place(relx=COL_RELX[i], rely=0.5, anchor="w")
+            acoes_frame = ctk.CTkFrame(frame, fg_color="transparent")
+            acoes_frame.place(relx=rlx[5], rely=0.5, anchor="w")
+
+            cpf = item["cpf"]
+            ctk.CTkButton(acoes_frame, text="Editar", width=70, height=28,
+                           fg_color=ECOPA_ORANGE, hover_color="#e67e22",
+                           corner_radius=8, font=font(10, "bold"),
+                           command=lambda c=cpf: self._editar(c)).pack(side="left", padx=2)
+            ctk.CTkButton(acoes_frame, text="Excluir", width=70, height=28,
+                           fg_color="#e74c3c", hover_color="#c0392b",
+                           corner_radius=8, font=font(10, "bold"),
+                           command=lambda c=cpf: self._excluir(c)).pack(side="left", padx=2)
+
+        tabela = TabelaPaginada(frame_tabela, colunas=colunas, relx=relx, on_render=_render_row)
+        tabela.pack(fill="both", expand=True)
 
         gerentes = GerenteController.listar()
 
         if not gerentes:
-            ctk.CTkLabel(
-                frame_tabela, text="Nenhum gerente cadastrado",
-                font=ctk.CTkFont(size=13), text_color=ECOPA_TEXT_LIGHT
-            ).pack(pady=40)
+            ctk.CTkLabel(frame_tabela, text="Nenhum gerente cadastrado",
+                         font=font(13), text_color=ECOPA_TEXT_LIGHT).pack(pady=40)
             return
 
-        for row, gerente in enumerate(gerentes):
-            bg = ECOPA_BG if row % 2 == 0 else ECOPA_WHITE
-            row_frame = ctk.CTkFrame(frame_tabela, fg_color=bg, corner_radius=0, height=36)
-            row_frame.pack(fill="x", padx=16, pady=0)
-            row_frame.pack_propagate(False)
-
-            valores = [gerente["cpf"], gerente["nome"], gerente["celular"], gerente["email"], gerente["setor"]]
-            for i, valor in enumerate(valores):
-                ctk.CTkLabel(
-                    row_frame, text=valor,
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT, anchor="w"
-                ).place(relx=COL_RELX[i], rely=0.5, anchor="w")
-
-            acoes_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
-            acoes_frame.place(relx=COL_RELX[5], rely=0.5, anchor="w")
-
-            ctk.CTkButton(
-                acoes_frame, text="Editar", width=70, height=28,
-                fg_color=ECOPA_ORANGE, hover_color="#e67e22",
-                corner_radius=8, font=ctk.CTkFont(size=10, weight="bold"),
-                command=lambda cpf=gerente["cpf"]: self._editar(cpf)
-            ).pack(side="left", padx=2)
-
-            ctk.CTkButton(
-                acoes_frame, text="Excluir", width=70, height=28,
-                fg_color="#e74c3c", hover_color="#c0392b",
-                corner_radius=8, font=ctk.CTkFont(size=10, weight="bold"),
-                command=lambda cpf=gerente["cpf"]: self._excluir(cpf)
-            ).pack(side="left", padx=2)
+        items = [{"cpf": g["cpf"], "nome": g["nome"], "celular": g["celular"],
+                  "email": g["email"], "setor": g["setor"]} for g in gerentes]
+        tabela.carregar(items)
 
     def _editar(self, cpf):
         from views.edicao_gerente import EdicaoGerente

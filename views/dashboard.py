@@ -6,10 +6,9 @@ from views.cadastros_hub import CadastrosHub
 from views.coletas import ColetasView
 from views.pontos import PontosView
 from views.destinacoes import DestinacoesView
-from views.loading import LoadingOverlay, executar_com_loading
+from views.loading import LoadingOverlay, executar_com_loading, carregar_em_bg
 from controllers.coleta_controller import ColetaController
 from controllers.ponto_controller import PontoController
-from utils.fonts import get_font
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
 import matplotlib
@@ -19,35 +18,19 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 plt.rcParams["font.family"] = "sans-serif"
 
+from utils.theme import (
+    ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG as ECOPA_GREEN_BG,
+    ECOPA_LEAF, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER,
+    ECOPA_ORANGE, ECOPA_BLUE, ECOPA_RED, ECOPA_YELLOW,
+    font, font_title, font_small, font_small_bold, carregar_icone,
+)
+
 ICONS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "icons")
 
-# Paleta ECOPA Moderna
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_GREEN_BG = "#f0f7f0"
-ECOPA_LEAF = "#27ae60"
-ECOPA_WHITE = "#ffffff"
 ECOPA_CARD_BG = "#ffffff"
 ECOPA_SIDEBAR_BG = "#ffffff"
 ECOPA_SIDEBAR_ACTIVE = "#e8f5e8"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
 ECOPA_SHADOW = "#00000010"
-ECOPA_ORANGE = "#f39c12"
-ECOPA_BLUE = "#3498db"
-ECOPA_RED = "#e74c3c"
-ECOPA_YELLOW = "#f1c40f"
-
-
-def carregar_icone(nome, tamanho=20):
-    """Carrega icone de assets/icons/{nome}.png. Retorna None se nao existir."""
-    caminho = os.path.join(ICONS_DIR, f"{nome}.png")
-    if os.path.exists(caminho):
-        img = Image.open(caminho).resize((tamanho, tamanho), Image.LANCZOS)
-        return ctk.CTkImage(light_image=img, dark_image=img, size=(tamanho, tamanho))
-    return None
 
 
 class MainView(ctk.CTkFrame):
@@ -71,13 +54,13 @@ class MainView(ctk.CTkFrame):
 
         leaf_icon = ctk.CTkLabel(
             logo_frame, text="🌿",
-            font=ctk.CTkFont(size=30), text_color=ECOPA_GREEN
+            font=font(30), text_color=ECOPA_GREEN
         )
         leaf_icon.pack(side="left", padx=(0, 8))
 
         ecopa_label = ctk.CTkLabel(
             logo_frame, text="ECOPA",
-            font=ctk.CTkFont(size=24, weight="bold"),
+            font=font(24, "bold"),
             text_color=ECOPA_GREEN_DARK
         )
         ecopa_label.pack(side="left")
@@ -108,7 +91,7 @@ class MainView(ctk.CTkFrame):
 
             emoji_lbl = ctk.CTkLabel(
                 btn_frame, text=emoji,
-                font=ctk.CTkFont(size=18), text_color=ECOPA_GREEN,
+                font=font(18), text_color=ECOPA_GREEN,
                 width=32
             )
             emoji_lbl.pack(side="left", padx=(12, 4))
@@ -117,7 +100,7 @@ class MainView(ctk.CTkFrame):
                 btn_frame, text=texto,
                 fg_color="transparent", hover_color=ECOPA_SIDEBAR_ACTIVE,
                 anchor="w", height=40,
-                font=ctk.CTkFont(size=14, weight="normal"),
+                font=font(14),
                 text_color=ECOPA_TEXT,
                 command=comando
             )
@@ -131,7 +114,7 @@ class MainView(ctk.CTkFrame):
 
         sair_emoji = ctk.CTkLabel(
             sair_frame, text="🚪",
-            font=ctk.CTkFont(size=18), text_color=ECOPA_RED,
+            font=font(18), text_color=ECOPA_RED,
             width=32
         )
         sair_emoji.pack(side="left", padx=(12, 4))
@@ -140,7 +123,7 @@ class MainView(ctk.CTkFrame):
             sair_frame, text="Sair",
             fg_color="transparent", hover_color="#fde8e8",
             anchor="w", height=40,
-            font=ctk.CTkFont(size=14, weight="normal"),
+            font=font(14),
             text_color=ECOPA_RED,
             command=self.sair
         ).pack(side="left", fill="both", expand=True)
@@ -156,10 +139,10 @@ class MainView(ctk.CTkFrame):
         for nome, (frame, btn) in self._botoes_menu.items():
             if nome == ativo:
                 frame.configure(fg_color=ECOPA_SIDEBAR_ACTIVE)
-                btn.configure(text_color=ECOPA_GREEN, font=ctk.CTkFont(size=14, weight="bold"))
+                btn.configure(text_color=ECOPA_GREEN, font=font(14, "bold"))
             else:
                 frame.configure(fg_color="transparent")
-                btn.configure(text_color=ECOPA_TEXT, font=ctk.CTkFont(size=14, weight="normal"))
+                btn.configure(text_color=ECOPA_TEXT, font=font(14))
 
     # ============================================================
     # DASHBOARD
@@ -178,10 +161,11 @@ class MainView(ctk.CTkFrame):
                 from models.lote import Lote
                 from controllers.pedido_controller import PedidoController
 
+                coletas = ColetaController.listar()
+
                 resumo_c = Coleta.resumo_dashboard()
                 resumo_l = Lote.resumo_estoque_dashboard()
                 pedidos = PedidoController.listar()
-                coletas = ColetaController.listar()
                 pontos = PontoController.listar()
 
                 grafico_data = self._preparar_graficos(coletas)
@@ -206,7 +190,7 @@ class MainView(ctk.CTkFrame):
             self._loading_label.destroy()
         ctk.CTkLabel(
             self.content, text="Erro ao carregar dashboard. Tente novamente.",
-            font=ctk.CTkFont(size=14), text_color=ECOPA_RED
+            font=font(14), text_color=ECOPA_RED
         ).pack(expand=True)
 
     def _preparar_graficos(self, coletas):
@@ -253,14 +237,14 @@ class MainView(ctk.CTkFrame):
         ctk.CTkLabel(
             left_header,
             text=f"Olá, {self.nome_usuario or 'Usuário'}!",
-            font=ctk.CTkFont(size=26, weight="bold"), anchor="w",
+            font=font(26, "bold"), anchor="w",
             text_color=ECOPA_GREEN_DARK
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             left_header,
             text="Supervisor de resíduos e coletas",
-            font=ctk.CTkFont(size=12), anchor="w",
+            font=font_small(12), anchor="w",
             text_color=ECOPA_TEXT_LIGHT
         ).pack(anchor="w", pady=(2, 0))
 
@@ -270,20 +254,20 @@ class MainView(ctk.CTkFrame):
         ctk.CTkLabel(
             right_header,
             text=datetime.now().strftime("%d de %B de %Y"),
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font_small(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(anchor="e")
 
         ctk.CTkLabel(
             right_header,
             text=datetime.now().strftime("%A"),
-            font=ctk.CTkFont(size=11), text_color=ECOPA_TEXT_LIGHT
+            font=font_small(11), text_color=ECOPA_TEXT_LIGHT
         ).pack(anchor="e")
 
         # Botao atualizar
         ctk.CTkButton(
             right_header, text="Atualizar", width=100, height=32,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"),
+            corner_radius=8, font=font_small_bold(12),
             command=self.abrir_dashboard
         ).pack(anchor="e", pady=(6, 0))
 
@@ -336,18 +320,18 @@ class MainView(ctk.CTkFrame):
             icon_frame.pack_propagate(False)
 
             ctk.CTkLabel(
-                icon_frame, text=emoji, font=ctk.CTkFont(size=22)
+                icon_frame, text=emoji, font=font(22)
             ).place(relx=0.5, rely=0.5, anchor="center")
 
             ctk.CTkLabel(
                 inner, text=titulo,
-                font=ctk.CTkFont(size=10, weight="bold"),
+                font=font_small_bold(10),
                 text_color=ECOPA_TEXT_LIGHT, anchor="w"
             ).pack(anchor="w")
 
             ctk.CTkLabel(
                 inner, text=valor,
-                font=ctk.CTkFont(size=28, weight="bold"),
+                font=font(28, "bold"),
                 text_color=ECOPA_GREEN_DARK, anchor="w"
             ).pack(anchor="w")
 
@@ -365,7 +349,7 @@ class MainView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card_pizza, text="Resumo de Coletas",
-            font=ctk.CTkFont(size=15, weight="bold"),
+            font=font(15, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(16, 0))
 
@@ -405,7 +389,7 @@ class MainView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card_barras, text="Top 5 Pontos (Kg)",
-            font=ctk.CTkFont(size=15, weight="bold"),
+            font=font(15, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(16, 0))
 
@@ -447,7 +431,7 @@ class MainView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card_linha, text="Coletas por Dia (últimos 7)",
-            font=ctk.CTkFont(size=15, weight="bold"),
+            font=font(15, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(16, 0))
 
@@ -484,7 +468,7 @@ class MainView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card_info, text="Resumo do Dia",
-            font=ctk.CTkFont(size=15, weight="bold"),
+            font=font(15, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(16, 0))
 
@@ -509,20 +493,20 @@ class MainView(ctk.CTkFrame):
 
             ctk.CTkLabel(
                 left_met, text=titulo,
-                font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT,
+                font=font_small(12), text_color=ECOPA_TEXT_LIGHT,
                 anchor="w"
             ).pack(anchor="w")
 
             ctk.CTkLabel(
                 left_met, text=valor,
-                font=ctk.CTkFont(size=18, weight="bold"),
+                font=font(18, "bold"),
                 text_color=ECOPA_GREEN_DARK, anchor="w"
             ).pack(anchor="w")
 
         # Rodape
         ctk.CTkLabel(
             scroll, text=f"© {datetime.now().year} ECOPA System — Todos os direitos reservados",
-            font=ctk.CTkFont(size=10), text_color=ECOPA_TEXT_LIGHT
+            font=font_small(10), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(30, 15))
 
     # ============================================================

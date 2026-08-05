@@ -10,24 +10,22 @@ def get_cached(key, ttl_seconds, fetch_fn):
     now = time.time()
     with _lock:
         if key in _cache:
-            ts, data = _cache[key]
-            if now - ts < ttl_seconds:
+            ts, ttl, data = _cache[key]
+            if now - ts < ttl:
                 return data
     data = fetch_fn()
     with _lock:
         if len(_cache) >= MAX_CACHE_SIZE:
-            _evict_expired()
-        _cache[key] = (now, data)
+            _evict_expired(now)
+        _cache[key] = (now, ttl_seconds, data)
     return data
 
 
-def _evict_expired():
+def _evict_expired(now=None):
     """Remove entradas expiradas quando cache atinge limite."""
-    now = time.time()
-    keys_to_remove = []
-    for k, (ts, _) in _cache.items():
-        if now - ts > 300:
-            keys_to_remove.append(k)
+    if now is None:
+        now = time.time()
+    keys_to_remove = [k for k, (ts, ttl, _) in _cache.items() if now - ts > ttl]
     for k in keys_to_remove:
         _cache.pop(k, None)
 
