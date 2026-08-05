@@ -22,7 +22,7 @@ class Destinacao:
                 except Exception as e:
                     print(f"Erro ao listar destinacoes: {e}")
                     return []
-        return get_cached("destinacoes_listar", 60, _fetch)
+        return get_cached("destinacoes_listar", 120, _fetch)
 
     @staticmethod
     def criar(dados):

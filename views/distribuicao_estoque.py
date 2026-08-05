@@ -2,6 +2,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 from controllers.pedido_controller import PedidoController
 from controllers.lote_controller import LoteController
+from utils.theme import font, font_small
 
 ECOPA_GREEN = "#006d12"
 ECOPA_GREEN_LIGHT = "#0a8f2c"
@@ -48,13 +49,13 @@ class DistribuicaoEstoque(ctk.CTkFrame):
 
         ctk.CTkLabel(
             left, text=f"Distribuir Estoque - Pedido #{self.id_pedido}",
-            font=ctk.CTkFont(size=26, weight="bold"), anchor="w",
+            font=font(26, "bold"), anchor="w",
             text_color=ECOPA_GREEN_DARK
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             left, text="Selecione os lotes para atender este pedido",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
+            font=font_small(12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
         ctk.CTkFrame(scroll, fg_color=ECOPA_GREEN, height=3, corner_radius=2).pack(
@@ -67,12 +68,12 @@ class DistribuicaoEstoque(ctk.CTkFrame):
         info_card.pack(fill="x", padx=32, pady=(20, 0))
 
         ctk.CTkLabel(info_card, text=f"Destino: {self.pedido['destinacao']}",
-            font=ctk.CTkFont(size=14, weight="bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
+            font=font(14, "bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(14, 4))
 
         ctk.CTkLabel(info_card,
             text=f"Solicitado: {float(self.pedido['quantidade_solicitada']):.1f} Kg | Ja atendido: {float(self.pedido['quantidade_atendida']):.1f} Kg",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
+            font=font_small(12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(fill="x", padx=20, pady=(0, 14))
 
         # Lotes disponiveis
@@ -82,14 +83,14 @@ class DistribuicaoEstoque(ctk.CTkFrame):
         lotes_card.pack(fill="x", padx=32, pady=(16, 0))
 
         ctk.CTkLabel(lotes_card, text="Lotes Disponiveis",
-            font=ctk.CTkFont(size=15, weight="bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
+            font=font(15, "bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(16, 8))
 
         lotes = LoteController.listar_disponiveis()
 
         if not lotes:
             ctk.CTkLabel(lotes_card, text="Nenhum lote disponivel no estoque",
-                font=ctk.CTkFont(size=13), text_color=ECOPA_TEXT_LIGHT
+                font=font(13), text_color=ECOPA_TEXT_LIGHT
             ).pack(pady=30)
         else:
             cabecalhos = ["Lote", "Fonte", "Data", "Disponivel", "Quantidade"]
@@ -100,7 +101,7 @@ class DistribuicaoEstoque(ctk.CTkFrame):
             for col, texto in enumerate(cabecalhos):
                 ctk.CTkLabel(
                     header_frame, text=texto,
-                    font=ctk.CTkFont(size=12, weight="bold"),
+                    font=font_small(12, "bold"),
                     text_color=ECOPA_WHITE, width=larguras[col]
                 ).grid(row=0, column=col, padx=8, pady=8, sticky="w")
 
@@ -112,22 +113,22 @@ class DistribuicaoEstoque(ctk.CTkFrame):
                 qtd_disp = f"{float(lote['quantidade_restante']):.1f} Kg"
 
                 ctk.CTkLabel(row, text=f"#{lote['id']}",
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
+                    font=font_small(12), text_color=ECOPA_TEXT,
                     width=larguras[0], anchor="w").grid(row=0, column=0, padx=8, pady=4, sticky="w")
                 ctk.CTkLabel(row, text=lote["ponto"],
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
+                    font=font_small(12), text_color=ECOPA_TEXT,
                     width=larguras[1], anchor="w").grid(row=0, column=1, padx=8, pady=4, sticky="w")
                 ctk.CTkLabel(row, text=data_str,
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
+                    font=font_small(12), text_color=ECOPA_TEXT,
                     width=larguras[2], anchor="w").grid(row=0, column=2, padx=8, pady=4, sticky="w")
                 ctk.CTkLabel(row, text=qtd_disp,
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_GREEN,
+                    font=font_small(12), text_color=ECOPA_GREEN,
                     width=larguras[3], anchor="w").grid(row=0, column=3, padx=8, pady=4, sticky="w")
 
                 entry = ctk.CTkEntry(
                     row, width=larguras[4], height=30, placeholder_text="0.0",
                     fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-                    corner_radius=8, font=ctk.CTkFont(size=12), border_width=1)
+                    corner_radius=8, font=font_small(12), border_width=1)
                 entry.grid(row=0, column=4, padx=8, pady=4)
                 self.lotes_entries[lote["id"]] = (entry, float(lote["quantidade_restante"]))
 
@@ -138,14 +139,14 @@ class DistribuicaoEstoque(ctk.CTkFrame):
         ctk.CTkButton(
             btn_frame, text="Voltar", width=140, height=42,
             fg_color="#7f8c8d", hover_color="#95a5a6",
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.on_voltar
         ).pack(side="left")
 
         ctk.CTkButton(
             btn_frame, text="Confirmar Distribuicao", width=200, height=42,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self._confirmar
         ).pack(side="right")
 

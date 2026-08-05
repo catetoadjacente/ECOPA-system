@@ -5,6 +5,7 @@ from controllers.gerente_controller import GerenteController
 from views.dashboard import MainView
 from tkinter import messagebox
 import pywinstyles
+from utils.theme import font
 
 
 ctk.set_appearance_mode("light")
@@ -41,7 +42,7 @@ class App(ctk.CTk):
             border_width=0,
             bg_color="#ffffff",
             height=35,
-            font=ctk.CTkFont(size=14),
+            font=font(14),
         )
         self.entry_user.place(relx=0.762, rely=0.39, anchor="center", relwidth=0.34)
 
@@ -53,7 +54,7 @@ class App(ctk.CTk):
             bg_color="#ffffff",
             show="*",
             height=35,
-            font=ctk.CTkFont(size=14),
+            font=font(14),
         )
         self.entry_pass.place(relx=0.762, rely=0.545, anchor="center", relwidth=0.34)
         self.bind("<Return>", self._on_login)
@@ -67,7 +68,7 @@ class App(ctk.CTk):
             height=41,
             corner_radius=20,
             text_color="black",
-            font=ctk.CTkFont(size=14, weight="bold"),
+            font=font(14, "bold"),
             command=self._on_login,
             hover=True
             
@@ -109,7 +110,7 @@ class App(ctk.CTk):
         h = self.winfo_height()
         if w < 2 or h < 2:
             return
-        resized = self._pil_image.resize((w, h), Image.LANCZOS)
+        resized = self._pil_image.resize((w, h), Image.BILINEAR)
         self.bg_photo = ctk.CTkImage(resized, size=(w, h))
         self.bg_label.configure(image=self.bg_photo)
 

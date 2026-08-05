@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.gerente_controller import GerenteController
+from utils.theme import font
 
 # Paleta ECOPA
 ECOPA_GREEN = "#006d12"
@@ -37,17 +38,17 @@ class CadastroGerente(ctk.CTkFrame):
         # Header
         ctk.CTkLabel(
             card, text="👤",
-            font=ctk.CTkFont(size=36), text_color=ECOPA_GREEN
+            font=font(36), text_color=ECOPA_GREEN
         ).pack(pady=(28, 0))
 
         ctk.CTkLabel(
             card, text="Novo Gerente",
-            font=ctk.CTkFont(size=22, weight="bold"), text_color=ECOPA_GREEN_DARK
+            font=font(22, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack(pady=(8, 0))
 
         ctk.CTkLabel(
             card, text="Preencha os dados para cadastrar um novo gerente",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(0, 16))
 
         # Separador
@@ -67,7 +68,7 @@ class CadastroGerente(ctk.CTkFrame):
         for label_text, key, placeholder in campos:
             lbl = ctk.CTkLabel(
                 card, text=label_text,
-                font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
+                font=font(12, "bold"), text_color=ECOPA_TEXT,
                 anchor="w"
             )
             lbl.pack(fill="x", padx=55, pady=(0, 3))
@@ -75,7 +76,7 @@ class CadastroGerente(ctk.CTkFrame):
             entry = ctk.CTkEntry(
                 card, height=38, placeholder_text=placeholder,
                 fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-                corner_radius=10, font=ctk.CTkFont(size=13),
+                corner_radius=10, font=font(13),
                 border_width=1
             )
             entry.pack(fill="x", padx=55, pady=(0, 8))
@@ -88,14 +89,14 @@ class CadastroGerente(ctk.CTkFrame):
         ctk.CTkButton(
             btn_frame, text="Salvar", width=140, height=40,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self._on_salvar
         ).pack(side="right", padx=8)
 
         ctk.CTkButton(
             btn_frame, text="Voltar", width=140, height=40,
             fg_color="#7f8c8d", hover_color="#95a5a6",
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.on_voltar
         ).pack(side="left", padx=8)
 

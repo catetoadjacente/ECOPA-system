@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.destinacao_controller import DestinacaoController
+from utils.theme import font
 
 ECOPA_GREEN = "#006d12"
 ECOPA_GREEN_LIGHT = "#0a8f2c"
@@ -40,31 +41,31 @@ class EdicaoDestinacao(ctk.CTkFrame):
         card.pack(fill="x", padx=40, pady=(25, 20))
 
         ctk.CTkLabel(card, text="Editar Destinacao",
-            font=ctk.CTkFont(size=22, weight="bold"), text_color=ECOPA_GREEN_DARK
+            font=font(22, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack(pady=(28, 0))
 
         ctk.CTkLabel(card, text=f"Editando destinacao #{self.id_dest}",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(0, 16))
 
         ctk.CTkFrame(card, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(0, 12))
 
         # Nome
         ctk.CTkLabel(card, text="Nome",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_nome = ctk.CTkEntry(
             card, height=38, fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
+            corner_radius=10, font=font(13), border_width=1)
         self.entry_nome.insert(0, self.dados["nome"])
         self.entry_nome.pack(fill="x", padx=55, pady=(0, 12))
 
         # Tipo
         ctk.CTkLabel(card, text="Tipo",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.combo_tipo = ctk.CTkComboBox(
-            card, values=TIPOS, height=38, font=ctk.CTkFont(size=13), state="readonly",
+            card, values=TIPOS, height=38, font=font(13), state="readonly",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
             button_color=ECOPA_GREEN, button_hover_color=ECOPA_GREEN_LIGHT, corner_radius=10)
         self.combo_tipo.set(self.dados["tipo"])
@@ -72,47 +73,47 @@ class EdicaoDestinacao(ctk.CTkFrame):
 
         # Endereco
         ctk.CTkLabel(card, text="Endereco",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_endereco = ctk.CTkEntry(
             card, height=38, fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
+            corner_radius=10, font=font(13), border_width=1)
         self.entry_endereco.insert(0, self.dados["endereco"])
         self.entry_endereco.pack(fill="x", padx=55, pady=(0, 16))
 
         # Contato
         ctk.CTkFrame(card, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(0, 12))
         ctk.CTkLabel(card, text="Contato",
-            font=ctk.CTkFont(size=15, weight="bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
+            font=font(15, "bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 10))
 
         # CNPJ
         ctk.CTkLabel(card, text="CNPJ",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_cnpj = ctk.CTkEntry(
             card, height=38, fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
+            corner_radius=10, font=font(13), border_width=1)
         self.entry_cnpj.insert(0, self.dados.get("cnpj", "") or "")
         self.entry_cnpj.pack(fill="x", padx=55, pady=(0, 12))
 
         # Telefone
         ctk.CTkLabel(card, text="Telefone",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_telefone = ctk.CTkEntry(
             card, height=38, fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
+            corner_radius=10, font=font(13), border_width=1)
         self.entry_telefone.insert(0, self.dados.get("telefone", "") or "")
         self.entry_telefone.pack(fill="x", padx=55, pady=(0, 12))
 
         # Email
         ctk.CTkLabel(card, text="Email",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_email = ctk.CTkEntry(
             card, height=38, fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
+            corner_radius=10, font=font(13), border_width=1)
         self.entry_email.insert(0, self.dados.get("email", "") or "")
         self.entry_email.pack(fill="x", padx=55, pady=(0, 16))
 
@@ -123,14 +124,14 @@ class EdicaoDestinacao(ctk.CTkFrame):
         ctk.CTkButton(
             btn_frame, text="Voltar", width=140, height=42,
             fg_color="#7f8c8d", hover_color="#95a5a6",
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.on_voltar
         ).pack(side="left")
 
         ctk.CTkButton(
             btn_frame, text="Salvar", width=140, height=42,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self._salvar
         ).pack(side="right")
 
