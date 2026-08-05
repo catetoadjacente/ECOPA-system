@@ -60,6 +60,7 @@ class App(ctk.CTk):
 
         self.btn_login = ctk.CTkButton(
             self,
+            text="Login",
             fg_color="#DDEEDD",
             bg_color="#000001",
             border_width=0,
