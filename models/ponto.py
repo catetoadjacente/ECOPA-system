@@ -74,6 +74,7 @@ class Ponto:
                         SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
                                p.telefone, p.proprietario
                         FROM ponto_de_coleta p
+                        WHERE p.ativo = 1
                         ORDER BY p.estabelecimento
                     """)
                     return cursor.fetchall()
@@ -122,6 +123,24 @@ class Ponto:
                 return True
             except Exception as e:
                 print(f"Erro ao deletar ponto de coleta: {e}")
+                conn.rollback()
+                return False
+
+    @staticmethod
+    def desativar(idponto):
+        with db_connection() as conn:
+            if conn is None:
+                return False
+            try:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE ponto_de_coleta SET ativo = 0 WHERE id_ponto = %s", (idponto,))
+                conn.commit()
+                invalidate_prefix("pontos")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+                return True
+            except Exception as e:
+                print(f"Erro ao desativar ponto de coleta: {e}")
                 conn.rollback()
                 return False
 

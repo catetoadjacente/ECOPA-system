@@ -76,10 +76,10 @@ class PontosView(ctk.CTkFrame):
                            fg_color=ECOPA_ORANGE, hover_color="#e67e22",
                            corner_radius=8, font=font_small_bold(10),
                            command=lambda idp=idponto: self.editar_ponto(idp)).pack(side="left", padx=2)
-            ctk.CTkButton(acoes_frame, text="Excluir", width=60, height=28,
+            ctk.CTkButton(acoes_frame, text="Desativar", width=70, height=28,
                            fg_color="#e74c3c", hover_color="#c0392b",
                            corner_radius=8, font=font_small_bold(10),
-                           command=lambda idp=idponto: self.excluir_ponto(idp)).pack(side="left", padx=2)
+                           command=lambda idp=idponto: self.desativar_ponto(idp)).pack(side="left", padx=2)
 
         self._tabela = TabelaPaginada(frame_tabela, colunas=colunas, relx=relx, on_render=_render_row)
         self._tabela.pack(fill="both", expand=True)
@@ -117,9 +117,9 @@ class PontosView(ctk.CTkFrame):
         from views.edicao_ponto import EdicaoPonto
         EdicaoPonto(self, self.content, idponto, on_voltar=self.montar_tela)
 
-    def excluir_ponto(self, idponto):
-        if messagebox.askyesno("Confirmar", "Deseja excluir este ponto de coleta?"):
-            ok, msg = PontoController.deletar(idponto)
+    def desativar_ponto(self, idponto):
+        if messagebox.askyesno("Confirmar", "Deseja desativar este ponto de coleta?"):
+            ok, msg = PontoController.desativar(idponto)
             if ok:
                 self.montar_tela()
             else:

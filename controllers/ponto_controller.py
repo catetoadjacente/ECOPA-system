@@ -62,6 +62,14 @@ class PontoController:
         return False, "Falha ao excluir ponto de coleta"
 
     @staticmethod
+    def desativar(idponto):
+        if not idponto:
+            return False, "ID invalido"
+        if Ponto.desativar(idponto):
+            return True, "Ponto de coleta desativado com sucesso"
+        return False, "Falha ao desativar ponto de coleta"
+
+    @staticmethod
     def buscar_horarios(id_ponto):
         return Ponto.buscar_horarios(id_ponto)
 
