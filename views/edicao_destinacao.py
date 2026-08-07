@@ -23,7 +23,7 @@ class EdicaoDestinacao(ctk.CTkFrame):
         self.on_voltar = on_voltar
         self.dados = DestinacaoController.obter_por_id(id_dest)
         if not self.dados:
-            messagebox.showerror("Erro", "Destinacao nao encontrada!")
+            messagebox.showerror("Erro", "Destinação não encontrada!")
             self.on_voltar()
             return
         self.montar_formulario()
@@ -40,11 +40,11 @@ class EdicaoDestinacao(ctk.CTkFrame):
             border_width=1, border_color=ECOPA_BORDER)
         card.pack(fill="x", padx=40, pady=(25, 20))
 
-        ctk.CTkLabel(card, text="Editar Destinacao",
+        ctk.CTkLabel(card, text="Editar Destinação",
             font=font(22, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack(pady=(28, 0))
 
-        ctk.CTkLabel(card, text=f"Editando destinacao #{self.id_dest}",
+        ctk.CTkLabel(card, text=f"Editando destinação #{self.id_dest}",
             font=font(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(0, 16))
 
@@ -72,7 +72,7 @@ class EdicaoDestinacao(ctk.CTkFrame):
         self.combo_tipo.pack(fill="x", padx=55, pady=(0, 12))
 
         # Endereco
-        ctk.CTkLabel(card, text="Endereco",
+        ctk.CTkLabel(card, text="Endereço",
             font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_endereco = ctk.CTkEntry(
@@ -146,7 +146,7 @@ class EdicaoDestinacao(ctk.CTkFrame):
         }
 
         if not dados["nome"] or not dados["endereco"]:
-            messagebox.showerror("Erro", "Preencha nome e endereco!")
+            messagebox.showerror("Erro", "Preencha nome e endereço!")
             return
 
         ok, msg = DestinacaoController.atualizar(self.id_dest, dados)

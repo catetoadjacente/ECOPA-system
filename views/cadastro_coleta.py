@@ -172,17 +172,17 @@ class CadastroColeta(ctk.CTkFrame):
         observacao = self.text_observacao.get("1.0", "end-1c").strip()
 
         if not all([nome_gerente, nome_ponto, data_coleta, quantidade]):
-            messagebox.showerror("Erro", "Preencha todos os campos obrigatorios!")
+            messagebox.showerror("Erro", "Preencha todos os campos obrigatórios!")
             return
 
         # Validar se selecionou valores reais (placeholder de combo vazio)
         nomes_pontos = [p["estabelecimento"] for p in self.pontos_lista]
         nomes_gerentes = [g["nome"] for g in self.gerentes_lista]
         if nome_ponto not in nomes_pontos:
-            messagebox.showerror("Erro", "Selecione um ponto de coleta valido!")
+            messagebox.showerror("Erro", "Selecione um ponto de coleta válido!")
             return
         if nome_gerente not in nomes_gerentes:
-            messagebox.showerror("Erro", "Selecione um gerente valido!")
+            messagebox.showerror("Erro", "Selecione um gerente válido!")
             return
 
         try:
@@ -194,7 +194,7 @@ class CadastroColeta(ctk.CTkFrame):
         try:
             quantidade = float(quantidade)
         except ValueError:
-            messagebox.showerror("Erro", "Quantidade deve ser um numero!")
+            messagebox.showerror("Erro", "Quantidade deve ser um número!")
             return
 
         if quantidade <= 0:

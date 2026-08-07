@@ -52,7 +52,7 @@ class DestinacoesView(ctk.CTkFrame):
         right.pack(side="right", anchor="ne")
 
         ctk.CTkButton(
-            right, text="+ Nova Destinacao", width=180, height=38,
+            right, text="+ Nova Destinação", width=180, height=38,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
             corner_radius=10, font=font_small_bold(12),
             command=self._cadastrar
@@ -69,7 +69,7 @@ class DestinacoesView(ctk.CTkFrame):
             border_width=1, border_color=ECOPA_BORDER)
         frame_tabela.pack(fill="both", expand=True, padx=32, pady=(20, 20))
 
-        colunas = ["ID", "Nome", "Tipo", "Endereco", "CNPJ", "Telefone", "Acoes"]
+        colunas = ["ID", "Nome", "Tipo", "Endereco", "CNPJ", "Telefone", "Ações"]
         relx = [0.01, 0.06, 0.18, 0.28, 0.48, 0.62, 0.75]
 
         def _render_row(frame, item, rlx):
@@ -114,7 +114,7 @@ class DestinacoesView(ctk.CTkFrame):
         def _montar(dados):
             overlay.stop()
             if not dados:
-                ctk.CTkLabel(frame_tabela, text="Nenhuma destinacao cadastrada",
+                ctk.CTkLabel(frame_tabela, text="Nenhuma destinação cadastrada",
                              font=font(13), text_color=ECOPA_TEXT_LIGHT).pack(pady=40)
                 return
 
@@ -147,6 +147,6 @@ class DestinacoesView(ctk.CTkFrame):
         EdicaoDestinacao(self, self.content, id_dest, on_voltar=self.montar_tela)
 
     def _excluir(self, id_dest):
-        if messagebox.askyesno("Confirmar", "Deseja excluir esta destinacao?"):
+        if messagebox.askyesno("Confirmar", "Deseja excluir esta destinação?"):
             DestinacaoController.deletar(id_dest)
             self.montar_tela()

@@ -49,19 +49,19 @@ class CadastroPedido(ctk.CTkFrame):
         ).pack(fill="x", padx=55, pady=(0, 10))
 
         # Destinacao
-        ctk.CTkLabel(card, text="Destinacao",
+        ctk.CTkLabel(card, text="Destinação",
             font=font_small_bold(12), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
 
         destinacoes = DestinacaoController.listar()
         self.destinacoes_lista = destinacoes
-        self.nomes_lista = [f"{d['nome']} ({d['tipo']})" for d in destinacoes] if destinacoes else ["Nenhuma destinacao cadastrada"]
+        self.nomes_lista = [f"{d['nome']} ({d['tipo']})" for d in destinacoes] if destinacoes else ["Nenhuma destinação cadastrada"]
 
         self.combo_dest = ctk.CTkComboBox(
             card, values=self.nomes_lista, height=38, font=font(13), state="readonly",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
             button_color=ECOPA_GREEN, button_hover_color=ECOPA_GREEN_LIGHT, corner_radius=10)
-        if self.nomes_lista and self.nomes_lista[0] != "Nenhuma destinacao cadastrada":
+        if self.nomes_lista and self.nomes_lista[0] != "Nenhuma destinação cadastrada":
             self.combo_dest.set(self.nomes_lista[0])
         self.combo_dest.pack(fill="x", padx=55, pady=(0, 12))
 
@@ -83,7 +83,7 @@ class CadastroPedido(ctk.CTkFrame):
         ).pack(fill="x", padx=55, pady=(0, 12))
 
         # Observacao
-        ctk.CTkLabel(card, text="Observacao",
+        ctk.CTkLabel(card, text="Observação",
             font=font_small_bold(12), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.text_obs = ctk.CTkTextbox(
@@ -118,7 +118,7 @@ class CadastroPedido(ctk.CTkFrame):
                 break
 
         if idx < 0 or idx >= len(self.destinacoes_lista):
-            messagebox.showerror("Erro", "Selecione uma destinacao!")
+            messagebox.showerror("Erro", "Selecione uma destinação!")
             return
 
         quantidade = self.entry_quantidade.get().strip()

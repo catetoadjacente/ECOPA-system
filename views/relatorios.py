@@ -51,7 +51,7 @@ class RelatoriosView(ctk.CTkFrame):
         ).pack(anchor="w")
 
         ctk.CTkLabel(
-            left, text="Analise completa de coletas e destinacoes",
+            left, text="Analise completa de coletas e destinações",
             font=font_small(12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
@@ -109,7 +109,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         # Data fim
         ctk.CTkLabel(
-            filtros, text="Ate:", font=font_small(12),
+            filtros, text="Até:", font=font_small(12),
             text_color=ECOPA_TEXT_LIGHT
         ).pack(side="left", padx=(0, 4))
 
@@ -434,7 +434,7 @@ class RelatoriosView(ctk.CTkFrame):
         card.grid(row=1, column=1, padx=(8, 0), pady=(0, 8), sticky="nsew")
 
         ctk.CTkLabel(
-            card, text="Destinacoes por Cliente",
+            card, text="Destinações por Cliente",
             font=font(14, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=16, pady=(14, 0))
@@ -459,7 +459,7 @@ class RelatoriosView(ctk.CTkFrame):
             ax.spines["bottom"].set_color(ECOPA_BORDER)
             ax.spines["left"].set_color(ECOPA_BORDER)
         else:
-            ax.text(0.5, 0.5, "Sem destinacoes registradas",
+            ax.text(0.5, 0.5, "Sem destinações registradas",
                     ha="center", va="center", fontsize=11, color=ECOPA_TEXT_LIGHT)
 
         plt.tight_layout(pad=1)
@@ -572,7 +572,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         if not dados:
             ctk.CTkLabel(
-                card, text="Nenhuma destinacao registrada",
+                card, text="Nenhuma destinação registrada",
                 font=font_small(12), text_color=ECOPA_TEXT_LIGHT
             ).pack(pady=20)
             return
@@ -595,7 +595,7 @@ class RelatoriosView(ctk.CTkFrame):
         caminho = filedialog.asksaveasfilename(
             defaultextension=".pdf",
             filetypes=[("PDF", "*.pdf")],
-            title="Salvar Relatorio",
+            title="Salvar Relatório",
             initialfile=f"relatorio_ecopa_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
         )
         if not caminho:
@@ -619,7 +619,7 @@ class RelatoriosView(ctk.CTkFrame):
                     fig1.patch.set_facecolor(ECOPA_WHITE)
                     ax1.axis("off")
 
-                    ax1.text(0.5, 0.92, "Relatorio ECOPA", fontsize=28, fontweight="bold",
+                    ax1.text(0.5, 0.92, "Relatório ECOPA", fontsize=28, fontweight="bold",
                              ha="center", va="top", color=ECOPA_GREEN_DARK)
                     ax1.text(0.5, 0.88, f"Gerado em {datetime.now().strftime('%d/%m/%Y as %H:%M')}",
                              fontsize=11, ha="center", va="top", color=ECOPA_TEXT_LIGHT)
@@ -703,7 +703,7 @@ class RelatoriosView(ctk.CTkFrame):
             except Exception:
                 return
             if status == "ok":
-                messagebox.showinfo("Sucesso", f"Relatorio salvo em:\n{payload}")
+                messagebox.showinfo("Sucesso", f"Relatório salvo em:\n{payload}")
             else:
                 messagebox.showerror("Erro", f"Falha ao gerar PDF:\n{payload}")
 

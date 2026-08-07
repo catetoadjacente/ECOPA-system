@@ -34,7 +34,7 @@ class CadastroDestinacao(ctk.CTkFrame):
             border_width=1, border_color=ECOPA_BORDER)
         card.pack(fill="x", padx=40, pady=(25, 20))
 
-        ctk.CTkLabel(card, text="Nova Destinacao",
+        ctk.CTkLabel(card, text="Nova Destinação",
             font=font(22, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack(pady=(28, 0))
 
@@ -70,11 +70,11 @@ class CadastroDestinacao(ctk.CTkFrame):
         self.combo_tipo.pack(fill="x", padx=55, pady=(0, 12))
 
         # Endereco
-        ctk.CTkLabel(card, text="Endereco",
+        ctk.CTkLabel(card, text="Endereço",
             font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_endereco = ctk.CTkEntry(
-            card, height=38, placeholder_text="Rua, numero, bairro, cidade",
+            card, height=38, placeholder_text="Rua, número, bairro, cidade",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
             corner_radius=10, font=font(13), border_width=1)
         self.entry_endereco.pack(fill="x", padx=55, pady=(0, 16))
@@ -144,7 +144,7 @@ class CadastroDestinacao(ctk.CTkFrame):
         }
 
         if not dados["nome"] or not dados["endereco"]:
-            messagebox.showerror("Erro", "Preencha nome e endereco!")
+            messagebox.showerror("Erro", "Preencha nome e endereço!")
             return
 
         ok, msg = DestinacaoController.cadastrar(dados)

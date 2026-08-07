@@ -62,7 +62,7 @@ class PedidosView(ctk.CTkFrame):
         frame_tabela.pack(fill="both", expand=True, padx=32, pady=(20, 20))
         self._frame_tabela = frame_tabela
 
-        colunas = ["ID", "Destino", "Tipo", "Qtd Solicitada", "Qtd Atendida", "Status", "Data", "Acoes"]
+        colunas = ["ID", "Destino", "Tipo", "Qtd Solicitada", "Qtd Atendida", "Status", "Data", "Ações"]
         relx = [0.01, 0.06, 0.22, 0.32, 0.44, 0.56, 0.68, 0.80]
 
         def _render_row(frame, item, rlx):
