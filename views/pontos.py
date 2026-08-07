@@ -119,8 +119,11 @@ class PontosView(ctk.CTkFrame):
 
     def excluir_ponto(self, idponto):
         if messagebox.askyesno("Confirmar", "Deseja excluir este ponto de coleta?"):
-            PontoController.deletar(idponto)
-            self.montar_tela()
+            ok, msg = PontoController.deletar(idponto)
+            if ok:
+                self.montar_tela()
+            else:
+                messagebox.showerror("Erro", msg)
 
     def _ver_horarios(self, idponto):
         horarios = PontoController.buscar_horarios(idponto)
