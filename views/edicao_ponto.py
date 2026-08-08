@@ -4,6 +4,16 @@ from controllers.ponto_controller import PontoController
 from utils.horas import DIAS_SEMANA, validar_hora, formatar_hora
 from utils.theme import font, font_small, font_small_bold
 
+ECOPA_GREEN = "#006d12"
+ECOPA_GREEN_LIGHT = "#0a8f2c"
+ECOPA_GREEN_DARK = "#004d0e"
+ECOPA_BG = "#f0f7f0"
+ECOPA_WHITE = "#ffffff"
+ECOPA_TEXT = "#1a1a1a"
+ECOPA_TEXT_LIGHT = "#666666"
+ECOPA_BORDER = "#e0e8e0"
+ECOPA_ORANGE = "#f39c12"
+
 
 class EdicaoPonto(ctk.CTkFrame):
     def __init__(self, master, content, idponto, on_voltar):
@@ -149,6 +159,28 @@ class EdicaoPonto(ctk.CTkFrame):
                 ent_a.insert(0, formatar_hora(h["abertura"]))
                 ent_f.delete(0, ctk.END)
                 ent_f.insert(0, formatar_hora(h["fechamento"]))
+
+            def _copiar_hora_anterior(dn=dia_num, v=var, ea=ent_a, ef=ent_f):
+                if not v.get():
+                    return
+                if ea.get().strip() and ef.get().strip():
+                    return
+                for prev_dnum, _ in reversed(DIAS_SEMANA):
+                    if prev_dnum >= dn:
+                        continue
+                    if prev_dnum in self.chk_vars and self.chk_vars[prev_dnum].get():
+                        prev_a = self.entry_abertura[prev_dnum].get().strip()
+                        prev_f = self.entry_fechamento[prev_dnum].get().strip()
+                        if prev_a and prev_f:
+                            if not ea.get().strip():
+                                ea.delete(0, ctk.END)
+                                ea.insert(0, prev_a)
+                            if not ef.get().strip():
+                                ef.delete(0, ctk.END)
+                                ef.insert(0, prev_f)
+                            return
+
+            var.trace_add("write", lambda *args, dn=dia_num, v=var, ea=ent_a, ef=ent_f: _copiar_hora_anterior(dn, v, ea, ef))
 
         # Botoes
         btn_frame = ctk.CTkFrame(card, fg_color="transparent")

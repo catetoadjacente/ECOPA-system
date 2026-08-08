@@ -11,7 +11,12 @@ class Ponto:
             try:
                 cursor = conn.cursor(dictionary=True)
                 cursor.execute(
-                    "SELECT id_ponto FROM ponto_de_coleta WHERE estabelecimento = %s LIMIT 1",
+                    """
+                    SELECT id_ponto
+                    FROM ponto_de_coleta
+                    WHERE estabelecimento = %s AND ativo = 1
+                    LIMIT 1
+                    """,
                     (estabelecimento,)
                 )
                 return cursor.fetchone()
@@ -74,6 +79,7 @@ class Ponto:
                         SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
                                p.telefone, p.proprietario
                         FROM ponto_de_coleta p
+                        WHERE p.ativo = 1
                         ORDER BY p.estabelecimento
                     """)
                     return cursor.fetchall()
@@ -81,6 +87,26 @@ class Ponto:
                     print(f"Erro ao listar pontos de coleta: {e}")
                     return []
         return get_cached("pontos_listar", 120, _fetch)
+
+    @staticmethod
+    def listar_todos():
+        def _fetch():
+            with db_connection() as conn:
+                if conn is None:
+                    return []
+                try:
+                    cursor = conn.cursor(dictionary=True)
+                    cursor.execute("""
+                        SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
+                               p.telefone, p.proprietario, p.ativo
+                        FROM ponto_de_coleta p
+                        ORDER BY p.ativo DESC, p.estabelecimento
+                    """)
+                    return cursor.fetchall()
+                except Exception as e:
+                    print(f"Erro ao listar todos os pontos de coleta: {e}")
+                    return []
+        return get_cached("pontos_listar_todos", 120, _fetch)
 
     @staticmethod
     def atualizar(idponto, dados):
@@ -122,6 +148,42 @@ class Ponto:
                 return True
             except Exception as e:
                 print(f"Erro ao deletar ponto de coleta: {e}")
+                conn.rollback()
+                return False
+
+    @staticmethod
+    def desativar(idponto):
+        with db_connection() as conn:
+            if conn is None:
+                return False
+            try:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE ponto_de_coleta SET ativo = 0 WHERE id_ponto = %s", (idponto,))
+                conn.commit()
+                invalidate_prefix("pontos")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+                return True
+            except Exception as e:
+                print(f"Erro ao desativar ponto de coleta: {e}")
+                conn.rollback()
+                return False
+
+    @staticmethod
+    def reativar(idponto):
+        with db_connection() as conn:
+            if conn is None:
+                return False
+            try:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE ponto_de_coleta SET ativo = 1 WHERE id_ponto = %s", (idponto,))
+                conn.commit()
+                invalidate_prefix("pontos")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+                return True
+            except Exception as e:
+                print(f"Erro ao reativar ponto de coleta: {e}")
                 conn.rollback()
                 return False
 

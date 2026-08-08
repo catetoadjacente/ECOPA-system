@@ -15,6 +15,7 @@ class PontosView(ctk.CTkFrame):
     def __init__(self, master, content):
         super().__init__(master)
         self.content = content
+        self._mostrar_inativos = ctk.BooleanVar(value=False)
         self.montar_tela()
 
     def montar_tela(self):
@@ -41,6 +42,13 @@ class PontosView(ctk.CTkFrame):
             left, text="Gerencie todos os pontos de coleta do sistema",
             font=font_small(12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
+
+        ctk.CTkSwitch(
+            header, text="Mostrar inativos", variable=self._mostrar_inativos,
+            font=font_small(12), text_color=ECOPA_TEXT,
+            button_color=ECOPA_GREEN, progress_color=ECOPA_GREEN_LIGHT,
+            command=self.montar_tela
+        ).pack(side="right", pady=(8, 0))
 
         # Linha verde
         ctk.CTkFrame(container, fg_color=ECOPA_GREEN, height=3, corner_radius=2).pack(
@@ -76,10 +84,16 @@ class PontosView(ctk.CTkFrame):
                            fg_color=ECOPA_ORANGE, hover_color="#e67e22",
                            corner_radius=8, font=font_small_bold(10),
                            command=lambda idp=idponto: self.editar_ponto(idp)).pack(side="left", padx=2)
-            ctk.CTkButton(acoes_frame, text="Excluir", width=60, height=28,
-                           fg_color="#e74c3c", hover_color="#c0392b",
-                           corner_radius=8, font=font_small_bold(10),
-                           command=lambda idp=idponto: self.excluir_ponto(idp)).pack(side="left", padx=2)
+            if item["ativo"]:
+                ctk.CTkButton(acoes_frame, text="Desativar", width=70, height=28,
+                               fg_color="#e74c3c", hover_color="#c0392b",
+                               corner_radius=8, font=font_small_bold(10),
+                               command=lambda idp=idponto: self.desativar_ponto(idp)).pack(side="left", padx=2)
+            else:
+                ctk.CTkButton(acoes_frame, text="Reativar", width=70, height=28,
+                               fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
+                               corner_radius=8, font=font_small_bold(10),
+                               command=lambda idp=idponto: self.reativar_ponto(idp)).pack(side="left", padx=2)
 
         self._tabela = TabelaPaginada(frame_tabela, colunas=colunas, relx=relx, on_render=_render_row)
         self._tabela.pack(fill="both", expand=True)
@@ -88,6 +102,8 @@ class PontosView(ctk.CTkFrame):
         overlay.start()
 
         def _carregar():
+            if self._mostrar_inativos.get():
+                return PontoController.listar_todos()
             return PontoController.listar()
 
         def _montar(pontos):
@@ -107,6 +123,7 @@ class PontosView(ctk.CTkFrame):
                     "email": p.get("email", "") or "",
                     "proprietario": p.get("proprietario", "") or "",
                     "telefone": p.get("telefone", "") or "",
+                    "ativo": p.get("ativo", 1) == 1,
                 })
 
             self._tabela.carregar(items)
@@ -117,26 +134,86 @@ class PontosView(ctk.CTkFrame):
         from views.edicao_ponto import EdicaoPonto
         EdicaoPonto(self, self.content, idponto, on_voltar=self.montar_tela)
 
-    def excluir_ponto(self, idponto):
-        if messagebox.askyesno("Confirmar", "Deseja excluir este ponto de coleta?"):
-            PontoController.deletar(idponto)
-            self.montar_tela()
+    def desativar_ponto(self, idponto):
+        if messagebox.askyesno("Confirmar", "Deseja desativar este ponto de coleta?"):
+            ok, msg = PontoController.desativar(idponto)
+            if ok:
+                self.montar_tela()
+            else:
+                messagebox.showerror("Erro", msg)
+
+    def reativar_ponto(self, idponto):
+        if messagebox.askyesno("Confirmar", "Deseja reativar este ponto de coleta?"):
+            ok, msg = PontoController.reativar(idponto)
+            if ok:
+                self.montar_tela()
+            else:
+                messagebox.showerror("Erro", msg)
 
     def _ver_horarios(self, idponto):
         horarios = PontoController.buscar_horarios(idponto)
         ponto = PontoController.buscar_por_idponto(idponto)
         nome = ponto.get("estabelecimento", "") if ponto else ""
 
-        dias = {1: "Dom", 2: "Seg", 3: "Ter", 4: "Qua", 5: "Qui", 6: "Sex", 7: "Sáb"}
-
         if not horarios:
             messagebox.showinfo("Horários", f"{nome}\n\nNenhum horário cadastrado.")
             return
 
-        texto = f"📍 {nome}\n{'─' * 30}\n\n"
-        for h in sorted(horarios, key=lambda x: x["dia_semana"]):
-            dia = dias.get(h["dia_semana"], "?")
-            status = "✓" if h["ativo"] else "✗"
-            texto += f"  {dia}:  {h['abertura']} — {h['fechamento']}  {status}\n"
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Horários de Funcionamento")
+        dialog.geometry("420x380")
+        dialog.resizable(False, False)
+        dialog.grab_set()
 
-        messagebox.showinfo("Horários de Funcionamento", texto)
+        header_frame = ctk.CTkFrame(dialog, fg_color=ECOPA_GREEN, corner_radius=0)
+        header_frame.pack(fill="x")
+
+        ctk.CTkLabel(
+            header_frame, text=f"📍 {nome}",
+            font=font(16, "bold"), text_color=ECOPA_WHITE
+        ).pack(pady=(16, 12))
+
+        table_frame = ctk.CTkFrame(dialog, fg_color=ECOPA_WHITE, corner_radius=0)
+        table_frame.pack(fill="both", expand=True, padx=16, pady=(12, 0))
+
+        dias = {1: "Dom", 2: "Seg", 3: "Ter", 4: "Qua", 5: "Qui", 6: "Sex", 7: "Sáb"}
+
+        header_row = ctk.CTkFrame(table_frame, fg_color=ECOPA_GREEN, corner_radius=6)
+        header_row.pack(fill="x", padx=8, pady=(8, 4))
+
+        ctk.CTkLabel(header_row, text="Dia", font=font_small_bold(12),
+                     text_color=ECOPA_WHITE, width=60).pack(side="left", padx=(12, 0))
+        ctk.CTkLabel(header_row, text="Abertura", font=font_small_bold(12),
+                     text_color=ECOPA_WHITE, width=80).pack(side="left", padx=8)
+        ctk.CTkLabel(header_row, text="Fechamento", font=font_small_bold(12),
+                     text_color=ECOPA_WHITE, width=80).pack(side="left", padx=8)
+        ctk.CTkLabel(header_row, text="Status", font=font_small_bold(12),
+                     text_color=ECOPA_WHITE, width=60).pack(side="left", padx=(0, 12))
+
+        for i, h in enumerate(sorted(horarios, key=lambda x: x["dia_semana"])):
+            dia = dias.get(h["dia_semana"], "?")
+            bg = "#f8faf8" if i % 2 == 0 else ECOPA_WHITE
+            row = ctk.CTkFrame(table_frame, fg_color=bg, corner_radius=0)
+            row.pack(fill="x", padx=8, pady=1)
+
+            ctk.CTkLabel(row, text=dia, font=font_small(12),
+                         text_color=ECOPA_TEXT, width=60).pack(side="left", padx=(12, 0))
+            ctk.CTkLabel(row, text=formatar_hora(h["abertura"]), font=font_small(12),
+                         text_color=ECOPA_TEXT, width=80).pack(side="left", padx=8)
+            ctk.CTkLabel(row, text=formatar_hora(h["fechamento"]), font=font_small(12),
+                         text_color=ECOPA_TEXT, width=80).pack(side="left", padx=8)
+
+            status_text = "Ativo" if h["ativo"] else "Inativo"
+            status_color = ECOPA_GREEN if h["ativo"] else "#e74c3c"
+            ctk.CTkLabel(row, text=status_text, font=font_small_bold(11),
+                         text_color=status_color, width=60).pack(side="left", padx=(0, 12))
+
+        btn_frame = ctk.CTkFrame(dialog, fg_color=ECOPA_WHITE)
+        btn_frame.pack(fill="x", padx=16, pady=12)
+
+        ctk.CTkButton(
+            btn_frame, text="Fechar", width=120, height=36,
+            fg_color="#7f8c8d", hover_color="#95a5a6",
+            corner_radius=8, font=font(12, "bold"),
+            command=dialog.destroy
+        ).pack()

@@ -246,7 +246,7 @@ class DistribuicaoEstoque(ctk.CTkFrame):
             command=self.on_voltar
         ).pack(side="left")
 
-        ctk.CTkButton(
+        self._btn_confirmar = ctk.CTkButton(
             btn_frame, text="Confirmar Distribuição", width=200, height=42,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
             corner_radius=10, font=font(13, "bold"),

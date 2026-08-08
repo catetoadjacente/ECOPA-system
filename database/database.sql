@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS ponto_de_coleta (
   estabelecimento VARCHAR(100) NOT NULL,
   telefone VARCHAR(45) NOT NULL,
   proprietario VARCHAR(90) NOT NULL,
+  ativo TINYINT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (id_ponto))
 ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb3;
 

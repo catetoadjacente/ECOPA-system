@@ -100,6 +100,7 @@ class Coleta:
                             SUM(CASE WHEN status = 'Pendente' THEN 1 ELSE 0 END) AS pendentes,
                             SUM(CASE WHEN status = 'Realizada' THEN 1 ELSE 0 END) AS realizadas
                         FROM coleta
+                        WHERE DATE(data) = CURDATE()
                     """)
                     return cursor.fetchone()
                 except Exception as e:

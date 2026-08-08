@@ -160,6 +160,7 @@ class Lote:
                             COALESCE(SUM(quantidade_restante), 0) AS estoque_total
                         FROM lote
                         WHERE status != 'Esgotado'
+                        AND DATE(data_criacao) = CURDATE()
                     """)
                     return cursor.fetchone()
                 except Exception as e:

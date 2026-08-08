@@ -28,6 +28,10 @@ class PontoController:
         return Ponto.listar()
 
     @staticmethod
+    def listar_todos():
+        return Ponto.listar_todos()
+
+    @staticmethod
     def buscar_por_idponto(idponto):
         if not idponto:
             return None
@@ -60,6 +64,22 @@ class PontoController:
         if Ponto.deletar(idponto):
             return True, "Ponto de coleta excluido com sucesso"
         return False, "Falha ao excluir ponto de coleta"
+
+    @staticmethod
+    def desativar(idponto):
+        if not idponto:
+            return False, "ID invalido"
+        if Ponto.desativar(idponto):
+            return True, "Ponto de coleta desativado com sucesso"
+        return False, "Falha ao desativar ponto de coleta"
+
+    @staticmethod
+    def reativar(idponto):
+        if not idponto:
+            return False, "ID invalido"
+        if Ponto.reativar(idponto):
+            return True, "Ponto de coleta reativado com sucesso"
+        return False, "Falha ao reativar ponto de coleta"
 
     @staticmethod
     def buscar_horarios(id_ponto):
