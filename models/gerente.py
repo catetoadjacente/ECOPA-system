@@ -126,6 +126,7 @@ class Gerente:
                 return False
             try:
                 cursor = conn.cursor()
+                cursor.execute("UPDATE coleta SET gerente_cpf = NULL WHERE gerente_cpf = %s", (cpf,))
                 cursor.execute("DELETE FROM gerente WHERE cpf = %s", (cpf,))
                 conn.commit()
                 return True

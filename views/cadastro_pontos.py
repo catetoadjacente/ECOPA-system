@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 from controllers.ponto_controller import PontoController
 from utils.horas import DIAS_SEMANA, validar_hora
-from utils.theme import font, font_small, font_small_bold
+from utils.theme import font, font_small, font_small_bold, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
 
 
 class CadastroPonto(ctk.CTkFrame):
