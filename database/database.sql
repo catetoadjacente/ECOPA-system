@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS coleta (
   quantidade DECIMAL(10,2) NOT NULL,
   observacao TEXT NULL,
   status ENUM('Pendente', 'Realizada') NOT NULL DEFAULT 'Pendente',
-  gerente_cpf VARCHAR(11) NOT NULL,
+  gerente_cpf VARCHAR(11) NULL,
   ponto_de_coleta_id_ponto INT NOT NULL,
   PRIMARY KEY (id_coleta),
   INDEX fk_coleta_gerente1_idx (gerente_cpf ASC) VISIBLE,
