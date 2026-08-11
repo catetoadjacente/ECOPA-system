@@ -24,9 +24,6 @@ class PedidoController:
         qtd_solicitada = float(dados["quantidade_solicitada"])
         if estoque_total < qtd_solicitada:
             return False, f"Estoque insuficiente (disponivel: {estoque_total:.1f}, solicitado: {qtd_solicitada:.1f})", None
-        max_por_lote = max(float(l["quantidade_restante"]) for l in lotes)
-        if max_por_lote < qtd_solicitada:
-            return False, f"Nenhum lote individual tem quantidade suficiente (maior lote: {max_por_lote:.1f} Kg)", None
         pedido_id = Pedido.criar(dados)
         if pedido_id:
             return True, f"Pedido #{pedido_id} criado com sucesso", pedido_id

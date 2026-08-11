@@ -61,6 +61,7 @@ class Gerente:
                 conn.commit()
                 return True
             except Exception as e:
+                conn.rollback()
                 print(f"Erro ao criar gerente: {e}")
                 return False
 
@@ -116,6 +117,7 @@ class Gerente:
                 conn.commit()
                 return True
             except Exception as e:
+                conn.rollback()
                 print(f"Erro ao atualizar gerente: {e}")
                 return False
 
@@ -131,5 +133,6 @@ class Gerente:
                 conn.commit()
                 return True
             except Exception as e:
+                conn.rollback()
                 print(f"Erro ao deletar gerente: {e}")
                 return False

@@ -194,7 +194,7 @@ class Ponto:
                 return False
             try:
                 cursor = conn.cursor()
-                cursor.start_transaction()
+                conn.start_transaction()
                 cursor.execute(
                     "DELETE FROM horario_ponto WHERE ponto_de_coleta_id_ponto = %s",
                     (id_ponto,)

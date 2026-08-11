@@ -3,7 +3,16 @@ import threading
 
 _cache = {}
 _lock = threading.Lock()
+_key_locks = {}
+_key_locks_lock = threading.Lock()
 MAX_CACHE_SIZE = 500
+
+
+def _get_key_lock(key):
+    with _key_locks_lock:
+        if key not in _key_locks:
+            _key_locks[key] = threading.Lock()
+        return _key_locks[key]
 
 
 def get_cached(key, ttl_seconds, fetch_fn):
@@ -13,12 +22,20 @@ def get_cached(key, ttl_seconds, fetch_fn):
             ts, ttl, data = _cache[key]
             if now - ts < ttl:
                 return data
-    data = fetch_fn()
-    with _lock:
-        if len(_cache) >= MAX_CACHE_SIZE:
-            _evict_expired(now)
-        _cache[key] = (now, ttl_seconds, data)
-    return data
+
+    key_lock = _get_key_lock(key)
+    with key_lock:
+        with _lock:
+            if key in _cache:
+                ts, ttl, data = _cache[key]
+                if now - ts < ttl:
+                    return data
+        data = fetch_fn()
+        with _lock:
+            if len(_cache) >= MAX_CACHE_SIZE:
+                _evict_expired(now)
+            _cache[key] = (time.time(), ttl_seconds, data)
+        return data
 
 
 def _evict_expired(now=None):
