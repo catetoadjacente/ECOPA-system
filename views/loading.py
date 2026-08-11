@@ -1,40 +1,45 @@
 import customtkinter as ctk
 import threading
 import queue
-from utils.theme import font, ECOPA_GREEN, ECOPA_GREEN_LIGHT
+from utils.theme import (
+    ECOPA_GREEN,
+    ECOPA_GREEN_LIGHT,
+)
 
 
 class LoadingOverlay(ctk.CTkFrame):
-    """Overlay de carregamento reutilizavel."""
+    """Overlay de carregamento reutilizável."""
 
     def __init__(self, master, text="Carregando..."):
         super().__init__(master, fg_color="#ffffff", corner_radius=0)
         self._animando = False
-        self._frames = []
-        self._idx = 0
+        self._progresso = 0.0
 
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.place(relx=0.5, rely=0.5, anchor="center")
 
         self._label_texto = ctk.CTkLabel(
-            container, text=text,
-            font=font(14, "bold"),
-            text_color=ECOPA_GREEN
+            container,
+            text=text,
+            font=ctk.CTkFont(family="Roboto", size=14, weight="bold"),
+            text_color=ECOPA_GREEN,
         )
         self._label_texto.pack(pady=(0, 16))
 
-        dots_frame = ctk.CTkFrame(container, fg_color="transparent")
-        dots_frame.pack()
-
-        for i in range(3):
-            dot = ctk.CTkFrame(
-                dots_frame, width=12, height=12,
-                corner_radius=6, fg_color=ECOPA_GREEN_LIGHT
-            )
-            dot.pack(side="left", padx=6)
-            self._frames.append(dot)
+        self._barra = ctk.CTkProgressBar(
+            container,
+            width=190,
+            height=7,
+            corner_radius=4,
+            fg_color="#E3F1E6",
+            progress_color=ECOPA_GREEN_LIGHT,
+        )
+        self._barra.pack()
+        self._barra.set(0)
 
     def start(self):
+        if self._animando:
+            return
         self._animando = True
         self.lift()
         self.pack(fill="both", expand=True)
@@ -58,14 +63,12 @@ class LoadingOverlay(ctk.CTkFrame):
         except Exception:
             self._animando = False
             return
-        for i, frame in enumerate(self._frames):
-            if i == self._idx:
-                frame.configure(fg_color=ECOPA_GREEN, width=16, height=16)
-            else:
-                frame.configure(fg_color=ECOPA_GREEN_LIGHT, width=12, height=12)
-        self._idx = (self._idx + 1) % 3
+        self._progresso += 0.018
+        if self._progresso > 1:
+            self._progresso = 0
+        self._barra.set(self._progresso)
         try:
-            self.after(400, self._animar)
+            self.after(28, self._animar)
         except Exception:
             self._animando = False
 
