@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS coleta (
   CONSTRAINT fk_coleta_gerente1
     FOREIGN KEY (gerente_cpf)
     REFERENCES gerente (cpf)
-    ON DELETE NO ACTION ON UPDATE NO ACTION,
+    ON DELETE SET NULL ON UPDATE NO ACTION,
   CONSTRAINT fk_coleta_ponto_de_coleta1
     FOREIGN KEY (ponto_de_coleta_id_ponto)
     REFERENCES ponto_de_coleta (id_ponto)
