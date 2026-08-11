@@ -1,8 +1,10 @@
 import customtkinter as ctk
 from PIL import Image
 import os
+import threading
 from controllers.gerente_controller import GerenteController
 from views.dashboard import MainView
+from views.loading import LoadingOverlay
 from tkinter import messagebox
 import pywinstyles
 from utils.theme import font
@@ -80,22 +82,40 @@ class App(ctk.CTk):
     def _on_login(self, event=None):
         user = self.entry_user.get().strip()
         password = self.entry_pass.get()
-        info, erro = GerenteController.login(user, password)
-        if erro:
-            messagebox.showerror("Erro", erro)
-            self.entry_pass.delete(0, ctk.END)
-            return
-        # Destroi os widgets da tela de login
-        self.entry_user.destroy()
-        self.entry_pass.destroy()
-        self.btn_login.destroy()
-        self.bg_label.destroy()
-        self.unbind("<Configure>")
 
-        # Cria o dashboard sem sair do maximizado
-        dashboard = MainView(self, nome_usuario=info['nome'])
-        dashboard.pack(fill="both", expand=True)
-        self.title(f"ECOPA System - {info['nome']}")
+        if not user:
+            messagebox.showwarning("Aviso", "Digite o nome de usuário.")
+            return
+
+        self.btn_login.configure(state="disabled")
+        self.loading = LoadingOverlay(self, text="Autenticando...")
+        self.loading.start()
+
+        def _autenticar():
+            try:
+                info, erro = GerenteController.login(user, password)
+            except Exception as e:
+                info, erro = None, str(e)
+            self.after(0, lambda: _resultado_login(info, erro))
+
+        def _resultado_login(info, erro):
+            self.loading.stop()
+            self.btn_login.configure(state="normal")
+            if erro:
+                messagebox.showerror("Erro", erro)
+                self.entry_pass.delete(0, ctk.END)
+                return
+            self.entry_user.destroy()
+            self.entry_pass.destroy()
+            self.btn_login.destroy()
+            self.bg_label.destroy()
+            self.unbind("<Configure>")
+
+            dashboard = MainView(self, nome_usuario=info['nome'])
+            dashboard.pack(fill="both", expand=True)
+            self.title(f"ECOPA System - {info['nome']}")
+
+        threading.Thread(target=_autenticar, daemon=True).start()
 
     def _on_resize(self, event):
         if event.widget is self:
