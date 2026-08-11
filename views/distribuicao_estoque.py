@@ -303,7 +303,7 @@ class DistribuicaoEstoque(ctk.CTkFrame):
         self._btn_confirmar.configure(state="disabled", text="Distribuindo...")
 
         def _distribuir():
-            return PedidoController.distribuir_automatico(self.id_pedido)
+            return PedidoController.distribuir_automatico(self.id_pedido, self.lotes_alocados)
 
         def _resultado(dado):
             ok, msg = dado

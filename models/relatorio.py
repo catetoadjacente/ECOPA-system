@@ -76,7 +76,7 @@ class Relatorio:
 
     @staticmethod
     def resumo_destinacoes(data_inicio=None, data_fim=None):
-        cache_key = f"relatorio_resumo_dest_{data_inicio}_{data_fim}"
+        cache_key = f"relatorio_resumo_dest_{data_inicio or 'all'}_{data_fim or 'all'}"
         def _fetch():
             with db_connection() as conn:
                 if conn is None:

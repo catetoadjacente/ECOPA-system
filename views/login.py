@@ -79,7 +79,7 @@ class App(ctk.CTk):
 
     def _on_login(self, event=None):
         user = self.entry_user.get().strip()
-        password = self.entry_pass.get().strip()
+        password = self.entry_pass.get()
         info, erro = GerenteController.login(user, password)
         if erro:
             messagebox.showerror("Erro", erro)

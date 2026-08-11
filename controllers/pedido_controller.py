@@ -44,13 +44,17 @@ class PedidoController:
         return True, f"Estoque distribuido: {total_atendido:.1f}"
 
     @staticmethod
-    def distribuir_automatico(id_pedido):
+    def distribuir_automatico(id_pedido, lotes_alocados=None):
         """Distribui estoque automaticamente usando lotes disponiveis.
 
-        Estrategia:
+        Args:
+            id_pedido: ID do pedido a ser atendido
+            lotes_alocados: Lista opcional de dicts com {id, alocado} já calculada pela UI.
+                           Se fornecida, usa exatamente essa alocação em vez de recalcular.
+
+        Estrategia (quando lotes_alocados não é fornecido):
         1. Priorizar lotes 'Parcialmente Consumido' (mais antigos primeiro)
         2. Depois usar lotes 'Disponivel' (FIFO - mais antigos primeiro)
-        Isso evita ter muitos lotes pela metade abertos ao mesmo tempo.
         """
         if not id_pedido:
             return False, "Pedido invalido"
@@ -69,31 +73,36 @@ class PedidoController:
         if falta <= 0:
             return False, "Pedido ja totalmente atendido"
 
-        lotes = Lote.listar_disponiveis()
-        if not lotes:
-            return False, "Nenhum lote disponivel no estoque"
+        if lotes_alocados is not None and len(lotes_alocados) > 0:
+            lotes_para_vincular = [
+                (l["id"], l["alocado"]) for l in lotes_alocados if l.get("alocado", 0) > 0
+            ]
+        else:
+            lotes = Lote.listar_disponiveis()
+            if not lotes:
+                return False, "Nenhum lote disponivel no estoque"
 
-        total_disponivel = sum(float(l["quantidade_restante"]) for l in lotes)
-        if total_disponivel <= 0:
-            return False, "Nenhum lote disponivel no estoque"
+            total_disponivel = sum(float(l["quantidade_restante"]) for l in lotes)
+            if total_disponivel <= 0:
+                return False, "Nenhum lote disponivel no estoque"
 
-        parciais = [l for l in lotes if l["status"] == "Parcialmente Consumido"]
-        novos = [l for l in lotes if l["status"] != "Parcialmente Consumido"]
-        parciais.sort(key=lambda l: l["data_criacao"])
-        novos.sort(key=lambda l: l["data_criacao"])
-        lotes_ordenados = parciais + novos
+            parciais = [l for l in lotes if l["status"] == "Parcialmente Consumido"]
+            novos = [l for l in lotes if l["status"] != "Parcialmente Consumido"]
+            parciais.sort(key=lambda l: l["data_criacao"])
+            novos.sort(key=lambda l: l["data_criacao"])
+            lotes_ordenados = parciais + novos
 
-        lotes_para_vincular = []
-        restante = falta
-        for lote in lotes_ordenados:
-            if restante <= 0:
-                break
-            disp = float(lote["quantidade_restante"])
-            if disp <= 0:
-                continue
-            qtd = min(disp, restante)
-            lotes_para_vincular.append((lote["id"], qtd))
-            restante -= qtd
+            lotes_para_vincular = []
+            restante = falta
+            for lote in lotes_ordenados:
+                if restante <= 0:
+                    break
+                disp = float(lote["quantidade_restante"])
+                if disp <= 0:
+                    continue
+                qtd = min(disp, restante)
+                lotes_para_vincular.append((lote["id"], qtd))
+                restante -= qtd
 
         if not lotes_para_vincular:
             return False, "Nao foi possivel alocar lotes"
