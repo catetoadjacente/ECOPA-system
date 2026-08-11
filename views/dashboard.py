@@ -1,3 +1,9 @@
+import locale
+
+try:
+    locale.setlocale(locale.LC_TIME, "pt_BR.UTF-8")
+except locale.Error:
+    locale.setlocale(locale.LC_TIME, "Portuguese_Brazil.1252")
 import customtkinter as ctk
 from PIL import Image
 import os
