@@ -1,36 +1,25 @@
 import customtkinter as ctk
-from PIL import Image
-import os
 import threading
 from views.cadastros_hub import CadastrosHub
 from views.coletas import ColetasView
 from views.pontos import PontosView
 from views.destinacoes import DestinacoesView
-from views.loading import LoadingOverlay, executar_com_loading, carregar_em_bg
+from views.loading import LoadingOverlay
+from views.componentes_dashboard import KPICard, GraficoPizza, GraficoBarras, GraficoLinha, CardMetricas
 from controllers.coleta_controller import ColetaController
 from controllers.ponto_controller import PontoController
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-plt.rcParams["font.family"] = "sans-serif"
 
 from utils.theme import (
     ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG as ECOPA_GREEN_BG,
     ECOPA_LEAF, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER,
-    ECOPA_ORANGE, ECOPA_BLUE, ECOPA_RED, ECOPA_YELLOW,
-    font, font_title, font_small, font_small_bold, carregar_icone,
+    ECOPA_ORANGE, ECOPA_BLUE, ECOPA_RED,
+    ECOPA_SIDEBAR_BG, ECOPA_SIDEBAR_ACTIVE,
+    font, font_small, font_small_bold,
 )
 
-ICONS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "icons")
 
-ECOPA_CARD_BG = "#ffffff"
-ECOPA_SIDEBAR_BG = "#ffffff"
-ECOPA_SIDEBAR_ACTIVE = "#e8f5e8"
-ECOPA_SHADOW = "#00000010"
 
 
 class MainView(ctk.CTkFrame):
@@ -300,208 +289,39 @@ class MainView(ctk.CTkFrame):
         ]
 
         for i, (emoji, titulo, valor, cor, bg_cor) in enumerate(cards_data):
-            card = ctk.CTkFrame(
-                frame_cards, fg_color=ECOPA_WHITE, corner_radius=16,
-                border_width=1, border_color=ECOPA_BORDER, height=100,
-            )
+            card = KPICard(frame_cards, emoji, titulo, valor, cor, bg_cor)
             card.grid(row=0, column=i, padx=6, pady=5, sticky="ew")
-            card.grid_propagate(False)
-
-            # Top accent bar
-            ctk.CTkFrame(card, fg_color=cor, height=4, corner_radius=2).pack(fill="x")
-
-            # Conteudo
-            inner = ctk.CTkFrame(card, fg_color="transparent")
-            inner.pack(fill="both", expand=True, padx=16, pady=(10, 12))
-
-            # Icone
-            icon_frame = ctk.CTkFrame(inner, fg_color=bg_cor, corner_radius=10, width=44, height=44)
-            icon_frame.pack(anchor="w", pady=(0, 8))
-            icon_frame.pack_propagate(False)
-
-            ctk.CTkLabel(
-                icon_frame, text=emoji, font=font(22)
-            ).place(relx=0.5, rely=0.5, anchor="center")
-
-            ctk.CTkLabel(
-                inner, text=titulo,
-                font=font_small_bold(10),
-                text_color=ECOPA_TEXT_LIGHT, anchor="w"
-            ).pack(anchor="w")
-
-            ctk.CTkLabel(
-                inner, text=valor,
-                font=font(28, "bold"),
-                text_color=ECOPA_GREEN_DARK, anchor="w"
-            ).pack(anchor="w")
 
         # === GRAFICOS ===
         graficos_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         graficos_frame.pack(fill="x", padx=32, pady=(20, 0))
         graficos_frame.grid_columnconfigure((0, 1), weight=1)
 
-        # Grafico 1 - Pizza Status
-        card_pizza = ctk.CTkFrame(
-            graficos_frame, fg_color=ECOPA_WHITE, corner_radius=16,
-            border_width=1, border_color=ECOPA_BORDER
-        )
+        card_pizza = GraficoPizza(graficos_frame, "Resumo de Coletas", grafico_data["status_count"])
         card_pizza.grid(row=0, column=0, padx=(0, 10), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(
-            card_pizza, text="Resumo de Coletas",
-            font=font(15, "bold"),
-            text_color=ECOPA_GREEN_DARK, anchor="w"
-        ).pack(fill="x", padx=20, pady=(16, 0))
-
-        status_count = grafico_data["status_count"]
-        fig1, ax1 = plt.subplots(figsize=(4.5, 3.2))
-        fig1.patch.set_facecolor(ECOPA_WHITE)
-        ax1.set_facecolor(ECOPA_WHITE)
-
-        if status_count:
-            cores_pizza = {"Pendente": ECOPA_ORANGE, "Realizada": ECOPA_LEAF}
-            labels = list(status_count.keys())
-            sizes = list(status_count.values())
-            colors = [cores_pizza.get(l, "#999") for l in labels]
-            wedges, texts, autotexts = ax1.pie(
-                sizes, labels=labels, autopct="%1.0f%%",
-                colors=colors, startangle=90,
-                textprops={"fontsize": 10},
-                wedgeprops={"linewidth": 2, "edgecolor": ECOPA_WHITE}
-            )
-            for t in autotexts:
-                t.set_fontweight("bold")
-        else:
-            ax1.text(0.5, 0.5, "Sem dados", ha="center", va="center", fontsize=12)
-
-        plt.tight_layout(pad=1)
-        canvas1 = FigureCanvasTkAgg(fig1, master=card_pizza)
-        canvas1.draw()
-        canvas1.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=(5, 10))
-        plt.close(fig1)
-
-        # Grafico 2 - Barras Top Pontos
-        card_barras = ctk.CTkFrame(
-            graficos_frame, fg_color=ECOPA_WHITE, corner_radius=16,
-            border_width=1, border_color=ECOPA_BORDER
-        )
+        card_barras = GraficoBarras(graficos_frame, "Top 5 Pontos (Kg)", grafico_data["top_pontos"])
         card_barras.grid(row=0, column=1, padx=(10, 0), pady=5, sticky="nsew")
-
-        ctk.CTkLabel(
-            card_barras, text="Top 5 Pontos (Kg)",
-            font=font(15, "bold"),
-            text_color=ECOPA_GREEN_DARK, anchor="w"
-        ).pack(fill="x", padx=20, pady=(16, 0))
-
-        fig2, ax2 = plt.subplots(figsize=(4.5, 3.2))
-        fig2.patch.set_facecolor(ECOPA_WHITE)
-        ax2.set_facecolor(ECOPA_WHITE)
-
-        top_pontos = grafico_data["top_pontos"]
-        if top_pontos:
-            nomes, qtds = zip(*top_pontos)
-            bars = ax2.barh(list(nomes), list(qtds), color=ECOPA_GREEN, height=0.55,
-                           edgecolor=ECOPA_GREEN_LIGHT, linewidth=0.5)
-            ax2.tick_params(labelsize=9)
-            ax2.invert_yaxis()
-            ax2.spines["top"].set_visible(False)
-            ax2.spines["right"].set_visible(False)
-            ax2.spines["bottom"].set_color(ECOPA_BORDER)
-            ax2.spines["left"].set_color(ECOPA_BORDER)
-        else:
-            ax2.text(0.5, 0.5, "Sem dados", ha="center", va="center", fontsize=12)
-
-        plt.tight_layout(pad=1)
-        canvas2 = FigureCanvasTkAgg(fig2, master=card_barras)
-        canvas2.draw()
-        canvas2.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=(5, 10))
-        plt.close(fig2)
 
         # === SEGUNDA ROW GRAFICOS ===
         graficos2_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         graficos2_frame.pack(fill="x", padx=32, pady=(10, 0))
         graficos2_frame.grid_columnconfigure((0, 1), weight=1)
 
-        # Grafico 3 - Linha Coletas por Dia
-        card_linha = ctk.CTkFrame(
-            graficos2_frame, fg_color=ECOPA_WHITE, corner_radius=16,
-            border_width=1, border_color=ECOPA_BORDER
+        card_linha = GraficoLinha(
+            graficos2_frame, "Coletas por Dia (últimos 7)",
+            grafico_data["dias_str"], grafico_data["valores_dias"]
         )
         card_linha.grid(row=0, column=0, padx=(0, 10), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(
-            card_linha, text="Coletas por Dia (últimos 7)",
-            font=font(15, "bold"),
-            text_color=ECOPA_GREEN_DARK, anchor="w"
-        ).pack(fill="x", padx=20, pady=(16, 0))
-
-        fig3, ax3 = plt.subplots(figsize=(4.5, 3.2))
-        fig3.patch.set_facecolor(ECOPA_WHITE)
-        ax3.set_facecolor(ECOPA_WHITE)
-
-        dias_str = grafico_data["dias_str"]
-        valores = grafico_data["valores_dias"]
-
-        ax3.plot(dias_str, valores, marker="o", color=ECOPA_GREEN, linewidth=2.5,
-                markersize=7, markerfacecolor=ECOPA_WHITE, markeredgecolor=ECOPA_GREEN, markeredgewidth=2)
-        ax3.fill_between(range(len(dias_str)), valores, alpha=0.12, color=ECOPA_GREEN)
-        ax3.set_ylim(0, max(valores) + 2 if max(valores) > 0 else 5)
-        ax3.tick_params(labelsize=9)
-        ax3.spines["top"].set_visible(False)
-        ax3.spines["right"].set_visible(False)
-        ax3.spines["bottom"].set_color(ECOPA_BORDER)
-        ax3.spines["left"].set_color(ECOPA_BORDER)
-        ax3.grid(axis="y", alpha=0.3, color=ECOPA_BORDER)
-
-        plt.tight_layout(pad=1)
-        canvas3 = FigureCanvasTkAgg(fig3, master=card_linha)
-        canvas3.draw()
-        canvas3.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=(5, 10))
-        plt.close(fig3)
-
-        # Card informativo ao lado
-        card_info = ctk.CTkFrame(
-            graficos2_frame, fg_color=ECOPA_WHITE, corner_radius=16,
-            border_width=1, border_color=ECOPA_BORDER
-        )
-        card_info.grid(row=0, column=1, padx=(10, 0), pady=5, sticky="nsew")
-
-        ctk.CTkLabel(
-            card_info, text="Resumo do Dia",
-            font=font(15, "bold"),
-            text_color=ECOPA_GREEN_DARK, anchor="w"
-        ).pack(fill="x", padx=20, pady=(16, 0))
-
-        # Metricas resumo
         metricas = [
             ("Total Coletado", f"{quantidade_total:.1f} Kg", ECOPA_GREEN),
             ("Pontos Cadastrados", str(total_pontos), ECOPA_BLUE),
             ("Coletas Pendentes", str(pendentes), ECOPA_ORANGE),
             ("Coletas Realizadas", str(realizadas), ECOPA_LEAF),
         ]
-
-        for titulo, valor, cor in metricas:
-            met_frame = ctk.CTkFrame(card_info, fg_color="transparent")
-            met_frame.pack(fill="x", padx=20, pady=8)
-
-            ctk.CTkFrame(met_frame, fg_color=cor, width=4, corner_radius=2).pack(
-                side="left", fill="y", padx=(0, 12), pady=2
-            )
-
-            left_met = ctk.CTkFrame(met_frame, fg_color="transparent")
-            left_met.pack(side="left", fill="x", expand=True)
-
-            ctk.CTkLabel(
-                left_met, text=titulo,
-                font=font_small(12), text_color=ECOPA_TEXT_LIGHT,
-                anchor="w"
-            ).pack(anchor="w")
-
-            ctk.CTkLabel(
-                left_met, text=valor,
-                font=font(18, "bold"),
-                text_color=ECOPA_GREEN_DARK, anchor="w"
-            ).pack(anchor="w")
+        card_info = CardMetricas(graficos2_frame, "Resumo do Dia", metricas)
+        card_info.grid(row=0, column=1, padx=(10, 0), pady=5, sticky="nsew")
 
         # Rodape
         ctk.CTkLabel(

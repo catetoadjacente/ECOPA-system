@@ -1,123 +1,77 @@
-from database.conecta_database import db_connection
-from database.cache import get_cached, invalidate, invalidate_prefix
+import logging
+from database.cache import get_cached, invalidate_prefix
+from models.base import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
-class Pedido:
+class Pedido(BaseModel):
 
     @staticmethod
     def criar(dados):
-        with db_connection() as conn:
-            if conn is None:
-                return None
-            try:
-                cursor = conn.cursor()
-                cursor.execute(
-                    "INSERT INTO pedido (id_destinacao, quantidade_solicitada, observacao) "
-                    "VALUES (%s, %s, %s)",
-                    (dados["id_destinacao"], dados["quantidade_solicitada"],
-                     dados.get("observacao", "")))
-                conn.commit()
-                invalidate_prefix("pedidos")
-                invalidate_prefix("dashboard")
-                invalidate_prefix("relatorio")
-                return cursor.lastrowid
-            except Exception as e:
-                print(f"Erro ao criar pedido: {e}")
-                conn.rollback()
-                return None
+        return BaseModel._execute_returning_id(
+            "INSERT INTO pedido (id_destinacao, quantidade_solicitada, observacao) "
+            "VALUES (%s, %s, %s)",
+            (dados["id_destinacao"], dados["quantidade_solicitada"],
+             dados.get("observacao", ""))
+        )
 
     @staticmethod
     def listar_todos():
         def _fetch():
-            with db_connection() as conn:
-                if conn is None:
-                    return []
-                try:
-                    cursor = conn.cursor(dictionary=True)
-                    cursor.execute("""
-                        SELECT pe.id_pedido AS id, pe.quantidade_solicitada,
-                               pe.data AS data_pedido, pe.status, pe.observacao,
-                               d.nome AS destinacao, d.tipo AS tipo_destinacao,
-                               COALESCE(SUM(pl.quantidade_consumida), 0) AS quantidade_atendida
-                        FROM pedido pe
-                        JOIN destinacao d ON pe.id_destinacao = d.id_destinacao
-                        LEFT JOIN pedido_lote pl ON pe.id_pedido = pl.id_pedido
-                        GROUP BY pe.id_pedido
-                        ORDER BY pe.data DESC
-                    """)
-                    return cursor.fetchall()
-                except Exception as e:
-                    print(f"Erro ao listar pedidos: {e}")
-                    return []
+            return BaseModel._fetch_all("""
+                SELECT pe.id_pedido AS id, pe.quantidade_solicitada,
+                       pe.data AS data_pedido, pe.status, pe.observacao,
+                       d.nome AS destinacao, d.tipo AS tipo_destinacao,
+                       COALESCE(SUM(pl.quantidade_consumida), 0) AS quantidade_atendida
+                FROM pedido pe
+                JOIN destinacao d ON pe.id_destinacao = d.id_destinacao
+                LEFT JOIN pedido_lote pl ON pe.id_pedido = pl.id_pedido
+                GROUP BY pe.id_pedido
+                ORDER BY pe.data DESC
+            """)
         return get_cached("pedidos_listar_todos", 30, _fetch)
 
     @staticmethod
     def obter_por_id(id_pedido):
-        with db_connection() as conn:
-            if conn is None:
-                return None
-            try:
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("""
-                    SELECT pe.id_pedido AS id, pe.id_destinacao,
-                           pe.quantidade_solicitada, pe.data AS data_pedido,
-                           pe.status, pe.observacao,
-                           d.nome AS destinacao, d.tipo AS tipo_destinacao,
-                           COALESCE(SUM(pl.quantidade_consumida), 0) AS quantidade_atendida
-                    FROM pedido pe
-                    JOIN destinacao d ON pe.id_destinacao = d.id_destinacao
-                    LEFT JOIN pedido_lote pl ON pe.id_pedido = pl.id_pedido
-                    WHERE pe.id_pedido = %s
-                    GROUP BY pe.id_pedido
-                """, (id_pedido,))
-                return cursor.fetchone()
-            except Exception as e:
-                print(f"Erro ao buscar pedido: {e}")
-                return None
+        return BaseModel._fetch_one("""
+            SELECT pe.id_pedido AS id, pe.id_destinacao,
+                   pe.quantidade_solicitada, pe.data AS data_pedido,
+                   pe.status, pe.observacao,
+                   d.nome AS destinacao, d.tipo AS tipo_destinacao,
+                   COALESCE(SUM(pl.quantidade_consumida), 0) AS quantidade_atendida
+            FROM pedido pe
+            JOIN destinacao d ON pe.id_destinacao = d.id_destinacao
+            LEFT JOIN pedido_lote pl ON pe.id_pedido = pl.id_pedido
+            WHERE pe.id_pedido = %s
+            GROUP BY pe.id_pedido
+        """, (id_pedido,))
 
     @staticmethod
     def listar_lotes_do_pedido(id_pedido):
-        with db_connection() as conn:
-            if conn is None:
-                return []
-            try:
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("""
-                    SELECT pl.id_pedido_lote, pl.id_lote,
-                           pl.quantidade_consumida,
-                           l.quantidade_coletada, l.data_criacao,
-                           p.estabelecimento AS ponto
-                    FROM pedido_lote pl
-                    JOIN lote l ON pl.id_lote = l.id_lote
-                    JOIN coleta c ON l.id_coleta = c.id_coleta
-                    JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
-                    WHERE pl.id_pedido = %s
-                """, (id_pedido,))
-                return cursor.fetchall()
-            except Exception as e:
-                print(f"Erro ao listar lotes do pedido: {e}")
-                return []
+        return BaseModel._fetch_all("""
+            SELECT pl.id_pedido_lote, pl.id_lote,
+                   pl.quantidade_consumida,
+                   l.quantidade_coletada, l.data_criacao,
+                   p.estabelecimento AS ponto
+            FROM pedido_lote pl
+            JOIN lote l ON pl.id_lote = l.id_lote
+            JOIN coleta c ON l.id_coleta = c.id_coleta
+            JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
+            WHERE pl.id_pedido = %s
+        """, (id_pedido,))
 
     @staticmethod
     def vincular_lote(id_pedido, id_lote, quantidade_consumida):
-        with db_connection() as conn:
-            if conn is None:
-                return False
-            try:
-                cursor = conn.cursor()
-                cursor.execute(
-                    "INSERT INTO pedido_lote (id_pedido, id_lote, quantidade_consumida) "
-                    "VALUES (%s, %s, %s)",
-                    (id_pedido, id_lote, quantidade_consumida))
-                conn.commit()
-                return True
-            except Exception as e:
-                print(f"Erro ao vincular lote ao pedido: {e}")
-                conn.rollback()
-                return False
+        return BaseModel._execute(
+            "INSERT INTO pedido_lote (id_pedido, id_lote, quantidade_consumida) "
+            "VALUES (%s, %s, %s)",
+            (id_pedido, id_lote, quantidade_consumida)
+        )
 
     @staticmethod
     def vincular_lotes_batch(id_pedido, lotes):
+        from database.conecta_database import db_connection
         with db_connection() as conn:
             if conn is None:
                 return 0
@@ -163,32 +117,25 @@ class Pedido:
                 invalidate_prefix("relatorio")
                 return total
             except Exception as e:
-                print(f"Erro ao vincular lotes em batch: {e}")
+                logger.error("Erro ao vincular lotes em batch: %s", e)
                 conn.rollback()
                 return 0
 
     @staticmethod
     def atualizar_status(id_pedido, status):
-        with db_connection() as conn:
-            if conn is None:
-                return False
-            try:
-                cursor = conn.cursor()
-                cursor.execute(
-                    "UPDATE pedido SET status=%s WHERE id_pedido=%s",
-                    (status, id_pedido))
-                conn.commit()
-                invalidate_prefix("pedidos")
-                invalidate_prefix("dashboard")
-                invalidate_prefix("relatorio")
-                return True
-            except Exception as e:
-                print(f"Erro ao atualizar status do pedido: {e}")
-                conn.rollback()
-                return False
+        ok = BaseModel._execute(
+            "UPDATE pedido SET status=%s WHERE id_pedido=%s",
+            (status, id_pedido)
+        )
+        if ok:
+            invalidate_prefix("pedidos")
+            invalidate_prefix("dashboard")
+            invalidate_prefix("relatorio")
+        return ok
 
     @staticmethod
     def deletar(id_pedido):
+        from database.conecta_database import db_connection
         with db_connection() as conn:
             if conn is None:
                 return False
@@ -202,6 +149,6 @@ class Pedido:
                 invalidate_prefix("relatorio")
                 return True
             except Exception as e:
-                print(f"Erro ao deletar pedido: {e}")
+                logger.error("Erro ao deletar pedido: %s", e)
                 conn.rollback()
                 return False

@@ -1,11 +1,7 @@
 import customtkinter as ctk
 import threading
 import queue
-from utils.theme import font
-
-
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
+from utils.theme import font, ECOPA_GREEN, ECOPA_GREEN_LIGHT
 
 
 class LoadingOverlay(ctk.CTkFrame):
