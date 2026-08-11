@@ -1,194 +1,121 @@
-from database.conecta_database import db_connection
-from database.cache import get_cached, invalidate, invalidate_prefix
+import logging
+from database.cache import get_cached, invalidate_prefix
+from models.base import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
-class Ponto:
+class Ponto(BaseModel):
+
     @staticmethod
     def buscar_por_estabelecimento(estabelecimento):
-        with db_connection() as conn:
-            if conn is None:
-                return None
-            try:
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute(
-                    """
-                    SELECT id_ponto
-                    FROM ponto_de_coleta
-                    WHERE estabelecimento = %s AND ativo = 1
-                    LIMIT 1
-                    """,
-                    (estabelecimento,)
-                )
-                return cursor.fetchone()
-            except Exception as e:
-                print(f"Erro ao buscar ponto por estabelecimento: {e}")
-                return None
+        return BaseModel._fetch_one("""
+            SELECT id_ponto
+            FROM ponto_de_coleta
+            WHERE estabelecimento = %s AND ativo = 1
+            LIMIT 1
+        """, (estabelecimento,))
 
     @staticmethod
     def buscar_por_idponto(idponto):
-        with db_connection() as conn:
-            if conn is None:
-                return None
-            try:
-                cursor = conn.cursor(dictionary=True)
-                cursor.execute("""
-                    SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
-                           p.telefone, p.proprietario
-                    FROM ponto_de_coleta p
-                    WHERE p.id_ponto = %s LIMIT 1
-                """, (idponto,))
-                return cursor.fetchone()
-            except Exception as e:
-                print(f"Erro ao buscar ponto de coleta: {e}")
-                return None
+        return BaseModel._fetch_one("""
+            SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
+                   p.telefone, p.proprietario
+            FROM ponto_de_coleta p
+            WHERE p.id_ponto = %s LIMIT 1
+        """, (idponto,))
 
     @staticmethod
     def criar(dados):
-        with db_connection() as conn:
-            if conn is None:
-                return False
-            try:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT INTO ponto_de_coleta (endereco, email, estabelecimento,
-                                                 telefone, proprietario)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (
-                    dados["endereco"], dados["email"],
-                    dados["estabelecimento"], dados["telefone"], dados["proprietario"]
-                ))
-                conn.commit()
-                invalidate_prefix("pontos")
-                invalidate_prefix("dashboard")
-                invalidate_prefix("relatorio")
-                return True
-            except Exception as e:
-                print(f"Erro ao criar ponto de coleta: {e}")
-                conn.rollback()
-                return False
+        ok = BaseModel._execute("""
+            INSERT INTO ponto_de_coleta (endereco, email, estabelecimento,
+                                         telefone, proprietario)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (
+            dados["endereco"], dados["email"],
+            dados["estabelecimento"], dados["telefone"], dados["proprietario"]
+        ))
+        if ok:
+            invalidate_prefix("pontos")
+            invalidate_prefix("dashboard")
+            invalidate_prefix("relatorio")
+        return ok
 
     @staticmethod
     def listar():
         def _fetch():
-            with db_connection() as conn:
-                if conn is None:
-                    return []
-                try:
-                    cursor = conn.cursor(dictionary=True)
-                    cursor.execute("""
-                        SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
-                               p.telefone, p.proprietario
-                        FROM ponto_de_coleta p
-                        WHERE p.ativo = 1
-                        ORDER BY p.estabelecimento
-                    """)
-                    return cursor.fetchall()
-                except Exception as e:
-                    print(f"Erro ao listar pontos de coleta: {e}")
-                    return []
+            return BaseModel._fetch_all("""
+                SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
+                       p.telefone, p.proprietario
+                FROM ponto_de_coleta p
+                WHERE p.ativo = 1
+                ORDER BY p.estabelecimento
+            """)
         return get_cached("pontos_listar", 120, _fetch)
 
     @staticmethod
     def listar_todos():
         def _fetch():
-            with db_connection() as conn:
-                if conn is None:
-                    return []
-                try:
-                    cursor = conn.cursor(dictionary=True)
-                    cursor.execute("""
-                        SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
-                               p.telefone, p.proprietario, p.ativo
-                        FROM ponto_de_coleta p
-                        ORDER BY p.ativo DESC, p.estabelecimento
-                    """)
-                    return cursor.fetchall()
-                except Exception as e:
-                    print(f"Erro ao listar todos os pontos de coleta: {e}")
-                    return []
+            return BaseModel._fetch_all("""
+                SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
+                       p.telefone, p.proprietario, p.ativo
+                FROM ponto_de_coleta p
+                ORDER BY p.ativo DESC, p.estabelecimento
+            """)
         return get_cached("pontos_listar_todos", 120, _fetch)
 
     @staticmethod
     def atualizar(idponto, dados):
-        with db_connection() as conn:
-            if conn is None:
-                return False
-            try:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    UPDATE ponto_de_coleta
-                    SET endereco=%s, email=%s, telefone=%s, proprietario=%s
-                    WHERE id_ponto=%s
-                """, (
-                    dados["endereco"], dados["email"],
-                    dados["telefone"], dados["proprietario"], idponto
-                ))
-                conn.commit()
-                invalidate_prefix("pontos")
-                invalidate_prefix("dashboard")
-                invalidate_prefix("relatorio")
-                return True
-            except Exception as e:
-                print(f"Erro ao atualizar ponto de coleta: {e}")
-                conn.rollback()
-                return False
+        ok = BaseModel._execute("""
+            UPDATE ponto_de_coleta
+            SET endereco=%s, email=%s, telefone=%s, proprietario=%s
+            WHERE id_ponto=%s
+        """, (
+            dados["endereco"], dados["email"],
+            dados["telefone"], dados["proprietario"], idponto
+        ))
+        if ok:
+            invalidate_prefix("pontos")
+            invalidate_prefix("dashboard")
+            invalidate_prefix("relatorio")
+        return ok
 
     @staticmethod
     def deletar(idponto):
-        with db_connection() as conn:
-            if conn is None:
-                return False
-            try:
-                cursor = conn.cursor()
-                cursor.execute("DELETE FROM ponto_de_coleta WHERE id_ponto=%s", (idponto,))
-                conn.commit()
-                invalidate_prefix("pontos")
-                invalidate_prefix("dashboard")
-                invalidate_prefix("relatorio")
-                return True
-            except Exception as e:
-                print(f"Erro ao deletar ponto de coleta: {e}")
-                conn.rollback()
-                return False
+        ok = BaseModel._execute(
+            "DELETE FROM ponto_de_coleta WHERE id_ponto=%s", (idponto,)
+        )
+        if ok:
+            invalidate_prefix("pontos")
+            invalidate_prefix("dashboard")
+            invalidate_prefix("relatorio")
+        return ok
 
     @staticmethod
     def desativar(idponto):
-        with db_connection() as conn:
-            if conn is None:
-                return False
-            try:
-                cursor = conn.cursor()
-                cursor.execute("UPDATE ponto_de_coleta SET ativo = 0 WHERE id_ponto = %s", (idponto,))
-                conn.commit()
-                invalidate_prefix("pontos")
-                invalidate_prefix("dashboard")
-                invalidate_prefix("relatorio")
-                return True
-            except Exception as e:
-                print(f"Erro ao desativar ponto de coleta: {e}")
-                conn.rollback()
-                return False
+        ok = BaseModel._execute(
+            "UPDATE ponto_de_coleta SET ativo = 0 WHERE id_ponto = %s", (idponto,)
+        )
+        if ok:
+            invalidate_prefix("pontos")
+            invalidate_prefix("dashboard")
+            invalidate_prefix("relatorio")
+        return ok
 
     @staticmethod
     def reativar(idponto):
-        with db_connection() as conn:
-            if conn is None:
-                return False
-            try:
-                cursor = conn.cursor()
-                cursor.execute("UPDATE ponto_de_coleta SET ativo = 1 WHERE id_ponto = %s", (idponto,))
-                conn.commit()
-                invalidate_prefix("pontos")
-                invalidate_prefix("dashboard")
-                invalidate_prefix("relatorio")
-                return True
-            except Exception as e:
-                print(f"Erro ao reativar ponto de coleta: {e}")
-                conn.rollback()
-                return False
+        ok = BaseModel._execute(
+            "UPDATE ponto_de_coleta SET ativo = 1 WHERE id_ponto = %s", (idponto,)
+        )
+        if ok:
+            invalidate_prefix("pontos")
+            invalidate_prefix("dashboard")
+            invalidate_prefix("relatorio")
+        return ok
 
     @staticmethod
     def salvar_horarios(id_ponto, horarios):
+        from database.conecta_database import db_connection
         with db_connection() as conn:
             if conn is None:
                 return False
@@ -206,27 +133,18 @@ class Ponto:
                     """, (h["dia_semana"], h["abertura"], h["fechamento"],
                         h["ativo"], id_ponto))
                 conn.commit()
-                invalidate(f"pontos_horarios_{id_ponto}")
+                invalidate_prefix(f"pontos_horarios_{id_ponto}")
                 return True
             except Exception as e:
-                print(f"Erro ao salvar horarios: {e}")
+                logger.error("Erro ao salvar horarios: %s", e)
                 conn.rollback()
                 return False
 
     @staticmethod
     def buscar_horarios(id_ponto):
         def _fetch():
-            with db_connection() as conn:
-                if conn is None:
-                    return []
-                try:
-                    cursor = conn.cursor(dictionary=True)
-                    cursor.execute(
-                        "SELECT * FROM horario_ponto WHERE ponto_de_coleta_id_ponto = %s ORDER BY dia_semana",
-                        (id_ponto,)
-                    )
-                    return cursor.fetchall()
-                except Exception as e:
-                    print(f"Erro ao buscar horarios: {e}")
-                    return []
+            return BaseModel._fetch_all(
+                "SELECT * FROM horario_ponto WHERE ponto_de_coleta_id_ponto = %s ORDER BY dia_semana",
+                (id_ponto,)
+            )
         return get_cached(f"pontos_horarios_{id_ponto}", 120, _fetch)

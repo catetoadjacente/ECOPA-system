@@ -1,16 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.destinacao_controller import DestinacaoController
-from utils.theme import font
-
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_BG = "#f0f7f0"
-ECOPA_WHITE = "#ffffff"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
+from utils.theme import font, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
 
 TIPOS = ["Reciclagem", "Biomassa", "Compostagem", "Aterro", "Outro"]
 
