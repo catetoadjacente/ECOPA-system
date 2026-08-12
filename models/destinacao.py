@@ -20,18 +20,18 @@ class Destinacao(BaseModel):
 
     @staticmethod
     def criar(dados):
-        ok = BaseModel._execute(
+        destinacao_id = BaseModel._execute_returning_id(
             "INSERT INTO destinacao (nome, tipo, endereco, telefone, email, cnpj) "
             "VALUES (%s, %s, %s, %s, %s, %s)",
             (dados["nome"], dados["tipo"], dados["endereco"],
              dados.get("telefone", ""), dados.get("email", ""),
              dados.get("cnpj", ""))
         )
-        if ok:
+        if destinacao_id:
             invalidate_prefix("destinacoes")
             invalidate_prefix("pedidos")
             invalidate_prefix("relatorio")
-        return ok
+        return destinacao_id
 
     @staticmethod
     def atualizar(id_dest, dados):

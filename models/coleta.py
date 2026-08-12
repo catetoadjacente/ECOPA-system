@@ -25,18 +25,18 @@ class Coleta(BaseModel):
 
     @staticmethod
     def criar(dados):
-        ok = BaseModel._execute("""
+        coleta_id = BaseModel._execute_returning_id("""
             INSERT INTO coleta (ponto_de_coleta_id_ponto, gerente_cpf,
                                quantidade, data, observacao, status)
             VALUES (%s, %s, %s, %s, %s, %s)
         """, (dados["ponto"], dados.get("gerente_cpf", "00000000000"),
               dados["quantidade"], dados["data_coleta"],
               dados.get("observacao", ""), "Pendente"))
-        if ok:
+        if coleta_id:
             invalidate_prefix("coletas")
             invalidate_prefix("dashboard")
             invalidate_prefix("relatorio")
-        return ok
+        return coleta_id
 
     @staticmethod
     def buscar_por_id(id_coleta):

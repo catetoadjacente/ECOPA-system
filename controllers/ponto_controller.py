@@ -1,4 +1,5 @@
 from models.ponto import Ponto
+from models.auditoria import Auditoria
 
 
 class PontoController:
@@ -20,6 +21,8 @@ class PontoController:
             ponto = Ponto.buscar_por_estabelecimento(dados["estabelecimento"])
             if ponto and horarios:
                 Ponto.salvar_horarios(ponto["id_ponto"], horarios)
+            if ponto:
+                Auditoria.registrar("CRIAR", "ponto_de_coleta", ponto["id_ponto"], dados["estabelecimento"])
             return True, "Ponto de coleta cadastrado com sucesso"
         return False, "Falha ao cadastrar ponto de coleta"
 
@@ -54,6 +57,7 @@ class PontoController:
         if Ponto.atualizar(idponto, dados):
             if horarios:
                 Ponto.salvar_horarios(idponto, horarios)
+            Auditoria.registrar("ATUALIZAR", "ponto_de_coleta", idponto, "Dados do ponto atualizados")
             return True, "Ponto de coleta atualizado com sucesso"
         return False, "Falha ao atualizar ponto de coleta"
 
@@ -62,6 +66,7 @@ class PontoController:
         if not idponto:
             return False, "ID invalido"
         if Ponto.deletar(idponto):
+            Auditoria.registrar("EXCLUIR", "ponto_de_coleta", idponto, "Ponto de coleta excluído")
             return True, "Ponto de coleta excluido com sucesso"
         return False, "Falha ao excluir ponto de coleta"
 
@@ -70,6 +75,7 @@ class PontoController:
         if not idponto:
             return False, "ID invalido"
         if Ponto.desativar(idponto):
+            Auditoria.registrar("DESATIVAR", "ponto_de_coleta", idponto, "Ponto de coleta desativado")
             return True, "Ponto de coleta desativado com sucesso"
         return False, "Falha ao desativar ponto de coleta"
 
@@ -78,6 +84,7 @@ class PontoController:
         if not idponto:
             return False, "ID invalido"
         if Ponto.reativar(idponto):
+            Auditoria.registrar("REATIVAR", "ponto_de_coleta", idponto, "Ponto de coleta reativado")
             return True, "Ponto de coleta reativado com sucesso"
         return False, "Falha ao reativar ponto de coleta"
 

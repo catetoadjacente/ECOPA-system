@@ -1,5 +1,6 @@
 from models.pedido import Pedido
 from models.lote import Lote
+from models.auditoria import Auditoria
 
 
 class PedidoController:
@@ -26,6 +27,7 @@ class PedidoController:
             return False, f"Estoque insuficiente (disponivel: {estoque_total:.1f}, solicitado: {qtd_solicitada:.1f})", None
         pedido_id = Pedido.criar(dados)
         if pedido_id:
+            Auditoria.registrar("CRIAR", "pedido", pedido_id, "Pedido criado")
             return True, f"Pedido #{pedido_id} criado com sucesso", pedido_id
         return False, "Falha ao criar pedido", None
 
@@ -41,6 +43,8 @@ class PedidoController:
                 Pedido.atualizar_status(id_pedido, "Atendido")
             elif total_atendido > 0:
                 Pedido.atualizar_status(id_pedido, "Atendido Parcialmente")
+        if total_atendido:
+            Auditoria.registrar("DISTRIBUIR_ESTOQUE", "pedido", id_pedido, f"{total_atendido:.1f} Kg distribuídos")
         return True, f"Estoque distribuido: {total_atendido:.1f}"
 
     @staticmethod
@@ -118,7 +122,9 @@ class PedidoController:
                 Pedido.atualizar_status(id_pedido, "Atendido Parcialmente")
 
         if total_atendido < falta:
+            Auditoria.registrar("DISTRIBUIR_ESTOQUE", "pedido", id_pedido, f"{total_atendido:.1f} Kg distribuídos")
             return True, f"Parcialmente distribuido: {total_atendido:.1f} de {falta:.1f} Kg"
+        Auditoria.registrar("DISTRIBUIR_ESTOQUE", "pedido", id_pedido, f"{total_atendido:.1f} Kg distribuídos")
         return True, f"Estoque distribuido: {total_atendido:.1f} Kg"
 
     @staticmethod
@@ -126,6 +132,7 @@ class PedidoController:
         if not id_pedido:
             return False, "ID invalido"
         if Pedido.deletar(id_pedido):
+            Auditoria.registrar("EXCLUIR", "pedido", id_pedido, "Pedido excluído")
             return True, "Pedido excluido com sucesso"
         return False, "Falha ao excluir pedido"
 

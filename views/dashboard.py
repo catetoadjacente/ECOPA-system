@@ -77,6 +77,7 @@ class MainView(ctk.CTkFrame):
             ("pontos",       "Pontos",       self.abrir_pontos,      "📍"),
             ("destinacoes",  "Destinações",  self.abrir_destinacoes,  "♻️"),
             ("relatorios",   "Relatórios",   self.abrir_relatorios,  "📈"),
+            ("auditoria", "Auditoria", self.abrir_auditoria, "📝"),
         ]
 
         for nome_icone, texto, comando, emoji in botoes:
@@ -397,6 +398,13 @@ class MainView(ctk.CTkFrame):
         from views.relatorios import RelatoriosView
         RelatoriosView(self, self.content)
 
+    def abrir_auditoria(self):
+        for widget in self.content.winfo_children():
+            widget.destroy()
+        self._destacar_menu("auditoria")
+        from views.auditoria import AuditoriaView
+        AuditoriaView(self, self.content)
+
     def abrir_lotes(self):
         for widget in self.content.winfo_children():
             widget.destroy()
@@ -412,4 +420,6 @@ class MainView(ctk.CTkFrame):
         PedidosView(self, self.content)
 
     def sair(self):
+        from utils.sessao import encerrar
+        encerrar()
         self.winfo_toplevel().destroy()

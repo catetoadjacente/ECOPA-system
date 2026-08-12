@@ -8,6 +8,7 @@ from views.loading import LoadingOverlay
 from tkinter import messagebox
 import pywinstyles
 from utils.theme import font
+from utils.sessao import iniciar
 
 
 ctk.set_appearance_mode("light")
@@ -111,6 +112,7 @@ class App(ctk.CTk):
             self.bg_label.destroy()
             self.unbind("<Configure>")
 
+            iniciar(info)
             dashboard = MainView(self, nome_usuario=info['nome'])
             dashboard.pack(fill="both", expand=True)
             self.title(f"ECOPA System - {info['nome']}")

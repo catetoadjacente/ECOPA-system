@@ -154,3 +154,23 @@ CREATE INDEX idx_coleta_data ON coleta(data);
 CREATE INDEX idx_coleta_status ON coleta(status);
 CREATE INDEX idx_pedido_data ON pedido(data);
 CREATE INDEX idx_pedido_status ON pedido(status);
+
+-- -----------------------------------------------------
+-- Table: auditoria (histórico de ações relevantes)
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS auditoria (
+  id_auditoria INT NOT NULL AUTO_INCREMENT,
+  gerente_cpf VARCHAR(11) NULL,
+  acao VARCHAR(30) NOT NULL,
+  entidade VARCHAR(50) NOT NULL,
+  registro_id VARCHAR(100) NOT NULL,
+  detalhes TEXT NULL,
+  criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id_auditoria),
+  INDEX idx_auditoria_data (criado_em),
+  INDEX idx_auditoria_entidade_registro (entidade, registro_id),
+  CONSTRAINT fk_auditoria_gerente
+    FOREIGN KEY (gerente_cpf)
+    REFERENCES gerente (cpf)
+    ON DELETE SET NULL ON UPDATE NO ACTION
+) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb3;

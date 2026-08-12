@@ -1,6 +1,7 @@
 from models.coleta import Coleta
 from models.ponto import Ponto
 from models.lote import Lote
+from models.auditoria import Auditoria
 
 
 class ColetaController:
@@ -16,7 +17,9 @@ class ColetaController:
 
         dados["ponto"] = ponto_dados["id_ponto"]
 
-        if Coleta.criar(dados):
+        coleta_id = Coleta.criar(dados)
+        if coleta_id:
+            Auditoria.registrar("CRIAR", "coleta", coleta_id, f"Coleta cadastrada no ponto {dados['ponto']}")
             return True, "Coleta cadastrada com sucesso"
         return False, "Falha ao cadastrar coleta"
 
@@ -28,9 +31,15 @@ class ColetaController:
                 return False
             lote_existente = Lote.buscar_por_coleta(id_coleta)
             if lote_existente is not None:
-                return Coleta.atualizar_status(id_coleta, status)
+                atualizado = Coleta.atualizar_status(id_coleta, status)
+                if atualizado:
+                    Auditoria.registrar("ATUALIZAR_STATUS", "coleta", id_coleta, f"Status alterado para {status}")
+                return atualizado
             if float(coleta["quantidade"]) <= 0:
                 return False
             if not Lote.criar_por_coleta(id_coleta, coleta["quantidade"]):
                 return False
-        return Coleta.atualizar_status(id_coleta, status)
+        atualizado = Coleta.atualizar_status(id_coleta, status)
+        if atualizado:
+            Auditoria.registrar("ATUALIZAR_STATUS", "coleta", id_coleta, f"Status alterado para {status}")
+        return atualizado
