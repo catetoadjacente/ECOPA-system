@@ -1,15 +1,7 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.destinacao_controller import DestinacaoController
-
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_BG = "#f0f7f0"
-ECOPA_WHITE = "#ffffff"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
+from utils.theme import font, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
 
 TIPOS = ["Reciclagem", "Biomassa", "Compostagem", "Aterro", "Outro"]
 
@@ -33,85 +25,85 @@ class CadastroDestinacao(ctk.CTkFrame):
             border_width=1, border_color=ECOPA_BORDER)
         card.pack(fill="x", padx=40, pady=(25, 20))
 
-        ctk.CTkLabel(card, text="Nova Destinacao",
-            font=ctk.CTkFont(size=22, weight="bold"), text_color=ECOPA_GREEN_DARK
+        ctk.CTkLabel(card, text="Nova Destinação",
+            font=font(22, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack(pady=(28, 0))
 
         ctk.CTkLabel(card, text="Cadastro de local de destino",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(0, 16))
 
         ctk.CTkFrame(card, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(0, 12))
 
         ctk.CTkLabel(card, text="Dados do Local",
-            font=ctk.CTkFont(size=15, weight="bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
+            font=font(15, "bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 10))
 
         # Nome
         ctk.CTkLabel(card, text="Nome",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_nome = ctk.CTkEntry(
             card, height=38, placeholder_text="Ex: Ecoparque Reciclagem",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
+            corner_radius=10, font=font(13), border_width=1)
         self.entry_nome.pack(fill="x", padx=55, pady=(0, 12))
 
         # Tipo
         ctk.CTkLabel(card, text="Tipo",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.combo_tipo = ctk.CTkComboBox(
-            card, values=TIPOS, height=38, font=ctk.CTkFont(size=13), state="readonly",
+            card, values=TIPOS, height=38, font=font(13), state="readonly",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
             button_color=ECOPA_GREEN, button_hover_color=ECOPA_GREEN_LIGHT, corner_radius=10)
         self.combo_tipo.set(TIPOS[0])
         self.combo_tipo.pack(fill="x", padx=55, pady=(0, 12))
 
         # Endereco
-        ctk.CTkLabel(card, text="Endereco",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+        ctk.CTkLabel(card, text="Endereço",
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_endereco = ctk.CTkEntry(
-            card, height=38, placeholder_text="Rua, numero, bairro, cidade",
+            card, height=38, placeholder_text="Rua, número, bairro, cidade",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
+            corner_radius=10, font=font(13), border_width=1)
         self.entry_endereco.pack(fill="x", padx=55, pady=(0, 16))
 
         # Contato
         ctk.CTkFrame(card, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(0, 12))
         ctk.CTkLabel(card, text="Contato",
-            font=ctk.CTkFont(size=15, weight="bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
+            font=font(15, "bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 10))
 
         # CNPJ
         ctk.CTkLabel(card, text="CNPJ",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_cnpj = ctk.CTkEntry(
             card, height=38, placeholder_text="Somente numeros",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
+            corner_radius=10, font=font(13), border_width=1)
         self.entry_cnpj.pack(fill="x", padx=55, pady=(0, 12))
 
         # Telefone
         ctk.CTkLabel(card, text="Telefone",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_telefone = ctk.CTkEntry(
             card, height=38, placeholder_text="Somente numeros",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
+            corner_radius=10, font=font(13), border_width=1)
         self.entry_telefone.pack(fill="x", padx=55, pady=(0, 12))
 
         # Email
         ctk.CTkLabel(card, text="Email",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT, anchor="w"
+            font=font(12, "bold"), text_color=ECOPA_TEXT, anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_email = ctk.CTkEntry(
             card, height=38, placeholder_text="email@exemplo.com",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
+            corner_radius=10, font=font(13), border_width=1)
         self.entry_email.pack(fill="x", padx=55, pady=(0, 16))
 
         # Botoes
@@ -121,14 +113,14 @@ class CadastroDestinacao(ctk.CTkFrame):
         ctk.CTkButton(
             btn_frame, text="Voltar", width=140, height=42,
             fg_color="#7f8c8d", hover_color="#95a5a6",
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.on_voltar
         ).pack(side="left")
 
         ctk.CTkButton(
             btn_frame, text="Salvar", width=140, height=42,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self._salvar
         ).pack(side="right")
 
@@ -143,7 +135,7 @@ class CadastroDestinacao(ctk.CTkFrame):
         }
 
         if not dados["nome"] or not dados["endereco"]:
-            messagebox.showerror("Erro", "Preencha nome e endereco!")
+            messagebox.showerror("Erro", "Preencha nome e endereço!")
             return
 
         ok, msg = DestinacaoController.cadastrar(dados)

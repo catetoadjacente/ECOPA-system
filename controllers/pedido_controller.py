@@ -1,5 +1,6 @@
 from models.pedido import Pedido
 from models.lote import Lote
+from models.auditoria import Auditoria
 
 
 class PedidoController:
@@ -18,11 +19,15 @@ class PedidoController:
         if erros:
             return False, f"Preencha: {', '.join(erros)}", None
         lotes = Lote.listar_disponiveis()
+        if not lotes:
+            return False, "Nenhum lote disponivel no estoque", None
         estoque_total = sum(float(l["quantidade_restante"]) for l in lotes)
-        if estoque_total < float(dados["quantidade_solicitada"]):
-            return False, f"Estoque insuficiente (disponivel: {estoque_total:.1f})", None
+        qtd_solicitada = float(dados["quantidade_solicitada"])
+        if estoque_total < qtd_solicitada:
+            return False, f"Estoque insuficiente (disponivel: {estoque_total:.1f}, solicitado: {qtd_solicitada:.1f})", None
         pedido_id = Pedido.criar(dados)
         if pedido_id:
+            Auditoria.registrar("CRIAR", "pedido", pedido_id, "Pedido criado")
             return True, f"Pedido #{pedido_id} criado com sucesso", pedido_id
         return False, "Falha ao criar pedido", None
 
@@ -30,13 +35,7 @@ class PedidoController:
     def vincular_lotes(id_pedido, lotes):
         if not id_pedido:
             return False, "Pedido invalido"
-        total_atendido = 0
-        for id_lote, quantidade in lotes:
-            if float(quantidade) > 0:
-                ok = Pedido.vincular_lote(id_pedido, id_lote, quantidade)
-                if ok:
-                    Lote.consumir(id_lote, quantidade)
-                    total_atendido += float(quantidade)
+        total_atendido = Pedido.vincular_lotes_batch(id_pedido, lotes)
         pedido = Pedido.obter_por_id(id_pedido)
         if pedido:
             solicitada = float(pedido["quantidade_solicitada"])
@@ -44,13 +43,96 @@ class PedidoController:
                 Pedido.atualizar_status(id_pedido, "Atendido")
             elif total_atendido > 0:
                 Pedido.atualizar_status(id_pedido, "Atendido Parcialmente")
+        if total_atendido:
+            Auditoria.registrar("DISTRIBUIR_ESTOQUE", "pedido", id_pedido, f"{total_atendido:.1f} Kg distribuídos")
         return True, f"Estoque distribuido: {total_atendido:.1f}"
+
+    @staticmethod
+    def distribuir_automatico(id_pedido, lotes_alocados=None):
+        """Distribui estoque automaticamente usando lotes disponiveis.
+
+        Args:
+            id_pedido: ID do pedido a ser atendido
+            lotes_alocados: Lista opcional de dicts com {id, alocado} já calculada pela UI.
+                           Se fornecida, usa exatamente essa alocação em vez de recalcular.
+
+        Estrategia (quando lotes_alocados não é fornecido):
+        1. Priorizar lotes 'Parcialmente Consumido' (mais antigos primeiro)
+        2. Depois usar lotes 'Disponivel' (FIFO - mais antigos primeiro)
+        """
+        if not id_pedido:
+            return False, "Pedido invalido"
+
+        pedido = Pedido.obter_por_id(id_pedido)
+        if not pedido:
+            return False, "Pedido nao encontrado"
+
+        if pedido["status"] == "Atendido":
+            return False, "Pedido ja foi totalmente atendido"
+
+        solicitada = float(pedido["quantidade_solicitada"])
+        ja_atendida = float(pedido["quantidade_atendida"])
+        falta = solicitada - ja_atendida
+
+        if falta <= 0:
+            return False, "Pedido ja totalmente atendido"
+
+        if lotes_alocados is not None and len(lotes_alocados) > 0:
+            lotes_para_vincular = [
+                (l["id"], l["alocado"]) for l in lotes_alocados if l.get("alocado", 0) > 0
+            ]
+        else:
+            lotes = Lote.listar_disponiveis()
+            if not lotes:
+                return False, "Nenhum lote disponivel no estoque"
+
+            total_disponivel = sum(float(l["quantidade_restante"]) for l in lotes)
+            if total_disponivel <= 0:
+                return False, "Nenhum lote disponivel no estoque"
+
+            parciais = [l for l in lotes if l["status"] == "Parcialmente Consumido"]
+            novos = [l for l in lotes if l["status"] != "Parcialmente Consumido"]
+            parciais.sort(key=lambda l: l["data_criacao"])
+            novos.sort(key=lambda l: l["data_criacao"])
+            lotes_ordenados = parciais + novos
+
+            lotes_para_vincular = []
+            restante = falta
+            for lote in lotes_ordenados:
+                if restante <= 0:
+                    break
+                disp = float(lote["quantidade_restante"])
+                if disp <= 0:
+                    continue
+                qtd = min(disp, restante)
+                lotes_para_vincular.append((lote["id"], qtd))
+                restante -= qtd
+
+        if not lotes_para_vincular:
+            return False, "Nao foi possivel alocar lotes"
+
+        total_atendido = Pedido.vincular_lotes_batch(id_pedido, lotes_para_vincular)
+
+        pedido = Pedido.obter_por_id(id_pedido)
+        if pedido:
+            nova_total = float(pedido["quantidade_atendida"])
+            if nova_total >= solicitada:
+                Pedido.atualizar_status(id_pedido, "Atendido")
+            elif nova_total > 0:
+                Pedido.atualizar_status(id_pedido, "Atendido Parcialmente")
+
+        if total_atendido < falta:
+            Auditoria.registrar("DISTRIBUIR_ESTOQUE", "pedido", id_pedido, f"{total_atendido:.1f} Kg distribuídos")
+            return True, f"Parcialmente distribuido: {total_atendido:.1f} de {falta:.1f} Kg"
+        Auditoria.registrar("DISTRIBUIR_ESTOQUE", "pedido", id_pedido, f"{total_atendido:.1f} Kg distribuídos")
+        return True, f"Estoque distribuido: {total_atendido:.1f} Kg"
 
     @staticmethod
     def deletar(id_pedido):
         if not id_pedido:
             return False, "ID invalido"
         if Pedido.deletar(id_pedido):
+            Auditoria.registrar("EXCLUIR", "pedido", id_pedido, "Pedido excluído")
             return True, "Pedido excluido com sucesso"
         return False, "Falha ao excluir pedido"
 

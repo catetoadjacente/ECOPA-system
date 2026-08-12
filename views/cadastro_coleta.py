@@ -4,16 +4,7 @@ from datetime import datetime
 from controllers.coleta_controller import ColetaController
 from controllers.ponto_controller import PontoController
 from controllers.gerente_controller import GerenteController
-
-# Paleta ECOPA
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_BG = "#f0f7f0"
-ECOPA_WHITE = "#ffffff"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
+from utils.theme import font, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
 
 
 class CadastroColeta(ctk.CTkFrame):
@@ -40,17 +31,17 @@ class CadastroColeta(ctk.CTkFrame):
         # Header
         ctk.CTkLabel(
             card, text="🚛",
-            font=ctk.CTkFont(size=36), text_color=ECOPA_GREEN
+            font=font(36), text_color=ECOPA_GREEN
         ).pack(pady=(28, 0))
 
         ctk.CTkLabel(
             card, text="Nova Coleta",
-            font=ctk.CTkFont(size=22, weight="bold"), text_color=ECOPA_GREEN_DARK
+            font=font(22, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack(pady=(8, 0))
 
         ctk.CTkLabel(
             card, text="Preencha os dados para cadastrar uma nova coleta",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(0, 16))
 
         # Secao Dados
@@ -58,20 +49,20 @@ class CadastroColeta(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card, text="Dados da Coleta",
-            font=ctk.CTkFont(size=15, weight="bold"), text_color=ECOPA_GREEN_DARK,
+            font=font(15, "bold"), text_color=ECOPA_GREEN_DARK,
             anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 10))
 
         # Data
         ctk.CTkLabel(
             card, text="Data da coleta",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
+            font=font(12, "bold"), text_color=ECOPA_TEXT,
             anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_data = ctk.CTkEntry(
             card, height=38,
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1
+            corner_radius=10, font=font(13), border_width=1
         )
         self.entry_data.insert(0, datetime.now().strftime("%Y-%m-%d %H:%M"))
         self.entry_data.pack(fill="x", padx=55, pady=(0, 12))
@@ -79,7 +70,7 @@ class CadastroColeta(ctk.CTkFrame):
         # Ponto
         ctk.CTkLabel(
             card, text="Ponto da coleta",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
+            font=font(12, "bold"), text_color=ECOPA_TEXT,
             anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         pontos = PontoController.listar()
@@ -87,7 +78,7 @@ class CadastroColeta(ctk.CTkFrame):
         nomes_pontos = [p["estabelecimento"] for p in pontos]
         self.combo_ponto = ctk.CTkComboBox(
             card, values=nomes_pontos if nomes_pontos else ["Nenhum ponto disponível"],
-            height=38, font=ctk.CTkFont(size=13), state="readonly",
+            height=38, font=font(13), state="readonly",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
             button_color=ECOPA_GREEN, button_hover_color=ECOPA_GREEN_LIGHT,
             corner_radius=10
@@ -99,20 +90,20 @@ class CadastroColeta(ctk.CTkFrame):
         # Quantidade
         ctk.CTkLabel(
             card, text="Quantidade coletada (Kg)",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
+            font=font(12, "bold"), text_color=ECOPA_TEXT,
             anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         self.entry_quantidade = ctk.CTkEntry(
             card, height=38, placeholder_text="Ex: 120.5",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            corner_radius=10, font=ctk.CTkFont(size=13), border_width=1
+            corner_radius=10, font=font(13), border_width=1
         )
         self.entry_quantidade.pack(fill="x", padx=55, pady=(0, 12))
 
         # Gerente
         ctk.CTkLabel(
             card, text="Gerente responsável",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
+            font=font(12, "bold"), text_color=ECOPA_TEXT,
             anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 3))
         gerentes = GerenteController.listar()
@@ -120,7 +111,7 @@ class CadastroColeta(ctk.CTkFrame):
         nomes_gerentes = [g["nome"] for g in gerentes]
         self.combo_gerente = ctk.CTkComboBox(
             card, values=nomes_gerentes if nomes_gerentes else ["Nenhum gerente disponível"],
-            height=38, font=ctk.CTkFont(size=13), state="readonly",
+            height=38, font=font(13), state="readonly",
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
             button_color=ECOPA_GREEN, button_hover_color=ECOPA_GREEN_LIGHT,
             corner_radius=10
@@ -134,12 +125,12 @@ class CadastroColeta(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card, text="Observações",
-            font=ctk.CTkFont(size=15, weight="bold"), text_color=ECOPA_GREEN_DARK,
+            font=font(15, "bold"), text_color=ECOPA_GREEN_DARK,
             anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 10))
 
         self.text_observacao = ctk.CTkTextbox(
-            card, height=120, font=ctk.CTkFont(size=13),
+            card, height=120, font=font(13),
             fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
             corner_radius=10, border_width=1
         )
@@ -152,14 +143,14 @@ class CadastroColeta(ctk.CTkFrame):
         ctk.CTkButton(
             btn_frame, text="Voltar", width=140, height=42,
             fg_color="#7f8c8d", hover_color="#95a5a6",
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.on_voltar
         ).pack(side="left")
 
         ctk.CTkButton(
             btn_frame, text="Salvar", width=140, height=42,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.salvar
         ).pack(side="right")
 
@@ -174,8 +165,18 @@ class CadastroColeta(ctk.CTkFrame):
             messagebox.showerror("Erro", "Preencha todos os campos obrigatórios!")
             return
 
+        # Validar se selecionou valores reais (placeholder de combo vazio)
+        nomes_pontos = [p["estabelecimento"] for p in self.pontos_lista]
+        nomes_gerentes = [g["nome"] for g in self.gerentes_lista]
+        if nome_ponto not in nomes_pontos:
+            messagebox.showerror("Erro", "Selecione um ponto de coleta válido!")
+            return
+        if nome_gerente not in nomes_gerentes:
+            messagebox.showerror("Erro", "Selecione um gerente válido!")
+            return
+
         try:
-            datetime.strptime(data_coleta, "%Y-%m-%d %H:%M")
+            data_coleta = datetime.strptime(data_coleta, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M")
         except ValueError:
             messagebox.showerror("Erro", "Data deve estar no formato AAAA-MM-DD HH:MM!")
             return
@@ -184,6 +185,10 @@ class CadastroColeta(ctk.CTkFrame):
             quantidade = float(quantidade)
         except ValueError:
             messagebox.showerror("Erro", "Quantidade deve ser um número!")
+            return
+
+        if quantidade <= 0:
+            messagebox.showerror("Erro", "Quantidade deve ser maior que zero!")
             return
 
         gerente_cpf = next(

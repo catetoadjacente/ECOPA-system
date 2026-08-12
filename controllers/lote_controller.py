@@ -1,4 +1,5 @@
 from models.lote import Lote
+from models.auditoria import Auditoria
 
 
 class LoteController:
@@ -28,6 +29,7 @@ class LoteController:
         if not quantidade or float(quantidade) <= 0:
             return False, "Quantidade invalida"
         if Lote.consumir(id_lote, quantidade):
+            Auditoria.registrar("CONSUMIR_ESTOQUE", "lote", id_lote, f"{quantidade} Kg consumidos")
             return True, "Estoque atualizado"
         return False, "Falha ao consumir lote (estoque insuficiente)"
 

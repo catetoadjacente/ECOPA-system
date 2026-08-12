@@ -1,23 +1,8 @@
 import customtkinter as ctk
 from tkinter import messagebox
 from controllers.ponto_controller import PontoController
-
-# Paleta ECOPA
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_BG = "#f0f7f0"
-ECOPA_WHITE = "#ffffff"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
-
-DIAS_SEMANA = [
-    (2, "SEG"), (5, "QUI"),
-    (3, "TER"), (6, "SEX"),
-    (4, "QUA"), (7, "SAB"),
-    (1, "DOM"),
-]
+from utils.horas import DIAS_SEMANA, validar_hora
+from utils.theme import font, font_small, font_small_bold, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
 
 
 class CadastroPonto(ctk.CTkFrame):
@@ -44,17 +29,17 @@ class CadastroPonto(ctk.CTkFrame):
         # Header
         ctk.CTkLabel(
             card, text="📍",
-            font=ctk.CTkFont(size=36), text_color=ECOPA_GREEN
+            font=font(36), text_color=ECOPA_GREEN
         ).pack(pady=(28, 0))
 
         ctk.CTkLabel(
             card, text="Novo Ponto de Coleta",
-            font=ctk.CTkFont(size=22, weight="bold"), text_color=ECOPA_GREEN_DARK
+            font=font(22, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack(pady=(8, 0))
 
         ctk.CTkLabel(
             card, text="Preencha os dados para cadastrar um novo ponto de coleta",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font_small(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(0, 16))
 
         # Secao Dados
@@ -62,7 +47,7 @@ class CadastroPonto(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card, text="Dados do Estabelecimento",
-            font=ctk.CTkFont(size=15, weight="bold"), text_color=ECOPA_GREEN_DARK,
+            font=font(15, "bold"), text_color=ECOPA_GREEN_DARK,
             anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 10))
 
@@ -79,7 +64,7 @@ class CadastroPonto(ctk.CTkFrame):
         for label_text, key, placeholder in campos:
             lbl = ctk.CTkLabel(
                 card, text=label_text,
-                font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT,
+                font=font_small_bold(12), text_color=ECOPA_TEXT,
                 anchor="w"
             )
             lbl.pack(fill="x", padx=55, pady=(0, 3))
@@ -87,7 +72,7 @@ class CadastroPonto(ctk.CTkFrame):
             entry = ctk.CTkEntry(
                 card, height=38, placeholder_text=placeholder,
                 fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-                corner_radius=10, font=ctk.CTkFont(size=13),
+                corner_radius=10, font=font(13),
                 border_width=1
             )
             entry.pack(fill="x", padx=55, pady=(0, 10))
@@ -98,7 +83,7 @@ class CadastroPonto(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card, text="Horários de Funcionamento",
-            font=ctk.CTkFont(size=15, weight="bold"), text_color=ECOPA_GREEN_DARK,
+            font=font(15, "bold"), text_color=ECOPA_GREEN_DARK,
             anchor="w"
         ).pack(fill="x", padx=55, pady=(0, 10))
 
@@ -125,13 +110,13 @@ class CadastroPonto(ctk.CTkFrame):
 
             ctk.CTkLabel(
                 linha, text=dia_nome, width=38,
-                font=ctk.CTkFont(size=12, weight="bold"), text_color=ECOPA_TEXT
+                font=font_small_bold(12), text_color=ECOPA_TEXT
             ).pack(side="left")
 
             ent_a = ctk.CTkEntry(
                 linha, width=72, placeholder_text="08:00",
                 fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-                corner_radius=8, font=ctk.CTkFont(size=12), border_width=1
+                corner_radius=8, font=font_small(12), border_width=1
             )
             ent_a.pack(side="left", padx=(5, 0))
             ent_a.insert(0, "08:00")
@@ -141,7 +126,7 @@ class CadastroPonto(ctk.CTkFrame):
             ent_f = ctk.CTkEntry(
                 linha, width=72, placeholder_text="14:00",
                 fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-                corner_radius=8, font=ctk.CTkFont(size=12), border_width=1
+                corner_radius=8, font=font_small(12), border_width=1
             )
             ent_f.pack(side="left")
             ent_f.insert(0, "14:00")
@@ -157,28 +142,40 @@ class CadastroPonto(ctk.CTkFrame):
         ctk.CTkButton(
             btn_frame, text="Voltar", width=140, height=42,
             fg_color="#7f8c8d", hover_color="#95a5a6",
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.on_voltar
         ).pack(side="left")
 
         ctk.CTkButton(
             btn_frame, text="Salvar", width=140, height=42,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self._on_salvar
         ).pack(side="right")
 
     def _on_salvar(self):
         dados = {key: entry.get().strip() for key, entry in self.entries.items()}
         horarios = []
-        for dia_num, _ in DIAS_SEMANA:
+        erros_hora = []
+        for dia_num, dia_nome in DIAS_SEMANA:
             if self.chk_vars[dia_num].get():
+                abertura = self.entry_abertura[dia_num].get().strip()
+                fechamento = self.entry_fechamento[dia_num].get().strip()
+                for campo, valor in [("abertura", abertura), ("fechamento", fechamento)]:
+                    if valor and not validar_hora(valor):
+                        erros_hora.append(f"{dia_nome} {campo}: '{valor}'")
                 horarios.append({
                     "dia_semana": dia_num,
-                    "abertura": self.entry_abertura[dia_num].get().strip(),
-                    "fechamento": self.entry_fechamento[dia_num].get().strip(),
+                    "abertura": abertura,
+                    "fechamento": fechamento,
                     "ativo": 1,
                 })
+        if erros_hora:
+            messagebox.showerror(
+                "Erro",
+                "Horários inválidos (use HH:MM, ex: 08:00, 17:30):\n\n" +
+                "\n".join(erros_hora))
+            return
         ok, msg = PontoController.cadastrar(dados, horarios=horarios if horarios else None)
         if ok:
             messagebox.showinfo("Sucesso", msg)

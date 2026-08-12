@@ -1,4 +1,5 @@
 from models.destinacao import Destinacao
+from models.auditoria import Auditoria
 
 
 class DestinacaoController:
@@ -22,7 +23,9 @@ class DestinacaoController:
             existente = Destinacao.buscar_por_cnpj(dados["cnpj"].strip())
             if existente:
                 return False, "CNPJ ja cadastrado"
-        if Destinacao.criar(dados):
+        destinacao_id = Destinacao.criar(dados)
+        if destinacao_id:
+            Auditoria.registrar("CRIAR", "destinacao", destinacao_id, dados["nome"])
             return True, "Destinacao cadastrada com sucesso"
         return False, "Falha ao cadastrar destinacao"
 
@@ -38,6 +41,7 @@ class DestinacaoController:
         if erros:
             return False, f"Preencha: {', '.join(erros)}"
         if Destinacao.atualizar(id_dest, dados):
+            Auditoria.registrar("ATUALIZAR", "destinacao", id_dest, "Dados da destinação atualizados")
             return True, "Destinacao atualizada com sucesso"
         return False, "Falha ao atualizar destinacao"
 
@@ -46,6 +50,7 @@ class DestinacaoController:
         if not id_dest:
             return False, "ID invalido"
         if Destinacao.deletar(id_dest):
+            Auditoria.registrar("EXCLUIR", "destinacao", id_dest, "Destinação excluída")
             return True, "Destinacao excluida com sucesso"
         return False, "Falha ao excluir destinacao"
 

@@ -1,49 +1,31 @@
+import locale
+
+try:
+    locale.setlocale(locale.LC_TIME, "pt_BR.UTF-8")
+except locale.Error:
+    locale.setlocale(locale.LC_TIME, "Portuguese_Brazil.1252")
 import customtkinter as ctk
-from PIL import Image
-import os
+import threading
 from views.cadastros_hub import CadastrosHub
 from views.coletas import ColetasView
 from views.pontos import PontosView
+from views.destinacoes import DestinacoesView
+from views.loading import LoadingOverlay
+from views.componentes_dashboard import KPICard, GraficoPizza, GraficoBarras, GraficoLinha, CardMetricas
 from controllers.coleta_controller import ColetaController
 from controllers.ponto_controller import PontoController
 from datetime import datetime, timedelta
 from collections import Counter, defaultdict
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-plt.rcParams["font.family"] = "sans-serif"
-
-ICONS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "icons")
-
-# Paleta ECOPA Moderna
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_GREEN_BG = "#f0f7f0"
-ECOPA_LEAF = "#27ae60"
-ECOPA_WHITE = "#ffffff"
-ECOPA_CARD_BG = "#ffffff"
-ECOPA_SIDEBAR_BG = "#ffffff"
-ECOPA_SIDEBAR_ACTIVE = "#e8f5e8"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
-ECOPA_SHADOW = "#00000010"
-ECOPA_ORANGE = "#f39c12"
-ECOPA_BLUE = "#3498db"
-ECOPA_RED = "#e74c3c"
-ECOPA_YELLOW = "#f1c40f"
+from utils.theme import (
+    ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG as ECOPA_GREEN_BG,
+    ECOPA_LEAF, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER,
+    ECOPA_ORANGE, ECOPA_BLUE, ECOPA_RED,
+    ECOPA_SIDEBAR_BG, ECOPA_SIDEBAR_ACTIVE,
+    font, font_small, font_small_bold,
+)
 
 
-def carregar_icone(nome, tamanho=20):
-    """Carrega icone de assets/icons/{nome}.png. Retorna None se nao existir."""
-    caminho = os.path.join(ICONS_DIR, f"{nome}.png")
-    if os.path.exists(caminho):
-        img = Image.open(caminho).resize((tamanho, tamanho), Image.LANCZOS)
-        return ctk.CTkImage(light_image=img, dark_image=img, size=(tamanho, tamanho))
-    return None
 
 
 class MainView(ctk.CTkFrame):
@@ -67,13 +49,13 @@ class MainView(ctk.CTkFrame):
 
         leaf_icon = ctk.CTkLabel(
             logo_frame, text="🌿",
-            font=ctk.CTkFont(size=30), text_color=ECOPA_GREEN
+            font=font(30), text_color=ECOPA_GREEN
         )
         leaf_icon.pack(side="left", padx=(0, 8))
 
         ecopa_label = ctk.CTkLabel(
             logo_frame, text="ECOPA",
-            font=ctk.CTkFont(size=24, weight="bold"),
+            font=font(24, "bold"),
             text_color=ECOPA_GREEN_DARK
         )
         ecopa_label.pack(side="left")
@@ -95,6 +77,7 @@ class MainView(ctk.CTkFrame):
             ("pontos",       "Pontos",       self.abrir_pontos,      "📍"),
             ("destinacoes",  "Destinações",  self.abrir_destinacoes,  "♻️"),
             ("relatorios",   "Relatórios",   self.abrir_relatorios,  "📈"),
+            ("auditoria", "Auditoria", self.abrir_auditoria, "📝"),
         ]
 
         for nome_icone, texto, comando, emoji in botoes:
@@ -104,7 +87,7 @@ class MainView(ctk.CTkFrame):
 
             emoji_lbl = ctk.CTkLabel(
                 btn_frame, text=emoji,
-                font=ctk.CTkFont(size=18), text_color=ECOPA_GREEN,
+                font=font(18), text_color=ECOPA_GREEN,
                 width=32
             )
             emoji_lbl.pack(side="left", padx=(12, 4))
@@ -113,7 +96,7 @@ class MainView(ctk.CTkFrame):
                 btn_frame, text=texto,
                 fg_color="transparent", hover_color=ECOPA_SIDEBAR_ACTIVE,
                 anchor="w", height=40,
-                font=ctk.CTkFont(size=14, weight="normal"),
+                font=font(14),
                 text_color=ECOPA_TEXT,
                 command=comando
             )
@@ -127,7 +110,7 @@ class MainView(ctk.CTkFrame):
 
         sair_emoji = ctk.CTkLabel(
             sair_frame, text="🚪",
-            font=ctk.CTkFont(size=18), text_color=ECOPA_RED,
+            font=font(18), text_color=ECOPA_RED,
             width=32
         )
         sair_emoji.pack(side="left", padx=(12, 4))
@@ -136,7 +119,7 @@ class MainView(ctk.CTkFrame):
             sair_frame, text="Sair",
             fg_color="transparent", hover_color="#fde8e8",
             anchor="w", height=40,
-            font=ctk.CTkFont(size=14, weight="normal"),
+            font=font(14),
             text_color=ECOPA_RED,
             command=self.sair
         ).pack(side="left", fill="both", expand=True)
@@ -152,10 +135,10 @@ class MainView(ctk.CTkFrame):
         for nome, (frame, btn) in self._botoes_menu.items():
             if nome == ativo:
                 frame.configure(fg_color=ECOPA_SIDEBAR_ACTIVE)
-                btn.configure(text_color=ECOPA_GREEN, font=ctk.CTkFont(size=14, weight="bold"))
+                btn.configure(text_color=ECOPA_GREEN, font=font(14, "bold"))
             else:
                 frame.configure(fg_color="transparent")
-                btn.configure(text_color=ECOPA_TEXT, font=ctk.CTkFont(size=14, weight="normal"))
+                btn.configure(text_color=ECOPA_TEXT, font=font(14))
 
     # ============================================================
     # DASHBOARD
@@ -164,9 +147,79 @@ class MainView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("dashboard")
-        self.after(100, self._montar_dashboard)
 
-    def _montar_dashboard(self):
+        overlay = LoadingOverlay(self.content, text="Carregando dashboard...")
+        overlay.start()
+
+        def _carregar():
+            try:
+                from models.coleta import Coleta
+                from models.lote import Lote
+                from controllers.pedido_controller import PedidoController
+
+                coletas = ColetaController.listar()
+
+                resumo_c = Coleta.resumo_dashboard()
+                resumo_l = Lote.resumo_estoque_dashboard()
+                pedidos = PedidoController.listar()
+                pontos = PontoController.listar()
+
+                grafico_data = self._preparar_graficos(coletas)
+
+                self.after(0, lambda: _montar(resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data))
+            except Exception as e:
+                print(f"Erro ao carregar dashboard: {e}")
+                self.after(0, lambda: _erro())
+
+        def _montar(resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data):
+            overlay.stop()
+            self._montar_dashboard(resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data)
+
+        def _erro():
+            overlay.stop()
+            self._mostrar_erro_dashboard()
+
+        threading.Thread(target=_carregar, daemon=True).start()
+
+    def _mostrar_erro_dashboard(self):
+        if hasattr(self, '_loading_label'):
+            self._loading_label.destroy()
+        ctk.CTkLabel(
+            self.content, text="Erro ao carregar dashboard. Tente novamente.",
+            font=font(14), text_color=ECOPA_RED
+        ).pack(expand=True)
+
+    def _preparar_graficos(self, coletas):
+        """Prepara dados dos graficos em background (CPU intensivo)."""
+        status_count = Counter(c["status"] for c in coletas)
+
+        ponto_qtd = defaultdict(float)
+        for c in coletas:
+            ponto_qtd[c["ponto"]] += float(c["quantidade"] or 0)
+        top_pontos = sorted(ponto_qtd.items(), key=lambda x: x[1], reverse=True)[:5]
+
+        hoje = datetime.now().date()
+        dias = [(hoje - timedelta(days=i)) for i in range(6, -1, -1)]
+        qtd_por_dia = defaultdict(int)
+        for c in coletas:
+            if c["data_coleta"]:
+                dia = c["data_coleta"].date()
+                if (hoje - dia).days <= 6:
+                    qtd_por_dia[dia] += 1
+        valores_dias = [qtd_por_dia.get(d, 0) for d in dias]
+        dias_str = [d.strftime("%d/%m") for d in dias]
+
+        return {
+            "status_count": status_count,
+            "top_pontos": top_pontos,
+            "dias_str": dias_str,
+            "valores_dias": valores_dias,
+        }
+
+    def _montar_dashboard(self, resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data):
+        if hasattr(self, '_loading_label'):
+            self._loading_label.destroy()
+
         scroll = ctk.CTkScrollableFrame(self.content, fg_color=ECOPA_GREEN_BG)
         scroll.pack(fill="both", expand=True)
 
@@ -180,14 +233,14 @@ class MainView(ctk.CTkFrame):
         ctk.CTkLabel(
             left_header,
             text=f"Olá, {self.nome_usuario or 'Usuário'}!",
-            font=ctk.CTkFont(size=26, weight="bold"), anchor="w",
+            font=font(26, "bold"), anchor="w",
             text_color=ECOPA_GREEN_DARK
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             left_header,
             text="Supervisor de resíduos e coletas",
-            font=ctk.CTkFont(size=12), anchor="w",
+            font=font_small(12), anchor="w",
             text_color=ECOPA_TEXT_LIGHT
         ).pack(anchor="w", pady=(2, 0))
 
@@ -197,20 +250,20 @@ class MainView(ctk.CTkFrame):
         ctk.CTkLabel(
             right_header,
             text=datetime.now().strftime("%d de %B de %Y"),
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font_small(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(anchor="e")
 
         ctk.CTkLabel(
             right_header,
             text=datetime.now().strftime("%A"),
-            font=ctk.CTkFont(size=11), text_color=ECOPA_TEXT_LIGHT
+            font=font_small(11), text_color=ECOPA_TEXT_LIGHT
         ).pack(anchor="e")
 
         # Botao atualizar
         ctk.CTkButton(
             right_header, text="Atualizar", width=100, height=32,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"),
+            corner_radius=8, font=font_small_bold(12),
             command=self.abrir_dashboard
         ).pack(anchor="e", pady=(6, 0))
 
@@ -220,21 +273,15 @@ class MainView(ctk.CTkFrame):
         )
 
         # === DADOS ===
-        coletas = ColetaController.listar()
-        pontos = PontoController.listar()
+        total_coletas = resumo_c["total_coletas"]
+        quantidade_total = float(resumo_c["quantidade_total"] or 0)
+        pendentes = resumo_c["pendentes"] or 0
+        realizadas = resumo_c["realizadas"] or 0
 
-        total_coletas = len(coletas)
-        total_pontos = len(pontos)
-        quantidade_total = sum(float(c["quantidade"] or 0) for c in coletas)
-        pendentes = sum(1 for c in coletas if c["status"] == "Pendente")
-        realizadas = sum(1 for c in coletas if c["status"] == "Realizada")
+        estoque_total = float(resumo_l["estoque_total"] or 0)
 
-        from controllers.lote_controller import LoteController
-        from controllers.pedido_controller import PedidoController
-        lotes = LoteController.listar_todos()
-        estoque_total = sum(float(l["quantidade_restante"]) for l in lotes)
-        pedidos = PedidoController.listar()
         total_pedidos = len(pedidos)
+        total_pontos = len(pontos)
 
         # === KPI CARDS ===
         frame_cards = ctk.CTkFrame(scroll, fg_color="transparent")
@@ -249,227 +296,71 @@ class MainView(ctk.CTkFrame):
         ]
 
         for i, (emoji, titulo, valor, cor, bg_cor) in enumerate(cards_data):
-            card = ctk.CTkFrame(
-                frame_cards, fg_color=ECOPA_WHITE, corner_radius=16,
-                border_width=1, border_color=ECOPA_BORDER, height=100,
-            )
+            card = KPICard(frame_cards, emoji, titulo, valor, cor, bg_cor)
             card.grid(row=0, column=i, padx=6, pady=5, sticky="ew")
-            card.grid_propagate(False)
-
-            # Top accent bar
-            ctk.CTkFrame(card, fg_color=cor, height=4, corner_radius=2).pack(fill="x")
-
-            # Conteudo
-            inner = ctk.CTkFrame(card, fg_color="transparent")
-            inner.pack(fill="both", expand=True, padx=16, pady=(10, 12))
-
-            # Icone
-            icon_frame = ctk.CTkFrame(inner, fg_color=bg_cor, corner_radius=10, width=44, height=44)
-            icon_frame.pack(anchor="w", pady=(0, 8))
-            icon_frame.pack_propagate(False)
-
-            ctk.CTkLabel(
-                icon_frame, text=emoji, font=ctk.CTkFont(size=22)
-            ).place(relx=0.5, rely=0.5, anchor="center")
-
-            ctk.CTkLabel(
-                inner, text=titulo,
-                font=ctk.CTkFont(size=10, weight="bold"),
-                text_color=ECOPA_TEXT_LIGHT, anchor="w"
-            ).pack(anchor="w")
-
-            ctk.CTkLabel(
-                inner, text=valor,
-                font=ctk.CTkFont(size=28, weight="bold"),
-                text_color=ECOPA_GREEN_DARK, anchor="w"
-            ).pack(anchor="w")
 
         # === GRAFICOS ===
         graficos_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         graficos_frame.pack(fill="x", padx=32, pady=(20, 0))
         graficos_frame.grid_columnconfigure((0, 1), weight=1)
 
-        # Grafico 1 - Pizza Status
-        card_pizza = ctk.CTkFrame(
-            graficos_frame, fg_color=ECOPA_WHITE, corner_radius=16,
-            border_width=1, border_color=ECOPA_BORDER
-        )
+        card_pizza = GraficoPizza(graficos_frame, "Resumo de Coletas", grafico_data["status_count"])
         card_pizza.grid(row=0, column=0, padx=(0, 10), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(
-            card_pizza, text="Resumo de Coletas",
-            font=ctk.CTkFont(size=15, weight="bold"),
-            text_color=ECOPA_GREEN_DARK, anchor="w"
-        ).pack(fill="x", padx=20, pady=(16, 0))
-
-        fig1, ax1 = plt.subplots(figsize=(4.5, 3.2))
-        fig1.patch.set_facecolor(ECOPA_WHITE)
-        ax1.set_facecolor(ECOPA_WHITE)
-
-        status_count = Counter(c["status"] for c in coletas)
-        if status_count:
-            cores_pizza = {"Pendente": ECOPA_ORANGE, "Realizada": ECOPA_LEAF}
-            labels = list(status_count.keys())
-            sizes = list(status_count.values())
-            colors = [cores_pizza.get(l, "#999") for l in labels]
-            wedges, texts, autotexts = ax1.pie(
-                sizes, labels=labels, autopct="%1.0f%%",
-                colors=colors, startangle=90,
-                textprops={"fontsize": 10},
-                wedgeprops={"linewidth": 2, "edgecolor": ECOPA_WHITE}
-            )
-            for t in autotexts:
-                t.set_fontweight("bold")
-        else:
-            ax1.text(0.5, 0.5, "Sem dados", ha="center", va="center", fontsize=12)
-
-        plt.tight_layout(pad=1)
-        canvas1 = FigureCanvasTkAgg(fig1, master=card_pizza)
-        canvas1.draw()
-        canvas1.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=(5, 10))
-
-        # Grafico 2 - Barras Top Pontos
-        card_barras = ctk.CTkFrame(
-            graficos_frame, fg_color=ECOPA_WHITE, corner_radius=16,
-            border_width=1, border_color=ECOPA_BORDER
-        )
+        card_barras = GraficoBarras(graficos_frame, "Top 5 Pontos (Kg)", grafico_data["top_pontos"])
         card_barras.grid(row=0, column=1, padx=(10, 0), pady=5, sticky="nsew")
-
-        ctk.CTkLabel(
-            card_barras, text="Top 5 Pontos (Kg)",
-            font=ctk.CTkFont(size=15, weight="bold"),
-            text_color=ECOPA_GREEN_DARK, anchor="w"
-        ).pack(fill="x", padx=20, pady=(16, 0))
-
-        fig2, ax2 = plt.subplots(figsize=(4.5, 3.2))
-        fig2.patch.set_facecolor(ECOPA_WHITE)
-        ax2.set_facecolor(ECOPA_WHITE)
-
-        ponto_qtd = defaultdict(float)
-        for c in coletas:
-            ponto_qtd[c["ponto"]] += float(c["quantidade"] or 0)
-        top = sorted(ponto_qtd.items(), key=lambda x: x[1], reverse=True)[:5]
-        if top:
-            nomes, qtds = zip(*top)
-            bars = ax2.barh(list(nomes), list(qtds), color=ECOPA_GREEN, height=0.55,
-                           edgecolor=ECOPA_GREEN_LIGHT, linewidth=0.5)
-            ax2.tick_params(labelsize=9)
-            ax2.invert_yaxis()
-            ax2.spines["top"].set_visible(False)
-            ax2.spines["right"].set_visible(False)
-            ax2.spines["bottom"].set_color(ECOPA_BORDER)
-            ax2.spines["left"].set_color(ECOPA_BORDER)
-        else:
-            ax2.text(0.5, 0.5, "Sem dados", ha="center", va="center", fontsize=12)
-
-        plt.tight_layout(pad=1)
-        canvas2 = FigureCanvasTkAgg(fig2, master=card_barras)
-        canvas2.draw()
-        canvas2.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=(5, 10))
 
         # === SEGUNDA ROW GRAFICOS ===
         graficos2_frame = ctk.CTkFrame(scroll, fg_color="transparent")
         graficos2_frame.pack(fill="x", padx=32, pady=(10, 0))
         graficos2_frame.grid_columnconfigure((0, 1), weight=1)
 
-        # Grafico 3 - Linha Coletas por Dia
-        card_linha = ctk.CTkFrame(
-            graficos2_frame, fg_color=ECOPA_WHITE, corner_radius=16,
-            border_width=1, border_color=ECOPA_BORDER
+        card_linha = GraficoLinha(
+            graficos2_frame, "Coletas por Dia (últimos 7)",
+            grafico_data["dias_str"], grafico_data["valores_dias"]
         )
         card_linha.grid(row=0, column=0, padx=(0, 10), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(
-            card_linha, text="Coletas por Dia (últimos 7)",
-            font=ctk.CTkFont(size=15, weight="bold"),
-            text_color=ECOPA_GREEN_DARK, anchor="w"
-        ).pack(fill="x", padx=20, pady=(16, 0))
-
-        fig3, ax3 = plt.subplots(figsize=(4.5, 3.2))
-        fig3.patch.set_facecolor(ECOPA_WHITE)
-        ax3.set_facecolor(ECOPA_WHITE)
-
-        hoje = datetime.now().date()
-        dias = [(hoje - timedelta(days=i)) for i in range(6, -1, -1)]
-        qtd_por_dia = defaultdict(int)
-        for c in coletas:
-            if c["data_coleta"]:
-                dia = c["data_coleta"].date()
-                if (hoje - dia).days <= 6:
-                    qtd_por_dia[dia] += 1
-        valores = [qtd_por_dia.get(d, 0) for d in dias]
-        dias_str = [d.strftime("%d/%m") for d in dias]
-
-        ax3.plot(dias_str, valores, marker="o", color=ECOPA_GREEN, linewidth=2.5,
-                markersize=7, markerfacecolor=ECOPA_WHITE, markeredgecolor=ECOPA_GREEN, markeredgewidth=2)
-        ax3.fill_between(range(len(dias_str)), valores, alpha=0.12, color=ECOPA_GREEN)
-        ax3.set_ylim(0, max(valores) + 2 if max(valores) > 0 else 5)
-        ax3.tick_params(labelsize=9)
-        ax3.spines["top"].set_visible(False)
-        ax3.spines["right"].set_visible(False)
-        ax3.spines["bottom"].set_color(ECOPA_BORDER)
-        ax3.spines["left"].set_color(ECOPA_BORDER)
-        ax3.grid(axis="y", alpha=0.3, color=ECOPA_BORDER)
-
-        plt.tight_layout(pad=1)
-        canvas3 = FigureCanvasTkAgg(fig3, master=card_linha)
-        canvas3.draw()
-        canvas3.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=(5, 10))
-
-        # Card informativo ao lado
-        card_info = ctk.CTkFrame(
-            graficos2_frame, fg_color=ECOPA_WHITE, corner_radius=16,
-            border_width=1, border_color=ECOPA_BORDER
-        )
-        card_info.grid(row=0, column=1, padx=(10, 0), pady=5, sticky="nsew")
-
-        ctk.CTkLabel(
-            card_info, text="Resumo do Dia",
-            font=ctk.CTkFont(size=15, weight="bold"),
-            text_color=ECOPA_GREEN_DARK, anchor="w"
-        ).pack(fill="x", padx=20, pady=(16, 0))
-
-        # Metricas resumo
         metricas = [
             ("Total Coletado", f"{quantidade_total:.1f} Kg", ECOPA_GREEN),
             ("Pontos Cadastrados", str(total_pontos), ECOPA_BLUE),
             ("Coletas Pendentes", str(pendentes), ECOPA_ORANGE),
             ("Coletas Realizadas", str(realizadas), ECOPA_LEAF),
         ]
-
-        for titulo, valor, cor in metricas:
-            met_frame = ctk.CTkFrame(card_info, fg_color="transparent")
-            met_frame.pack(fill="x", padx=20, pady=8)
-
-            ctk.CTkFrame(met_frame, fg_color=cor, width=4, corner_radius=2).pack(
-                side="left", fill="y", padx=(0, 12), pady=2
-            )
-
-            left_met = ctk.CTkFrame(met_frame, fg_color="transparent")
-            left_met.pack(side="left", fill="x", expand=True)
-
-            ctk.CTkLabel(
-                left_met, text=titulo,
-                font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT,
-                anchor="w"
-            ).pack(anchor="w")
-
-            ctk.CTkLabel(
-                left_met, text=valor,
-                font=ctk.CTkFont(size=18, weight="bold"),
-                text_color=ECOPA_GREEN_DARK, anchor="w"
-            ).pack(anchor="w")
+        card_info = CardMetricas(graficos2_frame, "Resumo do Dia", metricas)
+        card_info.grid(row=0, column=1, padx=(10, 0), pady=5, sticky="nsew")
 
         # Rodape
         ctk.CTkLabel(
             scroll, text=f"© {datetime.now().year} ECOPA System — Todos os direitos reservados",
-            font=ctk.CTkFont(size=10), text_color=ECOPA_TEXT_LIGHT
+            font=font_small(10), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(30, 15))
 
     # ============================================================
     # NAVEGACAO
     # ============================================================
+    def _navegar_com_loading(self, nome_menu, funcao_carregar):
+        """Navega para uma tela com loading visual."""
+        for widget in self.content.winfo_children():
+            widget.destroy()
+        self._destacar_menu(nome_menu)
+
+        overlay = LoadingOverlay(self.content, text=f"Carregando {nome_menu}...")
+        overlay.start()
+
+        def _tarefa():
+            try:
+                funcao_carregar()
+            except Exception as e:
+                print(f"Erro ao carregar {nome_menu}: {e}")
+            finally:
+                self.after(0, lambda: overlay.stop())
+
+        threading.Thread(target=_tarefa, daemon=True).start()
+
     def abrir_gerente(self):
+        def _carregar():
+            pass
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("gerente")
@@ -492,7 +383,6 @@ class MainView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("destinacoes")
-        from views.destinacoes import DestinacoesView
         DestinacoesView(self, self.content)
 
     def abrir_cadastros(self):
@@ -507,6 +397,13 @@ class MainView(ctk.CTkFrame):
         self._destacar_menu("relatorios")
         from views.relatorios import RelatoriosView
         RelatoriosView(self, self.content)
+
+    def abrir_auditoria(self):
+        for widget in self.content.winfo_children():
+            widget.destroy()
+        self._destacar_menu("auditoria")
+        from views.auditoria import AuditoriaView
+        AuditoriaView(self, self.content)
 
     def abrir_lotes(self):
         for widget in self.content.winfo_children():
@@ -523,4 +420,6 @@ class MainView(ctk.CTkFrame):
         PedidosView(self, self.content)
 
     def sair(self):
+        from utils.sessao import encerrar
+        encerrar()
         self.winfo_toplevel().destroy()

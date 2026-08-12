@@ -1,33 +1,23 @@
 import customtkinter as ctk
 from tkinter import messagebox, filedialog
-from controllers.coleta_controller import ColetaController
-from controllers.ponto_controller import PontoController
-from controllers.lote_controller import LoteController
-from controllers.pedido_controller import PedidoController
 from models.relatorio import Relatorio
-from datetime import datetime
-from collections import defaultdict
+from datetime import datetime, timedelta
+from collections import defaultdict, Counter
+import threading
+import queue
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backends.backend_pdf import PdfPages
-import os
 
 plt.rcParams["font.family"] = "sans-serif"
 
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_BG = "#f0f7f0"
-ECOPA_WHITE = "#ffffff"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
-ECOPA_ORANGE = "#f39c12"
-ECOPA_LEAF = "#27ae60"
-ECOPA_BLUE = "#3498db"
-ECOPA_RED = "#e74c3c"
+from utils.theme import (
+    ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE,
+    ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_ORANGE, ECOPA_LEAF,
+    ECOPA_BLUE, ECOPA_RED, font, font_title, font_small, font_small_bold,
+)
 
 
 class RelatoriosView(ctk.CTkFrame):
@@ -56,13 +46,13 @@ class RelatoriosView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             left, text="Relatórios",
-            font=ctk.CTkFont(size=30, weight="bold"), anchor="w",
+            font=font_title(30), anchor="w",
             text_color=ECOPA_GREEN_DARK
         ).pack(anchor="w")
 
         ctk.CTkLabel(
-            left, text="Analise completa de coletas e destinacoes",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
+            left, text="Analise completa de coletas e destinações",
+            font=font_small(12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
         right = ctk.CTkFrame(header, fg_color="transparent")
@@ -71,7 +61,7 @@ class RelatoriosView(ctk.CTkFrame):
         ctk.CTkButton(
             right, text="Gerar PDF", width=120, height=36,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=12, weight="bold"),
+            corner_radius=10, font=font_small_bold(12),
             command=self._gerar_pdf
         ).pack(anchor="e")
 
@@ -84,7 +74,9 @@ class RelatoriosView(ctk.CTkFrame):
         self._montar_filtros(scroll)
 
         # Dados iniciais
-        self._dados_coletas = ColetaController.listar()
+        self._dados_coletas = Relatorio.coletas_filtradas()
+        self._filtro_data_inicio = None
+        self._filtro_data_fim = None
         self._montar_conteudo()
 
     def _montar_filtros(self, parent):
@@ -96,7 +88,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card, text="Filtros",
-            font=ctk.CTkFont(size=13, weight="bold"), text_color=ECOPA_TEXT,
+            font=font(13, "bold"), text_color=ECOPA_TEXT,
             anchor="w"
         ).pack(anchor="w", padx=20, pady=(14, 8))
 
@@ -105,7 +97,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         # Data inicio
         ctk.CTkLabel(
-            filtros, text="De:", font=ctk.CTkFont(size=12),
+            filtros, text="De:", font=font_small(12),
             text_color=ECOPA_TEXT_LIGHT
         ).pack(side="left", padx=(0, 4))
 
@@ -117,7 +109,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         # Data fim
         ctk.CTkLabel(
-            filtros, text="Ate:", font=ctk.CTkFont(size=12),
+            filtros, text="Até:", font=font_small(12),
             text_color=ECOPA_TEXT_LIGHT
         ).pack(side="left", padx=(0, 4))
 
@@ -129,7 +121,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         # Ponto de coleta
         ctk.CTkLabel(
-            filtros, text="Ponto:", font=ctk.CTkFont(size=12),
+            filtros, text="Ponto:", font=font_small(12),
             text_color=ECOPA_TEXT_LIGHT
         ).pack(side="left", padx=(0, 4))
 
@@ -147,7 +139,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         # Status
         ctk.CTkLabel(
-            filtros, text="Status:", font=ctk.CTkFont(size=12),
+            filtros, text="Status:", font=font_small(12),
             text_color=ECOPA_TEXT_LIGHT
         ).pack(side="left", padx=(0, 4))
 
@@ -164,14 +156,14 @@ class RelatoriosView(ctk.CTkFrame):
         ctk.CTkButton(
             filtros, text="Filtrar", width=90, height=36,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=12, weight="bold"),
+            corner_radius=10, font=font_small_bold(12),
             command=self._aplicar_filtros
         ).pack(side="left", padx=(0, 6))
 
         ctk.CTkButton(
             filtros, text="Limpar", width=80, height=36,
             fg_color="transparent", hover_color=ECOPA_BG,
-            corner_radius=10, font=ctk.CTkFont(size=12),
+            corner_radius=10, font=font_small(12),
             text_color=ECOPA_GREEN, border_width=1, border_color=ECOPA_GREEN,
             command=self._limpar_filtros
         ).pack(side="left")
@@ -185,11 +177,27 @@ class RelatoriosView(ctk.CTkFrame):
             return None
 
     def _aplicar_filtros(self):
-        data_inicio = self._parse_data(self.entry_data_inicio.get())
-        data_fim = self._parse_data(self.entry_data_fim.get())
+        data_inicio_texto = self.entry_data_inicio.get().strip()
+        data_fim_texto = self.entry_data_fim.get().strip()
+
+        data_inicio = self._parse_data(data_inicio_texto)
+        if data_inicio_texto and data_inicio is None:
+            messagebox.showwarning("Aviso", "Data inicial invalida. Use o formato DD/MM/AAAA.")
+            return
+        data_fim = self._parse_data(data_fim_texto)
+        if data_fim_texto and data_fim is None:
+            messagebox.showwarning("Aviso", "Data final invalida. Use o formato DD/MM/AAAA.")
+            return
+        # Incluir todo o dia final (ate 23:59:59)
+        if data_fim:
+            data_fim = data_fim + " 23:59:59"
+
         ponto_nome = self.filtro_ponto.get()
         id_ponto = self._pontos_map.get(ponto_nome) if ponto_nome != "TODOS" else None
         status = self.filtro_status.get()
+
+        self._filtro_data_inicio = data_inicio
+        self._filtro_data_fim = data_fim
 
         self._dados_coletas = Relatorio.coletas_filtradas(
             data_inicio=data_inicio, data_fim=data_fim,
@@ -202,7 +210,9 @@ class RelatoriosView(ctk.CTkFrame):
         self.entry_data_fim.delete(0, "end")
         self.filtro_ponto.set("TODOS")
         self.filtro_status.set("TODOS")
-        self._dados_coletas = ColetaController.listar()
+        self._filtro_data_inicio = None
+        self._filtro_data_fim = None
+        self._dados_coletas = Relatorio.coletas_filtradas()
         self._montar_conteudo()
 
     def _montar_conteudo(self):
@@ -225,7 +235,9 @@ class RelatoriosView(ctk.CTkFrame):
         pendentes = sum(1 for c in coletas if c["status"] == "Pendente")
         realizadas = sum(1 for c in coletas if c["status"] == "Realizada")
 
-        destino = Relatorio.resumo_destinacoes()
+        destino = Relatorio.resumo_destinacoes(
+            data_inicio=self._filtro_data_inicio,
+            data_fim=self._filtro_data_fim)
         total_dest = len(destino)
 
         kpi_frame = ctk.CTkFrame(conteudo, fg_color="transparent")
@@ -255,13 +267,13 @@ class RelatoriosView(ctk.CTkFrame):
 
             ctk.CTkLabel(
                 inner, text=titulo,
-                font=ctk.CTkFont(size=10, weight="bold"),
+                font=font_small_bold(10),
                 text_color=ECOPA_TEXT_LIGHT, anchor="w"
             ).pack(anchor="w")
 
             ctk.CTkLabel(
                 inner, text=valor,
-                font=ctk.CTkFont(size=24, weight="bold"),
+                font=font(24, "bold"),
                 text_color=ECOPA_GREEN_DARK, anchor="w"
             ).pack(anchor="w")
 
@@ -273,18 +285,18 @@ class RelatoriosView(ctk.CTkFrame):
         self._grafico_pizza(graficos_frame, coletas)
         self._grafico_barras_pontos(graficos_frame, coletas)
         self._grafico_linha(graficos_frame, coletas)
-        self._grafico_destinacoes(graficos_frame)
+        self._grafico_destinacoes(graficos_frame, destino)
 
         # Tabela coletas por ponto
-        self._tabela_por_ponto(conteudo)
+        self._tabela_por_ponto(conteudo, coletas)
 
         # Tabela destinacoes
-        self._tabela_destinacoes(conteudo)
+        self._tabela_destinacoes(conteudo, destino)
 
         # Rodape
         ctk.CTkLabel(
             conteudo, text=f"Gerado em {datetime.now().strftime('%d/%m/%Y as %H:%M')}",
-            font=ctk.CTkFont(size=10), text_color=ECOPA_TEXT_LIGHT
+            font=font_small(10), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(20, 10))
 
     def _grafico_pizza(self, parent, coletas):
@@ -296,7 +308,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card, text="Coletas por Status",
-            font=ctk.CTkFont(size=14, weight="bold"),
+            font=font(14, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=16, pady=(14, 0))
 
@@ -324,6 +336,7 @@ class RelatoriosView(ctk.CTkFrame):
         canvas = FigureCanvasTkAgg(fig, master=card)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=(4, 8))
+        plt.close(fig)
 
     def _grafico_barras_pontos(self, parent, coletas):
         card = ctk.CTkFrame(
@@ -334,7 +347,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card, text="Coletas por Ponto (Kg)",
-            font=ctk.CTkFont(size=14, weight="bold"),
+            font=font(14, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=16, pady=(14, 0))
 
@@ -364,6 +377,7 @@ class RelatoriosView(ctk.CTkFrame):
         canvas = FigureCanvasTkAgg(fig, master=card)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=(4, 8))
+        plt.close(fig)
 
     def _grafico_linha(self, parent, coletas):
         card = ctk.CTkFrame(
@@ -374,7 +388,7 @@ class RelatoriosView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card, text="Coletas por Dia (ultimos 7)",
-            font=ctk.CTkFont(size=14, weight="bold"),
+            font=font(14, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=16, pady=(14, 0))
 
@@ -410,8 +424,9 @@ class RelatoriosView(ctk.CTkFrame):
         canvas = FigureCanvasTkAgg(fig, master=card)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=(4, 8))
+        plt.close(fig)
 
-    def _grafico_destinacoes(self, parent):
+    def _grafico_destinacoes(self, parent, dest):
         card = ctk.CTkFrame(
             parent, fg_color=ECOPA_WHITE, corner_radius=16,
             border_width=1, border_color=ECOPA_BORDER
@@ -419,8 +434,8 @@ class RelatoriosView(ctk.CTkFrame):
         card.grid(row=1, column=1, padx=(8, 0), pady=(0, 8), sticky="nsew")
 
         ctk.CTkLabel(
-            card, text="Destinacoes por Cliente",
-            font=ctk.CTkFont(size=14, weight="bold"),
+            card, text="Destinações por Cliente",
+            font=font(14, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=16, pady=(14, 0))
 
@@ -428,10 +443,9 @@ class RelatoriosView(ctk.CTkFrame):
         fig.patch.set_facecolor(ECOPA_WHITE)
         ax.set_facecolor(ECOPA_WHITE)
 
-        dest = Relatorio.resumo_destinacoes()
         cliente_qtd = defaultdict(float)
         for d in dest:
-            cliente_qtd[d["cliente"]] += float(d["quantidade"] or 0)
+            cliente_qtd[d["destinacao"]] += float(d["total_kg"] or 0)
         top = sorted(cliente_qtd.items(), key=lambda x: x[1], reverse=True)[:7]
 
         if top:
@@ -445,15 +459,16 @@ class RelatoriosView(ctk.CTkFrame):
             ax.spines["bottom"].set_color(ECOPA_BORDER)
             ax.spines["left"].set_color(ECOPA_BORDER)
         else:
-            ax.text(0.5, 0.5, "Sem destinacoes registradas",
+            ax.text(0.5, 0.5, "Sem destinações registradas",
                     ha="center", va="center", fontsize=11, color=ECOPA_TEXT_LIGHT)
 
         plt.tight_layout(pad=1)
         canvas = FigureCanvasTkAgg(fig, master=card)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=(4, 8))
+        plt.close(fig)
 
-    def _tabela_por_ponto(self, parent):
+    def _tabela_por_ponto(self, parent, coletas):
         card = ctk.CTkFrame(
             parent, fg_color=ECOPA_WHITE, corner_radius=16,
             border_width=1, border_color=ECOPA_BORDER
@@ -462,11 +477,23 @@ class RelatoriosView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card, text="Coletas por Ponto de Coleta",
-            font=ctk.CTkFont(size=15, weight="bold"),
+            font=font(15, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(16, 8))
 
-        dados = Relatorio.coletas_por_ponto()
+        # Agregar dados a partir das coletas filtradas
+        agg = defaultdict(lambda: {"ponto": "", "total_coletas": 0, "total_kg": 0.0, "pendentes": 0, "realizadas": 0})
+        for c in coletas:
+            ponto = c["ponto"]
+            a = agg[ponto]
+            a["ponto"] = ponto
+            a["total_coletas"] += 1
+            a["total_kg"] += float(c["quantidade"] or 0)
+            if c["status"] == "Pendente":
+                a["pendentes"] += 1
+            elif c["status"] == "Realizada":
+                a["realizadas"] += 1
+        dados = sorted(agg.values(), key=lambda d: d["total_coletas"], reverse=True)
 
         # Cabecalho
         cabecalhos = ["Ponto", "Total Coletas", "Total Kg", "Pendentes", "Realizadas"]
@@ -476,14 +503,14 @@ class RelatoriosView(ctk.CTkFrame):
         for col, texto in enumerate(cabecalhos):
             ctk.CTkLabel(
                 header_frame, text=texto,
-                font=ctk.CTkFont(size=12, weight="bold"),
+                font=font_small_bold(12),
                 text_color=ECOPA_WHITE, width=160
             ).grid(row=0, column=col, padx=12, pady=8, sticky="w")
 
         if not dados:
             ctk.CTkLabel(
                 card, text="Nenhum dado encontrado",
-                font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+                font=font_small(12), text_color=ECOPA_TEXT_LIGHT
             ).pack(pady=20)
             return
 
@@ -503,21 +530,21 @@ class RelatoriosView(ctk.CTkFrame):
             for col, val in enumerate(valores):
                 if col == 3 and int(d["pendentes"] or 0) > 0:
                     ctk.CTkLabel(
-                        row, text=val, font=ctk.CTkFont(size=12),
+                        row, text=val, font=font_small(12),
                         text_color=ECOPA_ORANGE, width=160, anchor="w"
                     ).grid(row=0, column=col, padx=12, pady=6, sticky="w")
                 elif col == 4 and int(d["realizadas"] or 0) > 0:
                     ctk.CTkLabel(
-                        row, text=val, font=ctk.CTkFont(size=12),
+                        row, text=val, font=font_small(12),
                         text_color=ECOPA_LEAF, width=160, anchor="w"
                     ).grid(row=0, column=col, padx=12, pady=6, sticky="w")
                 else:
                     ctk.CTkLabel(
-                        row, text=val, font=ctk.CTkFont(size=12),
+                        row, text=val, font=font_small(12),
                         text_color=ECOPA_TEXT, width=160, anchor="w"
                     ).grid(row=0, column=col, padx=12, pady=6, sticky="w")
 
-    def _tabela_destinacoes(self, parent):
+    def _tabela_destinacoes(self, parent, dest):
         card = ctk.CTkFrame(
             parent, fg_color=ECOPA_WHITE, corner_radius=16,
             border_width=1, border_color=ECOPA_BORDER
@@ -526,11 +553,11 @@ class RelatoriosView(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card, text="Resumo de Destinações",
-            font=ctk.CTkFont(size=15, weight="bold"),
+            font=font(15, "bold"),
             text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(16, 8))
 
-        dados = Relatorio.resumo_destinacoes()
+        dados = dest
 
         cabecalhos = ["Destinação", "Tipo", "Total Pedidos", "Total Kg"]
         header_frame = ctk.CTkFrame(card, fg_color=ECOPA_GREEN, corner_radius=10)
@@ -539,14 +566,14 @@ class RelatoriosView(ctk.CTkFrame):
         for col, texto in enumerate(cabecalhos):
             ctk.CTkLabel(
                 header_frame, text=texto,
-                font=ctk.CTkFont(size=12, weight="bold"),
+                font=font_small_bold(12),
                 text_color=ECOPA_WHITE, width=180
             ).grid(row=0, column=col, padx=12, pady=8, sticky="w")
 
         if not dados:
             ctk.CTkLabel(
-                card, text="Nenhuma destinacao registrada",
-                font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+                card, text="Nenhuma destinação registrada",
+                font=font_small(12), text_color=ECOPA_TEXT_LIGHT
             ).pack(pady=20)
             return
 
@@ -560,7 +587,7 @@ class RelatoriosView(ctk.CTkFrame):
 
             for col, val in enumerate(valores):
                 ctk.CTkLabel(
-                    row, text=val, font=ctk.CTkFont(size=12),
+                    row, text=val, font=font_small(12),
                     text_color=ECOPA_TEXT, width=180, anchor="w"
                 ).grid(row=0, column=col, padx=12, pady=6, sticky="w")
 
@@ -568,82 +595,117 @@ class RelatoriosView(ctk.CTkFrame):
         caminho = filedialog.asksaveasfilename(
             defaultextension=".pdf",
             filetypes=[("PDF", "*.pdf")],
-            title="Salvar Relatorio",
+            title="Salvar Relatório",
             initialfile=f"relatorio_ecopa_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
         )
         if not caminho:
             return
 
-        try:
-            coletas = self._dados_coletas
-            with PdfPages(caminho) as pdf:
-                # Pagina 1: Titulo e KPIs
-                fig1, ax1 = plt.subplots(figsize=(8.27, 11.69))
-                fig1.patch.set_facecolor(ECOPA_WHITE)
-                ax1.axis("off")
+        coletas = list(self._dados_coletas)
+        data_inicio = self._filtro_data_inicio
+        data_fim = self._filtro_data_fim
 
-                ax1.text(0.5, 0.92, "Relatorio ECOPA", fontsize=28, fontweight="bold",
-                         ha="center", va="top", color=ECOPA_GREEN_DARK)
-                ax1.text(0.5, 0.88, f"Gerado em {datetime.now().strftime('%d/%m/%Y as %H:%M')}",
-                         fontsize=11, ha="center", va="top", color=ECOPA_TEXT_LIGHT)
+        fila = queue.Queue()
 
-                total = len(coletas)
-                qtd_total = sum(float(c["quantidade"] or 0) for c in coletas)
-                pendentes = sum(1 for c in coletas if c["status"] == "Pendente")
-                realizadas = sum(1 for c in coletas if c["status"] == "Realizada")
+        def _tarefa():
+            figs_criadas = []
+            try:
+                destino = Relatorio.resumo_destinacoes(
+                    data_inicio=data_inicio, data_fim=data_fim)
+                with PdfPages(caminho) as pdf:
+                    # Pagina 1: Titulo e KPIs
+                    fig1, ax1 = plt.subplots(figsize=(8.27, 11.69))
+                    figs_criadas.append(fig1)
+                    fig1.patch.set_facecolor(ECOPA_WHITE)
+                    ax1.axis("off")
 
-                y = 0.80
-                ax1.text(0.1, y, "Resumo Geral", fontsize=16, fontweight="bold",
-                         color=ECOPA_GREEN_DARK)
-                y -= 0.05
-                ax1.text(0.1, y, f"Total de Coletas: {total}", fontsize=12)
-                y -= 0.04
-                ax1.text(0.1, y, f"Quantidade Total: {qtd_total:.1f} Kg", fontsize=12)
-                y -= 0.04
-                ax1.text(0.1, y, f"Pendentes: {pendentes}", fontsize=12, color=ECOPA_ORANGE)
-                y -= 0.04
-                ax1.text(0.1, y, f"Realizadas: {realizadas}", fontsize=12, color=ECOPA_LEAF)
+                    ax1.text(0.5, 0.92, "Relatório ECOPA", fontsize=28, fontweight="bold",
+                             ha="center", va="top", color=ECOPA_GREEN_DARK)
+                    ax1.text(0.5, 0.88, f"Gerado em {datetime.now().strftime('%d/%m/%Y as %H:%M')}",
+                             fontsize=11, ha="center", va="top", color=ECOPA_TEXT_LIGHT)
 
-                plt.tight_layout()
-                pdf.savefig(fig1)
-                plt.close(fig1)
+                    total = len(coletas)
+                    qtd_total = sum(float(c["quantidade"] or 0) for c in coletas)
+                    pendentes = sum(1 for c in coletas if c["status"] == "Pendente")
+                    realizadas = sum(1 for c in coletas if c["status"] == "Realizada")
 
-                # Pagina 2: Grafico de status (pizza)
-                if coletas:
-                    fig2, ax2 = plt.subplots(figsize=(8.27, 5))
-                    from collections import Counter
-                    status_count = Counter(c["status"] for c in coletas)
-                    cores = {"Pendente": ECOPA_ORANGE, "Realizada": ECOPA_LEAF}
-                    labels = list(status_count.keys())
-                    sizes = list(status_count.values())
-                    colors = [cores.get(l, "#999") for l in labels]
-                    ax2.pie(sizes, labels=labels, autopct="%1.0f%%", colors=colors,
-                            startangle=90, textprops={"fontsize": 14},
-                            wedgeprops={"linewidth": 2, "edgecolor": ECOPA_WHITE})
-                    ax2.set_title("Coletas por Status", fontsize=16, fontweight="bold",
-                                  color=ECOPA_GREEN_DARK, pad=20)
+                    y = 0.80
+                    ax1.text(0.1, y, "Resumo Geral", fontsize=16, fontweight="bold",
+                             color=ECOPA_GREEN_DARK)
+                    y -= 0.05
+                    ax1.text(0.1, y, f"Total de Coletas: {total}", fontsize=12)
+                    y -= 0.04
+                    ax1.text(0.1, y, f"Quantidade Total: {qtd_total:.1f} Kg", fontsize=12)
+                    y -= 0.04
+                    ax1.text(0.1, y, f"Pendentes: {pendentes}", fontsize=12, color=ECOPA_ORANGE)
+                    y -= 0.04
+                    ax1.text(0.1, y, f"Realizadas: {realizadas}", fontsize=12, color=ECOPA_LEAF)
+
                     plt.tight_layout()
-                    pdf.savefig(fig2)
-                    plt.close(fig2)
+                    pdf.savefig(fig1)
 
-                # Pagina 3: Grafico por ponto (barras)
-                ponto_qtd = defaultdict(float)
-                for c in coletas:
-                    ponto_qtd[c["ponto"]] += float(c["quantidade"] or 0)
-                if ponto_qtd:
-                    fig3, ax3 = plt.subplots(figsize=(8.27, 5))
-                    top = sorted(ponto_qtd.items(), key=lambda x: x[1], reverse=True)[:10]
-                    nomes, qtds = zip(*top)
-                    ax3.barh(list(nomes), list(qtds), color=ECOPA_GREEN, height=0.6)
-                    ax3.invert_yaxis()
-                    ax3.set_title("Coletas por Ponto (Kg)", fontsize=16, fontweight="bold",
-                                  color=ECOPA_GREEN_DARK, pad=20)
-                    ax3.spines["top"].set_visible(False)
-                    ax3.spines["right"].set_visible(False)
-                    plt.tight_layout()
-                    pdf.savefig(fig3)
-                    plt.close(fig3)
+                    # Pagina 2: Grafico de status (pizza)
+                    if coletas:
+                        fig2, ax2 = plt.subplots(figsize=(8.27, 5))
+                        figs_criadas.append(fig2)
+                        status_count = Counter(c["status"] for c in coletas)
+                        cores = {"Pendente": ECOPA_ORANGE, "Realizada": ECOPA_LEAF}
+                        labels = list(status_count.keys())
+                        sizes = list(status_count.values())
+                        colors = [cores.get(l, "#999") for l in labels]
+                        ax2.pie(sizes, labels=labels, autopct="%1.0f%%", colors=colors,
+                                startangle=90, textprops={"fontsize": 14},
+                                wedgeprops={"linewidth": 2, "edgecolor": ECOPA_WHITE})
+                        ax2.set_title("Coletas por Status", fontsize=16, fontweight="bold",
+                                      color=ECOPA_GREEN_DARK, pad=20)
+                        plt.tight_layout()
+                        pdf.savefig(fig2)
 
-            messagebox.showinfo("Sucesso", f"Relatorio salvo em:\n{caminho}")
-        except Exception as e:
-            messagebox.showerror("Erro", f"Falha ao gerar PDF:\n{e}")
+                    # Pagina 3: Grafico por ponto (barras)
+                    ponto_qtd = defaultdict(float)
+                    for c in coletas:
+                        ponto_qtd[c["ponto"]] += float(c["quantidade"] or 0)
+                    if ponto_qtd:
+                        fig3, ax3 = plt.subplots(figsize=(8.27, 5))
+                        figs_criadas.append(fig3)
+                        top = sorted(ponto_qtd.items(), key=lambda x: x[1], reverse=True)[:10]
+                        nomes, qtds = zip(*top)
+                        ax3.barh(list(nomes), list(qtds), color=ECOPA_GREEN, height=0.6)
+                        ax3.invert_yaxis()
+                        ax3.set_title("Coletas por Ponto (Kg)", fontsize=16, fontweight="bold",
+                                      color=ECOPA_GREEN_DARK, pad=20)
+                        ax3.spines["top"].set_visible(False)
+                        ax3.spines["right"].set_visible(False)
+                        plt.tight_layout()
+                        pdf.savefig(fig3)
+
+                fila.put(("ok", caminho))
+            except Exception as e:
+                fila.put(("erro", str(e)))
+            finally:
+                for fig in figs_criadas:
+                    try:
+                        plt.close(fig)
+                    except Exception:
+                        pass
+
+        def _poll():
+            try:
+                if not self.winfo_exists():
+                    return
+                status, payload = fila.get_nowait()
+            except queue.Empty:
+                try:
+                    self.after(100, _poll)
+                except Exception:
+                    pass
+                return
+            except Exception:
+                return
+            if status == "ok":
+                messagebox.showinfo("Sucesso", f"Relatório salvo em:\n{payload}")
+            else:
+                messagebox.showerror("Erro", f"Falha ao gerar PDF:\n{payload}")
+
+        self.after(100, _poll)
+        threading.Thread(target=_tarefa, daemon=True).start()

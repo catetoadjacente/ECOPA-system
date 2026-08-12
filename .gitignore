@@ -25,3 +25,4 @@ db.sqlite3
 # AI assistant config
 AGENTS.md
 .mimocode/
+_dream_inspect.py

@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS ponto_de_coleta (
   estabelecimento VARCHAR(100) NOT NULL,
   telefone VARCHAR(45) NOT NULL,
   proprietario VARCHAR(90) NOT NULL,
+  ativo TINYINT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (id_ponto))
 ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb3;
 
@@ -41,7 +42,7 @@ CREATE TABLE IF NOT EXISTS coleta (
   quantidade DECIMAL(10,2) NOT NULL,
   observacao TEXT NULL,
   status ENUM('Pendente', 'Realizada') NOT NULL DEFAULT 'Pendente',
-  gerente_cpf VARCHAR(11) NOT NULL,
+  gerente_cpf VARCHAR(11) NULL,
   ponto_de_coleta_id_ponto INT NOT NULL,
   PRIMARY KEY (id_coleta),
   INDEX fk_coleta_gerente1_idx (gerente_cpf ASC) VISIBLE,
@@ -49,7 +50,7 @@ CREATE TABLE IF NOT EXISTS coleta (
   CONSTRAINT fk_coleta_gerente1
     FOREIGN KEY (gerente_cpf)
     REFERENCES gerente (cpf)
-    ON DELETE NO ACTION ON UPDATE NO ACTION,
+    ON DELETE SET NULL ON UPDATE NO ACTION,
   CONSTRAINT fk_coleta_ponto_de_coleta1
     FOREIGN KEY (ponto_de_coleta_id_ponto)
     REFERENCES ponto_de_coleta (id_ponto)
@@ -145,3 +146,31 @@ CREATE TABLE IF NOT EXISTS pedido_lote (
     REFERENCES lote (id_lote)
     ON DELETE NO ACTION ON UPDATE NO ACTION)
 ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb3;
+
+-- =============================================================
+-- Indices para performance (consultas com filtro de data/status)
+-- =============================================================
+CREATE INDEX idx_coleta_data ON coleta(data);
+CREATE INDEX idx_coleta_status ON coleta(status);
+CREATE INDEX idx_pedido_data ON pedido(data);
+CREATE INDEX idx_pedido_status ON pedido(status);
+
+-- -----------------------------------------------------
+-- Table: auditoria (histórico de ações relevantes)
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS auditoria (
+  id_auditoria INT NOT NULL AUTO_INCREMENT,
+  gerente_cpf VARCHAR(11) NULL,
+  acao VARCHAR(30) NOT NULL,
+  entidade VARCHAR(50) NOT NULL,
+  registro_id VARCHAR(100) NOT NULL,
+  detalhes TEXT NULL,
+  criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id_auditoria),
+  INDEX idx_auditoria_data (criado_em),
+  INDEX idx_auditoria_entidade_registro (entidade, registro_id),
+  CONSTRAINT fk_auditoria_gerente
+    FOREIGN KEY (gerente_cpf)
+    REFERENCES gerente (cpf)
+    ON DELETE SET NULL ON UPDATE NO ACTION
+) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb3;

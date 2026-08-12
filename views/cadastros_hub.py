@@ -2,17 +2,7 @@ import customtkinter as ctk
 from views.cadastro_gerente import CadastroGerente
 from views.cadastro_pontos import CadastroPonto
 from views.cadastro_coleta import CadastroColeta
-
-# Paleta ECOPA
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_BG = "#f0f7f0"
-ECOPA_WHITE = "#ffffff"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
-ECOPA_BLUE = "#3498db"
+from utils.theme import font, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_BLUE
 
 
 class CadastrosHub(ctk.CTkFrame):
@@ -37,13 +27,13 @@ class CadastrosHub(ctk.CTkFrame):
 
         ctk.CTkLabel(
             left, text="Cadastros",
-            font=ctk.CTkFont(size=30, weight="bold"), anchor="w",
+            font=font(30, "bold"), anchor="w",
             text_color=ECOPA_GREEN_DARK
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             left, text="Escolha o tipo de cadastro",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
+            font=font(12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
         # Linha verde
@@ -66,23 +56,23 @@ class CadastrosHub(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card_coleta, text="🚛",
-            font=ctk.CTkFont(size=44), text_color=ECOPA_GREEN
+            font=font(44), text_color=ECOPA_GREEN
         ).pack(pady=(40, 8))
 
         ctk.CTkLabel(
             card_coleta, text="Coleta",
-            font=ctk.CTkFont(size=18, weight="bold"), text_color=ECOPA_GREEN_DARK
+            font=font(18, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack()
 
         ctk.CTkLabel(
             card_coleta, text="Cadastrar nova coleta de resíduos",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(4, 20))
 
         ctk.CTkButton(
             card_coleta, text="Novo Cadastro", width=150, height=40,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.nova_coleta
         ).pack(pady=(0, 30))
 
@@ -95,23 +85,23 @@ class CadastrosHub(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card_gerente, text="👤",
-            font=ctk.CTkFont(size=44), text_color=ECOPA_GREEN
+            font=font(44), text_color=ECOPA_GREEN
         ).pack(pady=(40, 8))
 
         ctk.CTkLabel(
             card_gerente, text="Gerente",
-            font=ctk.CTkFont(size=18, weight="bold"), text_color=ECOPA_GREEN_DARK
+            font=font(18, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack()
 
         ctk.CTkLabel(
             card_gerente, text="Cadastrar novo gerente do sistema",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(4, 20))
 
         ctk.CTkButton(
             card_gerente, text="Novo Cadastro", width=150, height=40,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.novo_gerente
         ).pack(pady=(0, 30))
 
@@ -124,23 +114,23 @@ class CadastrosHub(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card_ponto, text="📍",
-            font=ctk.CTkFont(size=44), text_color=ECOPA_GREEN
+            font=font(44), text_color=ECOPA_GREEN
         ).pack(pady=(40, 8))
 
         ctk.CTkLabel(
             card_ponto, text="Ponto de Coleta",
-            font=ctk.CTkFont(size=18, weight="bold"), text_color=ECOPA_GREEN_DARK
+            font=font(18, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack()
 
         ctk.CTkLabel(
             card_ponto, text="Cadastrar novo ponto de coleta",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(4, 20))
 
         ctk.CTkButton(
             card_ponto, text="Novo Cadastro", width=150, height=40,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.novo_ponto
         ).pack(pady=(0, 30))
 
@@ -153,23 +143,23 @@ class CadastrosHub(ctk.CTkFrame):
 
         ctk.CTkLabel(
             card_dest, text="♻️",
-            font=ctk.CTkFont(size=44), text_color=ECOPA_GREEN
+            font=font(44), text_color=ECOPA_GREEN
         ).pack(pady=(40, 8))
 
         ctk.CTkLabel(
             card_dest, text="Destinação",
-            font=ctk.CTkFont(size=18, weight="bold"), text_color=ECOPA_GREEN_DARK
+            font=font(18, "bold"), text_color=ECOPA_GREEN_DARK
         ).pack()
 
         ctk.CTkLabel(
             card_dest, text="Cadastrar local de destino",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT
+            font=font(12), text_color=ECOPA_TEXT_LIGHT
         ).pack(pady=(4, 20))
 
         ctk.CTkButton(
             card_dest, text="Novo Cadastro", width=150, height=40,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.nova_destinacao
         ).pack(pady=(0, 30))
 

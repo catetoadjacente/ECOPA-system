@@ -1,4 +1,5 @@
 from models.gerente import Gerente
+from models.auditoria import Auditoria
 
 
 class GerenteController:
@@ -6,9 +7,9 @@ class GerenteController:
     def login(nome, senha):
         if not nome or not senha:
             return None, "Preencha usuario e senha"
-        if Gerente.verificar_login(nome, senha):
-            info = Gerente.buscar_por_nome(nome)
-            return info, None
+        gerente = Gerente.autenticar_e_buscar(nome, senha)
+        if gerente:
+            return gerente, None
         return None, "Usuario ou senha invalidos"
 
     @staticmethod
@@ -36,6 +37,7 @@ class GerenteController:
         if Gerente.buscar_por_email(email):
             return False, "Email já cadastrado"
         if Gerente.criar(dados):
+            Auditoria.registrar("CRIAR", "gerente", cpf, f"Gerente cadastrado: {dados['nome']}")
             return True, "Gerente cadastrado com sucesso"
         return False, "Falha ao cadastrar gerente"
 
@@ -63,6 +65,7 @@ class GerenteController:
         if erros:
             return False, f"Preencha: {', '.join(erros)}"
         if Gerente.atualizar(cpf, dados):
+            Auditoria.registrar("ATUALIZAR", "gerente", cpf, f"Gerente atualizado: {cpf}")
             return True, "Gerente atualizado com sucesso"
         return False, "Falha ao atualizar gerente"
 
@@ -71,5 +74,6 @@ class GerenteController:
         if not cpf:
             return False, "CPF invalido"
         if Gerente.deletar(cpf):
+            Auditoria.registrar("EXCLUIR", "gerente", cpf, f"Gerente excluído: {cpf}")
             return True, "Gerente excluido com sucesso"
         return False, "Falha ao excluir gerente"

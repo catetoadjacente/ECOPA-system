@@ -2,18 +2,8 @@ import customtkinter as ctk
 from tkinter import messagebox
 from controllers.pedido_controller import PedidoController
 from controllers.lote_controller import LoteController
-
-ECOPA_GREEN = "#006d12"
-ECOPA_GREEN_LIGHT = "#0a8f2c"
-ECOPA_GREEN_DARK = "#004d0e"
-ECOPA_BG = "#f0f7f0"
-ECOPA_WHITE = "#ffffff"
-ECOPA_TEXT = "#1a1a1a"
-ECOPA_TEXT_LIGHT = "#666666"
-ECOPA_BORDER = "#e0e8e0"
-ECOPA_ORANGE = "#f39c12"
-ECOPA_LEAF = "#27ae60"
-ECOPA_BLUE = "#3498db"
+from utils.theme import font, font_small, font_small_bold, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_ORANGE, ECOPA_LEAF, ECOPA_BLUE
+from views.loading import LoadingOverlay, carregar_em_bg
 
 
 class DistribuicaoEstoque(ctk.CTkFrame):
@@ -27,7 +17,8 @@ class DistribuicaoEstoque(ctk.CTkFrame):
             messagebox.showerror("Erro", "Pedido nao encontrado!")
             self.on_voltar()
             return
-        self.lotes_entries = {}
+        self.estoque_total = 0
+        self.lotes_alocados = []
         self.montar_tela()
 
     def montar_tela(self):
@@ -48,126 +39,271 @@ class DistribuicaoEstoque(ctk.CTkFrame):
 
         ctk.CTkLabel(
             left, text=f"Distribuir Estoque - Pedido #{self.id_pedido}",
-            font=ctk.CTkFont(size=26, weight="bold"), anchor="w",
+            font=font(26, "bold"), anchor="w",
             text_color=ECOPA_GREEN_DARK
         ).pack(anchor="w")
 
         ctk.CTkLabel(
-            left, text="Selecione os lotes para atender este pedido",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
+            left, text="Confirme a distribuicao deste pedido",
+            font=font_small(12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
         ctk.CTkFrame(scroll, fg_color=ECOPA_GREEN, height=3, corner_radius=2).pack(
             fill="x", padx=32, pady=(16, 0))
 
-        # Info do pedido
+        # Card de info do pedido
         info_card = ctk.CTkFrame(
             scroll, fg_color=ECOPA_WHITE, corner_radius=16,
             border_width=1, border_color=ECOPA_BORDER)
         info_card.pack(fill="x", padx=32, pady=(20, 0))
 
         ctk.CTkLabel(info_card, text=f"Destino: {self.pedido['destinacao']}",
-            font=ctk.CTkFont(size=14, weight="bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
+            font=font(14, "bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
         ).pack(fill="x", padx=20, pady=(14, 4))
 
         ctk.CTkLabel(info_card,
-            text=f"Solicitado: {float(self.pedido['quantidade_solicitada']):.1f} Kg | Ja atendido: {float(self.pedido['quantidade_atendida']):.1f} Kg",
-            font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
-        ).pack(fill="x", padx=20, pady=(0, 14))
+            text=f"Tipo: {self.pedido.get('tipo_destinacao', '-')}",
+            font=font_small(12), text_color=ECOPA_TEXT_LIGHT, anchor="w"
+        ).pack(fill="x", padx=20, pady=(0, 10))
 
-        # Lotes disponiveis
-        lotes_card = ctk.CTkFrame(
+        # Valores
+        solicitada = float(self.pedido["quantidade_solicitada"])
+        atendida = float(self.pedido["quantidade_atendida"])
+        falta = solicitada - atendida
+
+        valores_frame = ctk.CTkFrame(info_card, fg_color="transparent")
+        valores_frame.pack(fill="x", padx=20, pady=(0, 14))
+        valores_frame.grid_columnconfigure(0, weight=1)
+        valores_frame.grid_columnconfigure(1, weight=1)
+        valores_frame.grid_columnconfigure(2, weight=1)
+
+        self._criar_info_valor(valores_frame, "Solicitado", f"{solicitada:.1f} Kg", 0, 0)
+        self._criar_info_valor(valores_frame, "Ja Atendido", f"{atendida:.1f} Kg", 0, 1)
+        self._criar_info_valor(valores_frame, "Falta", f"{falta:.1f} Kg", 0, 2, destaque=falta > 0)
+
+        # Card de lotes que serao utilizados
+        self._lotes_card = ctk.CTkFrame(
             scroll, fg_color=ECOPA_WHITE, corner_radius=16,
             border_width=1, border_color=ECOPA_BORDER)
-        lotes_card.pack(fill="x", padx=32, pady=(16, 0))
+        self._lotes_card.pack(fill="x", padx=32, pady=(16, 0))
 
-        ctk.CTkLabel(lotes_card, text="Lotes Disponiveis",
-            font=ctk.CTkFont(size=15, weight="bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
-        ).pack(fill="x", padx=20, pady=(16, 8))
+        ctk.CTkLabel(self._lotes_card, text="Lotes que serao utilizados",
+            font=font(15, "bold"), text_color=ECOPA_GREEN_DARK, anchor="w"
+        ).pack(fill="x", padx=20, pady=(16, 4))
 
-        lotes = LoteController.listar_disponiveis()
+        self._lotes_container = ctk.CTkFrame(self._lotes_card, fg_color="transparent")
+        self._lotes_container.pack(fill="x", padx=16, pady=(0, 8))
 
-        if not lotes:
-            ctk.CTkLabel(lotes_card, text="Nenhum lote disponivel no estoque",
-                font=ctk.CTkFont(size=13), text_color=ECOPA_TEXT_LIGHT
-            ).pack(pady=30)
-        else:
-            cabecalhos = ["Lote", "Fonte", "Data", "Disponivel", "Quantidade"]
-            header_frame = ctk.CTkFrame(lotes_card, fg_color=ECOPA_GREEN, corner_radius=10)
-            header_frame.pack(fill="x", padx=16, pady=(0, 4))
+        overlay = LoadingOverlay(self._lotes_container, text="Calculando distribuicao...")
+        overlay.start()
 
-            larguras = [60, 180, 100, 100, 120]
+        def _carregar_lotes():
+            lotes = LoteController.listar_disponiveis()
+            total_estoque = sum(float(l["quantidade_restante"]) for l in lotes)
+
+            solicitada = float(self.pedido["quantidade_solicitada"])
+            atendida = float(self.pedido["quantidade_atendida"])
+            falta = solicitada - atendida
+
+            parciais = [l for l in lotes if l["status"] == "Parcialmente Consumido"]
+            novos = [l for l in lotes if l["status"] != "Parcialmente Consumido"]
+            parciais.sort(key=lambda l: l["data_criacao"])
+            novos.sort(key=lambda l: l["data_criacao"])
+            lotes_ordenados = parciais + novos
+
+            alocados = []
+            restante = falta
+            for lote in lotes_ordenados:
+                if restante <= 0:
+                    break
+                disp = float(lote["quantidade_restante"])
+                if disp <= 0:
+                    continue
+                qtd = min(disp, restante)
+                alocados.append({
+                    "id": lote["id"],
+                    "ponto": lote["ponto"],
+                    "data": lote["data_criacao"],
+                    "status": lote["status"],
+                    "disponivel": disp,
+                    "alocado": qtd,
+                })
+                restante -= qtd
+
+            return {"total_estoque": total_estoque, "alocados": alocados, "falta": falta}
+
+        def _mostrar_lotes(dados):
+            overlay.stop()
+            overlay.destroy()
+            self.estoque_total = dados["total_estoque"]
+            self.lotes_alocados = dados["alocados"]
+            falta = dados["falta"]
+
+            if not self.lotes_alocados:
+                ctk.CTkLabel(self._lotes_container,
+                    text="Nenhum lote disponivel no estoque",
+                    font=font(13), text_color=ECOPA_TEXT_LIGHT
+                ).pack(pady=20)
+                return
+
+            # Cabecalho verde
+            header_frame = ctk.CTkFrame(self._lotes_container, fg_color=ECOPA_GREEN, corner_radius=8)
+            header_frame.pack(fill="x", pady=(0, 4))
+
+            cabecalhos = ["Lote", "Fonte", "Data", "Status", "Disponivel", "Sera Retirado"]
+            larguras = [60, 160, 90, 80, 90, 110]
             for col, texto in enumerate(cabecalhos):
                 ctk.CTkLabel(
                     header_frame, text=texto,
-                    font=ctk.CTkFont(size=12, weight="bold"),
+                    font=font_small_bold(12),
                     text_color=ECOPA_WHITE, width=larguras[col]
                 ).grid(row=0, column=col, padx=8, pady=8, sticky="w")
 
-            for lote in lotes:
-                row = ctk.CTkFrame(lotes_card, fg_color="transparent")
-                row.pack(fill="x", padx=16, pady=2)
+            total_alocado = 0
+            for lote in self.lotes_alocados:
+                row = ctk.CTkFrame(self._lotes_container, fg_color="transparent")
+                row.pack(fill="x", pady=2)
 
-                data_str = lote["data_criacao"].strftime("%d/%m/%Y") if lote["data_criacao"] else ""
-                qtd_disp = f"{float(lote['quantidade_restante']):.1f} Kg"
+                data = lote["data"]
+                if hasattr(data, "strftime"):
+                    data_str = data.strftime("%d/%m/%Y")
+                elif data:
+                    data_str = str(data)[:10]
+                else:
+                    data_str = ""
+
+                status = lote.get("status", "")
+                status_cor = ECOPA_ORANGE if status == "Parcialmente Consumido" else ECOPA_GREEN
 
                 ctk.CTkLabel(row, text=f"#{lote['id']}",
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
+                    font=font_small(12), text_color=ECOPA_TEXT,
                     width=larguras[0], anchor="w").grid(row=0, column=0, padx=8, pady=4, sticky="w")
                 ctk.CTkLabel(row, text=lote["ponto"],
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
+                    font=font_small(12), text_color=ECOPA_TEXT,
                     width=larguras[1], anchor="w").grid(row=0, column=1, padx=8, pady=4, sticky="w")
                 ctk.CTkLabel(row, text=data_str,
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_TEXT,
+                    font=font_small(12), text_color=ECOPA_TEXT,
                     width=larguras[2], anchor="w").grid(row=0, column=2, padx=8, pady=4, sticky="w")
-                ctk.CTkLabel(row, text=qtd_disp,
-                    font=ctk.CTkFont(size=12), text_color=ECOPA_GREEN,
+                ctk.CTkLabel(row, text=status,
+                    font=font_small(11), text_color=status_cor,
                     width=larguras[3], anchor="w").grid(row=0, column=3, padx=8, pady=4, sticky="w")
+                ctk.CTkLabel(row, text=f"{lote['disponivel']:.1f} Kg",
+                    font=font_small(12), text_color=ECOPA_TEXT_LIGHT,
+                    width=larguras[4], anchor="w").grid(row=0, column=4, padx=8, pady=4, sticky="w")
+                ctk.CTkLabel(row, text=f"{lote['alocado']:.1f} Kg",
+                    font=font(12, "bold"), text_color=ECOPA_GREEN,
+                    width=larguras[5], anchor="w").grid(row=0, column=5, padx=8, pady=4, sticky="w")
 
-                entry = ctk.CTkEntry(
-                    row, width=larguras[4], height=30, placeholder_text="0.0",
-                    fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-                    corner_radius=8, font=ctk.CTkFont(size=12), border_width=1)
-                entry.grid(row=0, column=4, padx=8, pady=4)
-                self.lotes_entries[lote["id"]] = (entry, float(lote["quantidade_restante"]))
+                total_alocado += lote["alocado"]
+
+            # Total
+            total_frame = ctk.CTkFrame(self._lotes_container, fg_color="transparent")
+            total_frame.pack(fill="x", pady=(8, 0))
+
+            ctk.CTkFrame(total_frame, fg_color=ECOPA_GREEN, height=2, corner_radius=1).pack(fill="x")
+
+            ctk.CTkLabel(total_frame,
+                text=f"Total a distribuir: {total_alocado:.1f} Kg",
+                font=font(14, "bold"), text_color=ECOPA_GREEN_DARK, anchor="e"
+            ).pack(fill="x", pady=(8, 0))
+
+            if total_alocado < falta:
+                ctk.CTkLabel(total_frame,
+                    text=f"Estoque insuficiente (faltam {falta - total_alocado:.1f} Kg)",
+                    font=font_small(12), text_color=ECOPA_ORANGE, anchor="e"
+                ).pack(fill="x")
+
+        def _erro_lotes(msg):
+            overlay.stop()
+            overlay.destroy()
+            ctk.CTkLabel(self._lotes_container,
+                text=f"Erro ao carregar lotes: {msg}",
+                font=font(13), text_color="#e74c3c"
+            ).pack(pady=20)
+
+        carregar_em_bg(self._lotes_container, _carregar_lotes, _mostrar_lotes, callback_erro=_erro_lotes)
 
         # Botoes
         btn_frame = ctk.CTkFrame(scroll, fg_color="transparent")
-        btn_frame.pack(fill="x", padx=32, pady=(20, 20))
+        btn_frame.pack(fill="x", padx=32, pady=(24, 20))
 
         ctk.CTkButton(
             btn_frame, text="Voltar", width=140, height=42,
             fg_color="#7f8c8d", hover_color="#95a5a6",
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self.on_voltar
         ).pack(side="left")
 
-        ctk.CTkButton(
-            btn_frame, text="Confirmar Distribuicao", width=200, height=42,
+        self._btn_confirmar = ctk.CTkButton(
+            btn_frame, text="Confirmar Distribuição", width=200, height=42,
             fg_color=ECOPA_GREEN, hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10, font=ctk.CTkFont(size=13, weight="bold"),
+            corner_radius=10, font=font(13, "bold"),
             command=self._confirmar
-        ).pack(side="right")
+        )
+        self._btn_confirmar.pack(side="right")
+
+    def _criar_info_valor(self, parent, titulo, valor, row, col, destaque=False):
+        frame = ctk.CTkFrame(parent, fg_color="transparent")
+        frame.grid(row=row, column=col, sticky="w", padx=(0, 20))
+
+        ctk.CTkLabel(frame, text=titulo,
+            font=font_small(11), text_color=ECOPA_TEXT_LIGHT, anchor="w"
+        ).pack(anchor="w")
+
+        cor = ECOPA_ORANGE if destaque else ECOPA_GREEN_DARK
+        ctk.CTkLabel(frame, text=valor,
+            font=font(16, "bold"), text_color=cor, anchor="w"
+        ).pack(anchor="w")
 
     def _confirmar(self):
-        lotes_para_vincular = []
-        for lote_id, (entry, max_qtd) in self.lotes_entries.items():
-            texto = entry.get().strip()
-            if texto:
-                try:
-                    qtd = float(texto)
-                    if qtd > 0:
-                        lotes_para_vincular.append((lote_id, min(qtd, max_qtd)))
-                except ValueError:
-                    pass
+        solicitada = float(self.pedido["quantidade_solicitada"])
+        atendida = float(self.pedido["quantidade_atendida"])
+        falta = solicitada - atendida
 
-        if not lotes_para_vincular:
-            messagebox.showwarning("Aviso", "Selecione ao menos um lote com quantidade!")
+        if falta <= 0:
+            messagebox.showinfo("Aviso", "Este pedido ja foi totalmente atendido!")
             return
 
-        ok, msg = PedidoController.vincular_lotes(self.id_pedido, lotes_para_vincular)
-        if ok:
-            messagebox.showinfo("Sucesso", msg)
-            self.on_voltar()
+        if not self.lotes_alocados:
+            messagebox.showwarning("Aviso", "Nenhum lote disponivel no estoque!")
+            return
+
+        total_alocado = sum(l["alocado"] for l in self.lotes_alocados)
+
+        if total_alocado < falta:
+            resposta = messagebox.askyesno(
+                "Estoque Insuficiente",
+                f"O estoque distribuido ({total_alocado:.1f} Kg) e menor "
+                f"que o necessario ({falta:.1f} Kg).\n\n"
+                f"Deseja distribuir apenas o disponivel?"
+            )
+            if not resposta:
+                return
         else:
-            messagebox.showerror("Erro", msg)
+            resposta = messagebox.askyesno(
+                "Confirmar Distribuicao",
+                f"Distribuir {total_alocado:.1f} Kg de {len(self.lotes_alocados)} lote(s) "
+                f"para {self.pedido['destinacao']}?"
+            )
+            if not resposta:
+                return
+
+        self._btn_confirmar.configure(state="disabled", text="Distribuindo...")
+
+        def _distribuir():
+            return PedidoController.distribuir_automatico(self.id_pedido, self.lotes_alocados)
+
+        def _resultado(dado):
+            ok, msg = dado
+            self._btn_confirmar.configure(state="normal", text="Confirmar Distribuicao")
+            if ok:
+                messagebox.showinfo("Sucesso", msg)
+                self.on_voltar()
+            else:
+                messagebox.showerror("Erro", msg)
+
+        def _erro_distribuir(msg):
+            self._btn_confirmar.configure(state="normal", text="Confirmar Distribuicao")
+            messagebox.showerror("Erro", f"Falha ao distribuir: {msg}")
+
+        carregar_em_bg(self, _distribuir, _resultado, callback_erro=_erro_distribuir)

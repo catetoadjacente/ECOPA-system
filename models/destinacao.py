@@ -1,131 +1,78 @@
-from database.conecta_database import get_connection
+import logging
+from database.cache import get_cached, invalidate_prefix
+from models.base import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
-class Destinacao:
+class Destinacao(BaseModel):
 
     @staticmethod
     def listar_todas():
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
+        def _fetch():
+            return BaseModel._fetch_all("""
                 SELECT id_destinacao AS id, nome, tipo, endereco,
                        telefone, email, cnpj
                 FROM destinacao
                 ORDER BY nome ASC
             """)
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao listar destinacoes: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return get_cached("destinacoes_listar", 120, _fetch)
 
     @staticmethod
     def criar(dados):
-        connection = get_connection()
-        if connection is None:
-            return False
-        try:
-            cursor = connection.cursor()
-            cursor.execute(
-                "INSERT INTO destinacao (nome, tipo, endereco, telefone, email, cnpj) "
-                "VALUES (%s, %s, %s, %s, %s, %s)",
-                (dados["nome"], dados["tipo"], dados["endereco"],
-                 dados.get("telefone", ""), dados.get("email", ""),
-                 dados.get("cnpj", "")))
-            connection.commit()
-            return True
-        except Exception as e:
-            print(f"Erro ao criar destinacao: {e}")
-            connection.rollback()
-            return False
-        finally:
-            if connection.is_connected():
-                connection.close()
+        destinacao_id = BaseModel._execute_returning_id(
+            "INSERT INTO destinacao (nome, tipo, endereco, telefone, email, cnpj) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (dados["nome"], dados["tipo"], dados["endereco"],
+             dados.get("telefone", ""), dados.get("email", ""),
+             dados.get("cnpj", ""))
+        )
+        if destinacao_id:
+            invalidate_prefix("destinacoes")
+            invalidate_prefix("pedidos")
+            invalidate_prefix("relatorio")
+        return destinacao_id
 
     @staticmethod
     def atualizar(id_dest, dados):
-        connection = get_connection()
-        if connection is None:
-            return False
-        try:
-            cursor = connection.cursor()
-            cursor.execute(
-                "UPDATE destinacao SET nome=%s, tipo=%s, endereco=%s, telefone=%s, email=%s, cnpj=%s "
-                "WHERE id_destinacao=%s",
-                (dados["nome"], dados["tipo"], dados["endereco"],
-                 dados.get("telefone", ""), dados.get("email", ""),
-                 dados.get("cnpj", ""), id_dest))
-            connection.commit()
-            return True
-        except Exception as e:
-            print(f"Erro ao atualizar destinacao: {e}")
-            connection.rollback()
-            return False
-        finally:
-            if connection.is_connected():
-                connection.close()
+        ok = BaseModel._execute(
+            "UPDATE destinacao SET nome=%s, tipo=%s, endereco=%s, telefone=%s, email=%s, cnpj=%s "
+            "WHERE id_destinacao=%s",
+            (dados["nome"], dados["tipo"], dados["endereco"],
+             dados.get("telefone", ""), dados.get("email", ""),
+             dados.get("cnpj", ""), id_dest)
+        )
+        if ok:
+            invalidate_prefix("destinacoes")
+            invalidate_prefix("pedidos")
+            invalidate_prefix("relatorio")
+        return ok
 
     @staticmethod
     def deletar(id_dest):
-        connection = get_connection()
-        if connection is None:
-            return False
-        try:
-            cursor = connection.cursor()
-            cursor.execute("DELETE FROM destinacao WHERE id_destinacao=%s", (id_dest,))
-            connection.commit()
-            return True
-        except Exception as e:
-            print(f"Erro ao deletar destinacao: {e}")
-            connection.rollback()
-            return False
-        finally:
-            if connection.is_connected():
-                connection.close()
+        ok = BaseModel._execute(
+            "DELETE FROM destinacao WHERE id_destinacao=%s", (id_dest,)
+        )
+        if ok:
+            invalidate_prefix("destinacoes")
+            invalidate_prefix("pedidos")
+            invalidate_prefix("relatorio")
+        return ok
 
     @staticmethod
     def buscar_por_id(id_dest):
-        connection = get_connection()
-        if connection is None:
-            return None
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT id_destinacao AS id, nome, tipo, endereco,
-                       telefone, email, cnpj
-                FROM destinacao
-                WHERE id_destinacao = %s
-            """, (id_dest,))
-            return cursor.fetchone()
-        except Exception as e:
-            print(f"Erro ao buscar destinacao: {e}")
-            return None
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return BaseModel._fetch_one("""
+            SELECT id_destinacao AS id, nome, tipo, endereco,
+                   telefone, email, cnpj
+            FROM destinacao
+            WHERE id_destinacao = %s
+        """, (id_dest,))
 
     @staticmethod
     def buscar_por_cnpj(cnpj):
-        connection = get_connection()
-        if connection is None:
-            return None
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT id_destinacao AS id, nome, tipo, endereco,
-                       telefone, email, cnpj
-                FROM destinacao
-                WHERE cnpj = %s
-            """, (cnpj,))
-            return cursor.fetchone()
-        except Exception as e:
-            print(f"Erro ao buscar destinacao por CNPJ: {e}")
-            return None
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return BaseModel._fetch_one("""
+            SELECT id_destinacao AS id, nome, tipo, endereco,
+                   telefone, email, cnpj
+            FROM destinacao
+            WHERE cnpj = %s
+        """, (cnpj,))

@@ -1,51 +1,40 @@
-from database.conecta_database import get_connection
+import logging
+from database.cache import get_cached
+from models.base import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
-class Relatorio:
+class Relatorio(BaseModel):
+
     @staticmethod
     def coletas_filtradas(data_inicio=None, data_fim=None, id_ponto=None, status=None):
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
-            query = """
-                SELECT c.id_coleta AS id, p.estabelecimento AS ponto,
-                       c.observacao, c.quantidade, c.data AS data_coleta, c.status
-                FROM coleta c
-                JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
-                WHERE 1=1
-            """
-            params = []
-            if data_inicio:
-                query += " AND c.data >= %s"
-                params.append(data_inicio)
-            if data_fim:
-                query += " AND c.data <= %s"
-                params.append(data_fim)
-            if id_ponto:
-                query += " AND c.ponto_de_coleta_id_ponto = %s"
-                params.append(id_ponto)
-            if status and status != "TODOS":
-                query += " AND c.status = %s"
-                params.append(status)
-            query += " ORDER BY c.data DESC"
-            cursor.execute(query, params)
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao filtrar coletas: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+        query = """
+            SELECT c.id_coleta AS id, p.estabelecimento AS ponto,
+                   c.observacao, c.quantidade, c.data AS data_coleta, c.status
+            FROM coleta c
+            JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
+            WHERE 1=1
+        """
+        params = []
+        if data_inicio:
+            query += " AND c.data >= %s"
+            params.append(data_inicio)
+        if data_fim:
+            query += " AND c.data <= %s"
+            params.append(data_fim)
+        if id_ponto:
+            query += " AND c.ponto_de_coleta_id_ponto = %s"
+            params.append(id_ponto)
+        if status and status != "TODOS":
+            query += " AND c.status = %s"
+            params.append(status)
+        query += " ORDER BY c.data DESC"
+        return BaseModel._fetch_all(query, params)
 
     @staticmethod
     def coletas_por_ponto(data_inicio=None, data_fim=None):
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
+        def _fetch():
             query = """
                 SELECT p.estabelecimento AS ponto,
                        COUNT(c.id_coleta) AS total_coletas,
@@ -66,22 +55,15 @@ class Relatorio:
             if conditions:
                 query += " WHERE " + " AND ".join(conditions)
             query += " GROUP BY p.id_ponto, p.estabelecimento ORDER BY total_coletas DESC"
-            cursor.execute(query, params)
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao buscar coletas por ponto: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+            return BaseModel._fetch_all(query, params)
+        if data_inicio or data_fim:
+            return _fetch()
+        return get_cached("relatorio_coletas_por_ponto", 60, _fetch)
 
     @staticmethod
     def resumo_destinacoes(data_inicio=None, data_fim=None):
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
+        cache_key = f"relatorio_resumo_dest_{data_inicio or 'all'}_{data_fim or 'all'}"
+        def _fetch():
             query = """
                 SELECT d.nome AS destinacao, d.tipo,
                        COUNT(pe.id_pedido) AS total_pedidos,
@@ -98,23 +80,15 @@ class Relatorio:
                 query += " AND pe.data <= %s"
                 params.append(data_fim)
             query += " GROUP BY d.nome, d.tipo ORDER BY total_kg DESC"
-            cursor.execute(query, params)
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao resumir destinacoes: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+            return BaseModel._fetch_all(query, params)
+        if data_inicio or data_fim:
+            return _fetch()
+        return get_cached(cache_key, 60, _fetch)
 
     @staticmethod
     def resumo_estoque():
-        connection = get_connection()
-        if connection is None:
-            return {}
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
+        def _fetch():
+            return BaseModel._fetch_one("""
                 SELECT
                     COUNT(*) AS total_lotes,
                     COALESCE(SUM(quantidade_restante), 0) AS estoque_total,
@@ -122,52 +96,26 @@ class Relatorio:
                     SUM(CASE WHEN status = 'Parcialmente Consumido' THEN 1 ELSE 0 END) AS lotes_parciais,
                     SUM(CASE WHEN status = 'Esgotado' THEN 1 ELSE 0 END) AS lotes_esgotados
                 FROM lote
-            """)
-            return cursor.fetchone()
-        except Exception as e:
-            print(f"Erro ao resumir estoque: {e}")
-            return {}
-        finally:
-            if connection.is_connected():
-                connection.close()
+            """) or {}
+        return get_cached("relatorio_estoque", 30, _fetch)
 
     @staticmethod
     def resumo_pedidos():
-        connection = get_connection()
-        if connection is None:
-            return {}
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("""
+        def _fetch():
+            return BaseModel._fetch_one("""
                 SELECT
                     COUNT(*) AS total_pedidos,
                     SUM(CASE WHEN status = 'Aberto' THEN 1 ELSE 0 END) AS pedidos_abertos,
                     SUM(CASE WHEN status = 'Atendido' THEN 1 ELSE 0 END) AS pedidos_atendidos,
                     SUM(CASE WHEN status = 'Cancelado' THEN 1 ELSE 0 END) AS pedidos_cancelados
                 FROM pedido
-            """)
-            return cursor.fetchone()
-        except Exception as e:
-            print(f"Erro ao resumir pedidos: {e}")
-            return {}
-        finally:
-            if connection.is_connected():
-                connection.close()
+            """) or {}
+        return get_cached("relatorio_pedidos", 30, _fetch)
 
     @staticmethod
     def listar_pontos():
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute(
+        def _fetch():
+            return BaseModel._fetch_all(
                 "SELECT id_ponto, estabelecimento FROM ponto_de_coleta ORDER BY estabelecimento"
             )
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao listar pontos: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return get_cached("relatorio_listar_pontos", 60, _fetch)

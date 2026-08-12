@@ -1,150 +1,68 @@
-from database.conecta_database import get_connection
+import logging
+from database.cache import get_cached, invalidate, invalidate_prefix
+from models.base import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
-class Gerente:
+class Gerente(BaseModel):
+
     @staticmethod
     def verificar_login(nome, senha):
-        connection = get_connection()
-        if connection is None:
-            return False
-        try:
-            cursor = connection.cursor()
-            query = "SELECT senha FROM gerente WHERE nome = %s AND senha = %s LIMIT 1"
-            cursor.execute(query, (nome, senha))
-            return cursor.fetchone() is not None
-        except Exception as e:
-            print(f"Erro ao verificar login: {e}")
-            return False
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return BaseModel._fetch_one(
+            "SELECT senha FROM gerente WHERE nome = %s AND senha = %s LIMIT 1",
+            (nome, senha)
+        ) is not None
+
+    @staticmethod
+    def autenticar_e_buscar(nome, senha):
+        return BaseModel._fetch_one(
+            "SELECT cpf, nome, celular, email, setor FROM gerente WHERE nome = %s AND senha = %s LIMIT 1",
+            (nome, senha)
+        )
 
     @staticmethod
     def buscar_por_nome(nome):
-        connection = get_connection()
-        if connection is None:
-            return None
-        try:
-            cursor = connection.cursor(dictionary=True)
-            query = "SELECT * FROM gerente WHERE nome = %s LIMIT 1"
-            cursor.execute(query, (nome,))
-            return cursor.fetchone()
-        except Exception as e:
-            print(f"Erro ao buscar gerente: {e}")
-            return None
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return BaseModel._fetch_one(
+            "SELECT * FROM gerente WHERE nome = %s LIMIT 1", (nome,)
+        )
 
     @staticmethod
     def criar(dados):
-        connection = get_connection()
-        if connection is None:
-            return False
-        try:
-            cursor = connection.cursor()
-            query = """INSERT INTO gerente (cpf, nome, celular, email, senha, setor)
-                       VALUES (%s, %s, %s, %s, %s, %s)"""
-            cursor.execute(query, (
-                dados["cpf"], dados["nome"], dados["celular"],
-                dados["email"], dados["senha"], dados["setor"]
-            ))
-            connection.commit()
-            return True
-        except Exception as e:
-            print(f"Erro ao criar gerente: {e}")
-            return False
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return BaseModel._execute(
+            "INSERT INTO gerente (cpf, nome, celular, email, senha, setor) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (dados["cpf"], dados["nome"], dados["celular"],
+             dados["email"], dados["senha"], dados["setor"])
+        )
 
     @staticmethod
     def listar():
-        connection = get_connection()
-        if connection is None:
-            return []
-        try:
-            cursor = connection.cursor(dictionary=True)
-            query = "SELECT cpf, nome, celular, email, setor FROM gerente"
-            cursor.execute(query)
-            return cursor.fetchall()
-        except Exception as e:
-            print(f"Erro ao listar gerentes: {e}")
-            return []
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return BaseModel._fetch_all(
+            "SELECT cpf, nome, celular, email, setor FROM gerente"
+        )
+
     @staticmethod
     def buscar_por_email(email):
-        connection = get_connection()
-        if connection is None:
-            return None
-        try:
-            cursor = connection.cursor(dictionary=True)
-            query = "SELECT * FROM gerente WHERE email = %s LIMIT 1"
-            cursor.execute(query, (email,))
-            return cursor.fetchone()
-        except Exception as e:
-            print(f"Erro ao buscar gerente por email: {e}")
-            return None
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return BaseModel._fetch_one(
+            "SELECT * FROM gerente WHERE email = %s LIMIT 1", (email,)
+        )
 
     @staticmethod
     def buscar_por_cpf(cpf):
-        connection = get_connection()
-        if connection is None:
-            return None
-        try:
-            cursor = connection.cursor(dictionary=True)
-            query = "SELECT * FROM gerente WHERE cpf = %s LIMIT 1"
-            cursor.execute(query, (cpf,))
-            return cursor.fetchone()
-        except Exception as e:
-            print(f"Erro ao buscar gerente: {e}")
-            return None
-        finally:
-            if connection.is_connected():
-                connection.close()            
+        return BaseModel._fetch_one(
+            "SELECT * FROM gerente WHERE cpf = %s LIMIT 1", (cpf,)
+        )
 
     @staticmethod
     def atualizar(cpf, dados):
-        connection = get_connection()
-        if connection is None:
-            return False
-        try:
-            cursor = connection.cursor()
-            query = """UPDATE gerente 
-                       SET celular = %s, email = %s, setor = %s
-                       WHERE cpf = %s"""
-            cursor.execute(query, (
-                dados["celular"], dados["email"],
-                dados["setor"], cpf
-            ))
-            connection.commit()
-            return True
-        except Exception as e:
-            print(f"Erro ao atualizar gerente: {e}")
-            return False
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return BaseModel._execute(
+            "UPDATE gerente SET celular = %s, email = %s, setor = %s WHERE cpf = %s",
+            (dados["celular"], dados["email"], dados["setor"], cpf)
+        )
 
     @staticmethod
     def deletar(cpf):
-        connection = get_connection()
-        if connection is None:
-            return False
-        try:
-            cursor = connection.cursor()
-            query = "DELETE FROM gerente WHERE cpf = %s"
-            cursor.execute(query, (cpf,))
-            connection.commit()
-            return True
-        except Exception as e:
-            print(f"Erro ao deletar gerente: {e}")
-            return False
-        finally:
-            if connection.is_connected():
-                connection.close()
+        return BaseModel._execute(
+            "DELETE FROM gerente WHERE cpf = %s", (cpf,)
+        )
