@@ -1,5 +1,6 @@
 import logging
 from database.cache import get_cached, invalidate, invalidate_prefix
+from database.conecta_database import db_connection
 from models.base import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,16 @@ class Gerente(BaseModel):
 
     @staticmethod
     def deletar(cpf):
-        return BaseModel._execute(
-            "DELETE FROM gerente WHERE cpf = %s", (cpf,)
-        )
+        with db_connection() as conn:
+            if conn is None:
+                return False
+            try:
+                cursor = conn.cursor()
+                cursor.execute("UPDATE coleta SET gerente_cpf = NULL WHERE gerente_cpf = %s", (cpf,))
+                cursor.execute("DELETE FROM gerente WHERE cpf = %s", (cpf,))
+                conn.commit()
+                return True
+            except Exception as e:
+                print(f"Erro ao deletar gerente: {e}")
+                conn.rollback()
+                return False
