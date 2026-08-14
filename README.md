@@ -86,11 +86,38 @@ O script cria o schema `ecopa_system` com as tabelas:
 python main.py
 ```
 
+## Gerar executável e instalador
+
+### 1. Gerar o executável (.exe) com PyInstaller
+
+```bash
+pyinstaller --name ECOPA --icon assets/icone.ico --onefile --windowed --add-data "assets;assets" --add-data "database.sql;." --add-data ".env;." main.py
+```
+
+O executável será gerado em `dist/ECOPA.exe`.
+
+### 2. Criar o instalador com Inno Setup
+
+1. Baixe e instale o [Inno Setup](https://jrsoftware.org/isinfo.php)
+2. Abra o arquivo `ECOPA-setup.iss` no Inno Setup
+3. Pressione `Ctrl+F9` (ou vá em **Build > Compile**)
+4. O instalador será gerado em `installer/ECOPA-Setup.exe`
+
+### Configuração do Inno Setup
+
+O arquivo `ECOPA-setup.iss` já está configurado no projeto. Ele inclui:
+
+- Instalação na pasta `Program Files\ECOPA`
+- Atalho na área de trabalho
+- Atalho no menu iniciar
+- Ícone personalizado
+
 ## Estrutura do projeto
 
 ```
 ├── main.py                   # Ponto de entrada
 ├── requirements.txt          # Dependências
+├── ECOPA-setup.iss           # Script do Inno Setup (instalador)
 ├── .env.example              # Modelo de configuração
 ├── database/
 │   ├── database.sql          # Script de criação do schema
