@@ -43,8 +43,37 @@ class MainView(ctk.CTkFrame):
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
+        # Botao Sair (fixo na parte inferior)
+        sair_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent", height=44)
+        sair_frame.pack(side="bottom", fill="x", padx=12, pady=8)
+        sair_frame.pack_propagate(False)
+
+        sair_emoji = ctk.CTkLabel(
+            sair_frame, text="🚪",
+            font=font(18), text_color=ECOPA_RED,
+            width=32
+        )
+        sair_emoji.pack(side="left", padx=(12, 4))
+
+        ctk.CTkButton(
+            sair_frame, text="Sair",
+            fg_color="transparent", hover_color="#fde8e8",
+            anchor="w", height=40,
+            font=font(14),
+            text_color=ECOPA_RED,
+            command=self.sair
+        ).pack(side="left", fill="both", expand=True)
+
+        # Menu scrollavel (vertical)
+        self.sidebar_scroll = ctk.CTkScrollableFrame(
+            self.sidebar, fg_color=ECOPA_SIDEBAR_BG,
+            scrollbar_button_color=ECOPA_BORDER,
+            scrollbar_button_hover_color=ECOPA_GREEN_LIGHT,
+        )
+        self.sidebar_scroll.pack(side="top", fill="both", expand=True)
+
         # Logo ECOPA
-        logo_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        logo_frame = ctk.CTkFrame(self.sidebar_scroll, fg_color="transparent")
         logo_frame.pack(fill="x", padx=24, pady=(28, 0))
 
         leaf_icon = ctk.CTkLabel(
@@ -61,7 +90,7 @@ class MainView(ctk.CTkFrame):
         ecopa_label.pack(side="left")
 
         # Linha separadora
-        ctk.CTkFrame(self.sidebar, fg_color=ECOPA_BORDER, height=1).pack(
+        ctk.CTkFrame(self.sidebar_scroll, fg_color=ECOPA_BORDER, height=1).pack(
             fill="x", padx=24, pady=(16, 8)
         )
 
@@ -81,7 +110,7 @@ class MainView(ctk.CTkFrame):
         ]
 
         for nome_icone, texto, comando, emoji in botoes:
-            btn_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent", height=44)
+            btn_frame = ctk.CTkFrame(self.sidebar_scroll, fg_color="transparent", height=44)
             btn_frame.pack(fill="x", padx=12, pady=2)
             btn_frame.pack_propagate(False)
 
@@ -103,33 +132,52 @@ class MainView(ctk.CTkFrame):
             btn.pack(side="left", fill="both", expand=True)
             self._botoes_menu[nome_icone] = (btn_frame, btn)
 
-        # Botao Sair
-        sair_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent", height=44)
-        sair_frame.pack(fill="x", padx=12, pady=2, side="bottom", before=None)
-        sair_frame.pack_propagate(False)
-
-        sair_emoji = ctk.CTkLabel(
-            sair_frame, text="🚪",
-            font=font(18), text_color=ECOPA_RED,
-            width=32
-        )
-        sair_emoji.pack(side="left", padx=(12, 4))
-
-        ctk.CTkButton(
-            sair_frame, text="Sair",
-            fg_color="transparent", hover_color="#fde8e8",
-            anchor="w", height=40,
-            font=font(14),
-            text_color=ECOPA_RED,
-            command=self.sair
-        ).pack(side="left", fill="both", expand=True)
-
         # === AREA PRINCIPAL ===
         self.content = ctk.CTkFrame(self, corner_radius=0, fg_color=ECOPA_GREEN_BG)
         self.content.pack(side="right", fill="both", expand=True)
 
         self.abrir_dashboard()
         self._destacar_menu("dashboard")
+
+        # Detectar mudanca de estado da janela (maximizada/restaurada)
+        self.after(100, self._configurar_listener_estado_janela)
+
+    def _configurar_listener_estado_janela(self):
+        root = self.winfo_toplevel()
+        root.bind("<Configure>", self._ao_mudar_tamanho_janela)
+        self._atualizar_scrollbar_sidebar()
+
+    def _ao_mudar_tamanho_janela(self, event):
+        if event.widget is self.winfo_toplevel():
+            self._atualizar_scrollbar_sidebar()
+
+    def _atualizar_scrollbar_sidebar(self):
+        root = self.winfo_toplevel()
+        try:
+            state = root.state()
+        except Exception:
+            return
+        if state == "iconic":
+            return
+
+        # Garante que o menu volta ao topo e nao cria espaco em branco acima
+        try:
+            self.sidebar_scroll._parent_canvas.yview_moveto(0)
+        except Exception:
+            pass
+
+        maximizada = (state == "zoomed")
+
+        if maximizada:
+            self.sidebar_scroll._scrollbar.configure(
+                button_color=ECOPA_SIDEBAR_BG,
+                button_hover_color=ECOPA_SIDEBAR_BG
+            )
+        else:
+            self.sidebar_scroll._scrollbar.configure(
+                button_color=ECOPA_BORDER,
+                button_hover_color=ECOPA_GREEN_LIGHT
+            )
 
     def _destacar_menu(self, ativo):
         for nome, (frame, btn) in self._botoes_menu.items():
@@ -139,6 +187,16 @@ class MainView(ctk.CTkFrame):
             else:
                 frame.configure(fg_color="transparent")
                 btn.configure(text_color=ECOPA_TEXT, font=font(14))
+
+    def _criar_container_scrollavel(self):
+        """Cria um container scrollavel horizontal para as telas de conteudo."""
+        scroll = ctk.CTkScrollableFrame(
+            self.content, fg_color=ECOPA_GREEN_BG,
+            scrollbar_button_color=ECOPA_BORDER,
+            scrollbar_button_hover_color=ECOPA_GREEN_LIGHT,
+        )
+        scroll.pack(fill="both", expand=True)
+        return scroll
 
     # ============================================================
     # DASHBOARD
@@ -364,32 +422,37 @@ class MainView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("gerente")
+        scroll = self._criar_container_scrollavel()
         from views.gerente import ListaGerentes
-        ListaGerentes(self, self.content, on_voltar=self.abrir_dashboard)
+        ListaGerentes(self, scroll, on_voltar=self.abrir_dashboard)
 
     def abrir_coleta(self):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("coletas")
-        ColetasView(self, self.content)
+        scroll = self._criar_container_scrollavel()
+        ColetasView(self, scroll)
 
     def abrir_pontos(self):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("pontos")
-        PontosView(self, self.content)
+        scroll = self._criar_container_scrollavel()
+        PontosView(self, scroll)
 
     def abrir_destinacoes(self):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("destinacoes")
-        DestinacoesView(self, self.content)
+        scroll = self._criar_container_scrollavel()
+        DestinacoesView(self, scroll)
 
     def abrir_cadastros(self):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("cadastros")
-        CadastrosHub(self, self.content)
+        scroll = self._criar_container_scrollavel()
+        CadastrosHub(self, scroll)
 
     def abrir_relatorios(self):
         for widget in self.content.winfo_children():
@@ -402,22 +465,25 @@ class MainView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("auditoria")
+        scroll = self._criar_container_scrollavel()
         from views.auditoria import AuditoriaView
-        AuditoriaView(self, self.content)
+        AuditoriaView(self, scroll)
 
     def abrir_lotes(self):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("lotes")
+        scroll = self._criar_container_scrollavel()
         from views.lotes import LotesView
-        LotesView(self, self.content)
+        LotesView(self, scroll)
 
     def abrir_pedidos(self):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("pedidos")
+        scroll = self._criar_container_scrollavel()
         from views.pedidos import PedidosView
-        PedidosView(self, self.content)
+        PedidosView(self, scroll)
 
     def sair(self):
         from utils.sessao import encerrar
