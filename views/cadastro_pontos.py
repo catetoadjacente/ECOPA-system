@@ -16,12 +16,9 @@ class CadastroPonto(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
 
-        scroll = ctk.CTkScrollableFrame(self.content, fg_color=ECOPA_BG)
-        scroll.pack(fill="both", expand=True)
-
         # Card principal
         card = ctk.CTkFrame(
-            scroll, fg_color=ECOPA_WHITE, corner_radius=20,
+            self.content, fg_color=ECOPA_WHITE, corner_radius=20,
             border_width=1, border_color=ECOPA_BORDER
         )
         card.pack(fill="x", padx=40, pady=(25, 20))
