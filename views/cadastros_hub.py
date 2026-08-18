@@ -44,8 +44,8 @@ class CadastrosHub(ctk.CTkFrame):
         # Cards de cadastro
         cards_frame = ctk.CTkFrame(container, fg_color="transparent")
         cards_frame.pack(expand=True, fill="both", padx=32, pady=(30, 20))
-        cards_frame.grid_columnconfigure((0, 1), weight=1)
-        cards_frame.grid_rowconfigure((0, 1), weight=1)
+        cards_frame.grid_columnconfigure((0, 1), weight=1, minsize=340)
+        cards_frame.grid_rowconfigure((0, 1), weight=1, minsize=260)
 
         # Card Coleta
         card_coleta = ctk.CTkFrame(

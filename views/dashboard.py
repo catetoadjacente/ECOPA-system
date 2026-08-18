@@ -49,7 +49,7 @@ class MainView(ctk.CTkFrame):
         sair_frame.pack_propagate(False)
 
         sair_emoji = ctk.CTkLabel(
-            sair_frame, text="🚪",
+            sair_frame, text="❌",
             font=font(18), text_color=ECOPA_RED,
             width=32
         )
@@ -451,8 +451,7 @@ class MainView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("cadastros")
-        scroll = self._criar_container_scrollavel()
-        CadastrosHub(self, scroll)
+        CadastrosHub(self, self.content)
 
     def abrir_relatorios(self):
         for widget in self.content.winfo_children():
