@@ -64,7 +64,8 @@ class CadastroGerente(ctk.CTkFrame):
                 card, height=38, placeholder_text=placeholder,
                 fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
                 corner_radius=10, font=font(13),
-                border_width=1
+                border_width=1,
+                show="*" if key == "senha" else ""
             )
             entry.pack(fill="x", padx=55, pady=(0, 8))
             self.entries[key] = entry

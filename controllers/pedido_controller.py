@@ -21,10 +21,6 @@ class PedidoController:
         lotes = Lote.listar_disponiveis()
         if not lotes:
             return False, "Nenhum lote disponivel no estoque", None
-        estoque_total = sum(float(l["quantidade_restante"]) for l in lotes)
-        qtd_solicitada = float(dados["quantidade_solicitada"])
-        if estoque_total < qtd_solicitada:
-            return False, f"Estoque insuficiente (disponivel: {estoque_total:.1f}, solicitado: {qtd_solicitada:.1f})", None
         pedido_id = Pedido.criar(dados)
         if pedido_id:
             Auditoria.registrar("CRIAR", "pedido", pedido_id, "Pedido criado")

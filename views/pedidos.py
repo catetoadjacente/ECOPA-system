@@ -150,7 +150,10 @@ class PedidosView(ctk.CTkFrame):
 
     def _distribuir(self, id_pedido):
         from views.distribuicao_estoque import DistribuicaoEstoque
-        DistribuicaoEstoque(self, self.content, id_pedido, on_voltar=self.montar_tela)
+
+        content = ctk.CTkFrame(self.content, fg_color=ECOPA_BG, corner_radius=0)
+        content.pack(fill="both", expand=True)
+        DistribuicaoEstoque(self, content, id_pedido, on_voltar=self.montar_tela)
 
     def _excluir(self, id_pedido):
         if messagebox.askyesno("Confirmar", "Deseja excluir este pedido?"):
