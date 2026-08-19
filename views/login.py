@@ -27,6 +27,7 @@ class App(ctk.CTk):
         self._pil_image = None
         self.bg_photo = None
         self._resize_after_id = None
+        self._login_em_andamento = False
         img_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", BG_IMAGE)
         if os.path.exists(img_path):
             self._pil_image = Image.open(img_path)
@@ -81,6 +82,9 @@ class App(ctk.CTk):
         self.btn_login.place(relx=0.775, rely=0.65, anchor="center", relwidth=0.15)
 
     def _on_login(self, event=None):
+        if self._login_em_andamento:
+            return
+
         user = self.entry_user.get().strip()
         password = self.entry_pass.get()
 
@@ -88,6 +92,7 @@ class App(ctk.CTk):
             messagebox.showwarning("Aviso", "Digite o nome de usuário.")
             return
 
+        self._login_em_andamento = True
         self.btn_login.configure(state="disabled")
         self.loading = LoadingOverlay(self, text="Autenticando...")
         self.loading.start()
@@ -101,6 +106,7 @@ class App(ctk.CTk):
 
         def _resultado_login(info, erro):
             self.loading.stop()
+            self._login_em_andamento = False
             self.btn_login.configure(state="normal")
             if erro:
                 messagebox.showerror("Erro", erro)
