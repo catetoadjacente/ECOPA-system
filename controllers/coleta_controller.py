@@ -2,6 +2,7 @@ from models.coleta import Coleta
 from models.ponto import Ponto
 from models.lote import Lote
 from models.auditoria import Auditoria
+from utils.sessao import usuario_atual
 
 
 class ColetaController:
@@ -11,11 +12,16 @@ class ColetaController:
 
     @staticmethod
     def cadastrar(dados):
+        usuario = usuario_atual()
+        if not usuario or not usuario.get("cpf"):
+            return False, "Nenhum gerente autenticado"
+
         ponto_dados = Ponto.buscar_por_estabelecimento(dados["ponto"])
         if ponto_dados is None:
             return False, "Ponto de coleta nao encontrado"
 
         dados["ponto"] = ponto_dados["id_ponto"]
+        dados["gerente_cpf"] = usuario["cpf"]
 
         coleta_id = Coleta.criar(dados)
         if coleta_id:

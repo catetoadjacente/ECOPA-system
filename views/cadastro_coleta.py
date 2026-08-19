@@ -3,7 +3,6 @@ from tkinter import messagebox
 from datetime import datetime
 from controllers.coleta_controller import ColetaController
 from controllers.ponto_controller import PontoController
-from controllers.gerente_controller import GerenteController
 from utils.theme import font, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
 
 
@@ -97,26 +96,6 @@ class CadastroColeta(ctk.CTkFrame):
         )
         self.entry_quantidade.pack(fill="x", padx=55, pady=(0, 12))
 
-        # Gerente
-        ctk.CTkLabel(
-            card, text="Gerente responsável",
-            font=font(12, "bold"), text_color=ECOPA_TEXT,
-            anchor="w"
-        ).pack(fill="x", padx=55, pady=(0, 3))
-        gerentes = GerenteController.listar()
-        self.gerentes_lista = gerentes
-        nomes_gerentes = [g["nome"] for g in gerentes]
-        self.combo_gerente = ctk.CTkComboBox(
-            card, values=nomes_gerentes if nomes_gerentes else ["Nenhum gerente disponível"],
-            height=38, font=font(13), state="readonly",
-            fg_color=ECOPA_BG, border_color=ECOPA_BORDER,
-            button_color=ECOPA_GREEN, button_hover_color=ECOPA_GREEN_LIGHT,
-            corner_radius=10
-        )
-        if nomes_gerentes:
-            self.combo_gerente.set(nomes_gerentes[0])
-        self.combo_gerente.pack(fill="x", padx=55, pady=(0, 16))
-
         # Secao Observacoes
         ctk.CTkFrame(card, fg_color=ECOPA_BORDER, height=1).pack(fill="x", padx=40, pady=(0, 12))
 
@@ -152,24 +131,19 @@ class CadastroColeta(ctk.CTkFrame):
         ).pack(side="right")
 
     def salvar(self):
-        nome_gerente = self.combo_gerente.get().strip()
         nome_ponto = self.combo_ponto.get().strip()
         data_coleta = self.entry_data.get().strip()
         quantidade = self.entry_quantidade.get().strip()
         observacao = self.text_observacao.get("1.0", "end-1c").strip()
 
-        if not all([nome_gerente, nome_ponto, data_coleta, quantidade]):
+        if not all([nome_ponto, data_coleta, quantidade]):
             messagebox.showerror("Erro", "Preencha todos os campos obrigatórios!")
             return
 
         # Validar se selecionou valores reais (placeholder de combo vazio)
         nomes_pontos = [p["estabelecimento"] for p in self.pontos_lista]
-        nomes_gerentes = [g["nome"] for g in self.gerentes_lista]
         if nome_ponto not in nomes_pontos:
             messagebox.showerror("Erro", "Selecione um ponto de coleta válido!")
-            return
-        if nome_gerente not in nomes_gerentes:
-            messagebox.showerror("Erro", "Selecione um gerente válido!")
             return
 
         try:
@@ -188,14 +162,8 @@ class CadastroColeta(ctk.CTkFrame):
             messagebox.showerror("Erro", "Quantidade deve ser maior que zero!")
             return
 
-        gerente_cpf = next(
-            (g["cpf"] for g in self.gerentes_lista if g["nome"] == nome_gerente),
-            None
-        )
-
         dados = {
             "ponto": nome_ponto,
-            "gerente_cpf": gerente_cpf,
             "quantidade": quantidade,
             "data_coleta": data_coleta,
             "observacao": observacao,
