@@ -1,6 +1,6 @@
 import logging
 from database.cache import get_cached, invalidate_prefix
-from models.base import BaseModel
+from models.base import BaseModel, DatabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -9,37 +9,46 @@ class Ponto(BaseModel):
 
     @staticmethod
     def buscar_por_estabelecimento(estabelecimento):
-        return BaseModel._fetch_one("""
-            SELECT id_ponto
-            FROM ponto_de_coleta
-            WHERE estabelecimento = %s AND ativo = 1
-            LIMIT 1
-        """, (estabelecimento,))
+        try:
+            return BaseModel._fetch_one("""
+                SELECT id_ponto
+                FROM ponto_de_coleta
+                WHERE estabelecimento = %s AND ativo = 1
+                LIMIT 1
+            """, (estabelecimento,))
+        except DatabaseError:
+            return None
 
     @staticmethod
     def buscar_por_idponto(idponto):
-        return BaseModel._fetch_one("""
-            SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
-                   p.telefone, p.proprietario
-            FROM ponto_de_coleta p
-            WHERE p.id_ponto = %s LIMIT 1
-        """, (idponto,))
+        try:
+            return BaseModel._fetch_one("""
+                SELECT p.id_ponto, p.endereco, p.email, p.estabelecimento,
+                       p.telefone, p.proprietario
+                FROM ponto_de_coleta p
+                WHERE p.id_ponto = %s LIMIT 1
+            """, (idponto,))
+        except DatabaseError:
+            return None
 
     @staticmethod
     def criar(dados):
-        ok = BaseModel._execute("""
-            INSERT INTO ponto_de_coleta (endereco, email, estabelecimento,
-                                         telefone, proprietario)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (
-            dados["endereco"], dados["email"],
-            dados["estabelecimento"], dados["telefone"], dados["proprietario"]
-        ))
-        if ok:
-            invalidate_prefix("pontos")
-            invalidate_prefix("dashboard")
-            invalidate_prefix("relatorio")
-        return ok
+        try:
+            ok = BaseModel._execute("""
+                INSERT INTO ponto_de_coleta (endereco, email, estabelecimento,
+                                             telefone, proprietario)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (
+                dados["endereco"], dados["email"],
+                dados["estabelecimento"], dados["telefone"], dados["proprietario"]
+            ))
+            if ok:
+                invalidate_prefix("pontos")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+            return ok
+        except DatabaseError:
+            return False
 
     @staticmethod
     def listar():
@@ -66,52 +75,64 @@ class Ponto(BaseModel):
 
     @staticmethod
     def atualizar(idponto, dados):
-        ok = BaseModel._execute("""
-            UPDATE ponto_de_coleta
-            SET endereco=%s, email=%s, telefone=%s, proprietario=%s
-            WHERE id_ponto=%s
-        """, (
-            dados["endereco"], dados["email"],
-            dados["telefone"], dados["proprietario"], idponto
-        ))
-        if ok:
-            invalidate_prefix("pontos")
-            invalidate_prefix("dashboard")
-            invalidate_prefix("relatorio")
-        return ok
+        try:
+            ok = BaseModel._execute("""
+                UPDATE ponto_de_coleta
+                SET endereco=%s, email=%s, telefone=%s, proprietario=%s
+                WHERE id_ponto=%s
+            """, (
+                dados["endereco"], dados["email"],
+                dados["telefone"], dados["proprietario"], idponto
+            ))
+            if ok:
+                invalidate_prefix("pontos")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+            return ok
+        except DatabaseError:
+            return False
 
     @staticmethod
     def deletar(idponto):
-        ok = BaseModel._execute(
-            "DELETE FROM ponto_de_coleta WHERE id_ponto=%s", (idponto,)
-        )
-        if ok:
-            invalidate_prefix("pontos")
-            invalidate_prefix("dashboard")
-            invalidate_prefix("relatorio")
-        return ok
+        try:
+            ok = BaseModel._execute(
+                "DELETE FROM ponto_de_coleta WHERE id_ponto=%s", (idponto,)
+            )
+            if ok:
+                invalidate_prefix("pontos")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+            return ok
+        except DatabaseError:
+            return False
 
     @staticmethod
     def desativar(idponto):
-        ok = BaseModel._execute(
-            "UPDATE ponto_de_coleta SET ativo = 0 WHERE id_ponto = %s", (idponto,)
-        )
-        if ok:
-            invalidate_prefix("pontos")
-            invalidate_prefix("dashboard")
-            invalidate_prefix("relatorio")
-        return ok
+        try:
+            ok = BaseModel._execute(
+                "UPDATE ponto_de_coleta SET ativo = 0 WHERE id_ponto = %s", (idponto,)
+            )
+            if ok:
+                invalidate_prefix("pontos")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+            return ok
+        except DatabaseError:
+            return False
 
     @staticmethod
     def reativar(idponto):
-        ok = BaseModel._execute(
-            "UPDATE ponto_de_coleta SET ativo = 1 WHERE id_ponto = %s", (idponto,)
-        )
-        if ok:
-            invalidate_prefix("pontos")
-            invalidate_prefix("dashboard")
-            invalidate_prefix("relatorio")
-        return ok
+        try:
+            ok = BaseModel._execute(
+                "UPDATE ponto_de_coleta SET ativo = 1 WHERE id_ponto = %s", (idponto,)
+            )
+            if ok:
+                invalidate_prefix("pontos")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+            return ok
+        except DatabaseError:
+            return False
 
     @staticmethod
     def salvar_horarios(id_ponto, horarios):

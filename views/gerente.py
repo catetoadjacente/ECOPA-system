@@ -57,11 +57,11 @@ class ListaGerentes(ctk.CTkFrame):
         )
         frame_tabela.pack(fill="both", expand=True, padx=32, pady=(20, 20))
 
-        colunas = ["CPF", "Nome", "Celular", "Email", "Setor", "Ações"]
-        relx = [0.01, 0.12, 0.28, 0.44, 0.60, 0.75]
+        colunas = ["CPF", "Nome", "Celular", "Email", "Ações"]
+        relx = [0.01, 0.12, 0.28, 0.44, 0.70]
 
         def _render_row(frame, item, rlx):
-            valores = [item["cpf"], item["nome"], item["celular"], item["email"], item["setor"]]
+            valores = [item["cpf"], item["nome"], item["celular"], item["email"]]
             for i, v in enumerate(valores):
                 ctk.CTkLabel(frame, text=v, font=font_small(12),
                              text_color=ECOPA_TEXT, anchor="w").place(relx=rlx[i], rely=0.5, anchor="w")
@@ -90,7 +90,7 @@ class ListaGerentes(ctk.CTkFrame):
             return
 
         items = [{"cpf": g["cpf"], "nome": g["nome"], "celular": g["celular"],
-                  "email": g["email"], "setor": g["setor"]} for g in gerentes]
+                  "email": g["email"]} for g in gerentes]
         tabela.carregar(items)
 
     def _editar(self, cpf):

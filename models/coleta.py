@@ -1,6 +1,6 @@
 import logging
 from database.cache import get_cached, invalidate_prefix
-from models.base import BaseModel
+from models.base import BaseModel, DatabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -25,48 +25,60 @@ class Coleta(BaseModel):
 
     @staticmethod
     def criar(dados):
-        coleta_id = BaseModel._execute_returning_id("""
-            INSERT INTO coleta (ponto_de_coleta_id_ponto, gerente_cpf,
-                               quantidade, data, observacao, status)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (dados["ponto"], dados.get("gerente_cpf", "00000000000"),
-              dados["quantidade"], dados["data_coleta"],
-              dados.get("observacao", ""), "Pendente"))
-        if coleta_id:
-            invalidate_prefix("coletas")
-            invalidate_prefix("dashboard")
-            invalidate_prefix("relatorio")
-        return coleta_id
+        try:
+            coleta_id = BaseModel._execute_returning_id("""
+                INSERT INTO coleta (ponto_de_coleta_id_ponto, gerente_cpf,
+                                   quantidade, data, observacao, status)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (dados["ponto"], dados.get("gerente_cpf", "00000000000"),
+                  dados["quantidade"], dados["data_coleta"],
+                  dados.get("observacao", ""), "Pendente"))
+            if coleta_id:
+                invalidate_prefix("coletas")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+            return coleta_id
+        except DatabaseError:
+            return None
 
     @staticmethod
     def buscar_por_id(id_coleta):
-        return BaseModel._fetch_one(
-            "SELECT id_coleta AS id, quantidade, status FROM coleta WHERE id_coleta = %s",
-            (id_coleta,)
-        )
+        try:
+            return BaseModel._fetch_one(
+                "SELECT id_coleta AS id, quantidade, status FROM coleta WHERE id_coleta = %s",
+                (id_coleta,)
+            )
+        except DatabaseError:
+            return None
 
     @staticmethod
     def atualizar_status(id_coleta, status):
-        ok = BaseModel._execute(
-            "UPDATE coleta SET status=%s WHERE id_coleta=%s",
-            (status, id_coleta)
-        )
-        if ok:
-            invalidate_prefix("coletas")
-            invalidate_prefix("dashboard")
-            invalidate_prefix("relatorio")
-        return ok
+        try:
+            ok = BaseModel._execute(
+                "UPDATE coleta SET status=%s WHERE id_coleta=%s",
+                (status, id_coleta)
+            )
+            if ok:
+                invalidate_prefix("coletas")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+            return ok
+        except DatabaseError:
+            return False
 
     @staticmethod
     def resumo_dashboard():
         def _fetch():
-            return BaseModel._fetch_one("""
-                SELECT
-                    COUNT(*) AS total_coletas,
-                    COALESCE(SUM(quantidade), 0) AS quantidade_total,
-                    SUM(CASE WHEN status = 'Pendente' THEN 1 ELSE 0 END) AS pendentes,
-                    SUM(CASE WHEN status = 'Realizada' THEN 1 ELSE 0 END) AS realizadas
-                FROM coleta
-                WHERE DATE(data) = CURDATE()
-            """) or {"total_coletas": 0, "quantidade_total": 0, "pendentes": 0, "realizadas": 0}
+            try:
+                return BaseModel._fetch_one("""
+                    SELECT
+                        COUNT(*) AS total_coletas,
+                        COALESCE(SUM(quantidade), 0) AS quantidade_total,
+                        SUM(CASE WHEN status = 'Pendente' THEN 1 ELSE 0 END) AS pendentes,
+                        SUM(CASE WHEN status = 'Realizada' THEN 1 ELSE 0 END) AS realizadas
+                    FROM coleta
+                    WHERE DATE(data) = CURDATE()
+                """) or {"total_coletas": 0, "quantidade_total": 0, "pendentes": 0, "realizadas": 0}
+            except DatabaseError:
+                return {"total_coletas": 0, "quantidade_total": 0, "pendentes": 0, "realizadas": 0}
         return get_cached("dashboard_resumo", 30, _fetch)

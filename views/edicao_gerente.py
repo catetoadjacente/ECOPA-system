@@ -71,7 +71,6 @@ class EdicaoGerente(ctk.CTkFrame):
         campos = {
             "Celular": "celular",
             "Email": "email",
-            "Setor": "setor",
         }
         self.entries = {}
 

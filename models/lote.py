@@ -1,6 +1,6 @@
 import logging
 from database.cache import get_cached, invalidate_prefix
-from models.base import BaseModel
+from models.base import BaseModel, DatabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -9,15 +9,18 @@ class Lote(BaseModel):
 
     @staticmethod
     def criar_por_coleta(id_coleta, quantidade):
-        ok = BaseModel._execute(
-            "INSERT INTO lote (id_coleta, quantidade_coletada, quantidade_restante, status) "
-            "VALUES (%s, %s, %s, 'Disponivel')",
-            (id_coleta, quantidade, quantidade)
-        )
-        if ok:
-            invalidate_prefix("lotes")
-            invalidate_prefix("dashboard")
-        return ok
+        try:
+            ok = BaseModel._execute(
+                "INSERT INTO lote (id_coleta, quantidade_coletada, quantidade_restante, status) "
+                "VALUES (%s, %s, %s, 'Disponivel')",
+                (id_coleta, quantidade, quantidade)
+            )
+            if ok:
+                invalidate_prefix("lotes")
+                invalidate_prefix("dashboard")
+            return ok
+        except DatabaseError:
+            return False
 
     @staticmethod
     def listar_disponiveis():
@@ -87,33 +90,42 @@ class Lote(BaseModel):
 
     @staticmethod
     def obter_por_id(id_lote):
-        return BaseModel._fetch_one("""
-            SELECT l.id_lote AS id, l.id_coleta,
-                   l.quantidade_coletada, l.quantidade_restante,
-                   l.status, l.data_criacao,
-                   c.data AS data_coleta,
-                   p.estabelecimento AS ponto
-            FROM lote l
-            JOIN coleta c ON l.id_coleta = c.id_coleta
-            JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
-            WHERE l.id_lote = %s
-        """, (id_lote,))
+        try:
+            return BaseModel._fetch_one("""
+                SELECT l.id_lote AS id, l.id_coleta,
+                       l.quantidade_coletada, l.quantidade_restante,
+                       l.status, l.data_criacao,
+                       c.data AS data_coleta,
+                       p.estabelecimento AS ponto
+                FROM lote l
+                JOIN coleta c ON l.id_coleta = c.id_coleta
+                JOIN ponto_de_coleta p ON c.ponto_de_coleta_id_ponto = p.id_ponto
+                WHERE l.id_lote = %s
+            """, (id_lote,))
+        except DatabaseError:
+            return None
 
     @staticmethod
     def buscar_por_coleta(id_coleta):
-        return BaseModel._fetch_one(
-            "SELECT * FROM lote WHERE id_coleta = %s LIMIT 1", (id_coleta,)
-        )
+        try:
+            return BaseModel._fetch_one(
+                "SELECT * FROM lote WHERE id_coleta = %s LIMIT 1", (id_coleta,)
+            )
+        except DatabaseError:
+            return None
 
     @staticmethod
     def resumo_estoque_dashboard():
         def _fetch():
-            return BaseModel._fetch_one("""
-                SELECT
-                    COUNT(*) AS total_lotes,
-                    COALESCE(SUM(quantidade_restante), 0) AS estoque_total
-                FROM lote
-                WHERE status != 'Esgotado'
-                AND DATE(data_criacao) = CURDATE()
-            """) or {"total_lotes": 0, "estoque_total": 0}
+            try:
+                return BaseModel._fetch_one("""
+                    SELECT
+                        COUNT(*) AS total_lotes,
+                        COALESCE(SUM(quantidade_restante), 0) AS estoque_total
+                    FROM lote
+                    WHERE status != 'Esgotado'
+                    AND DATE(data_criacao) = CURDATE()
+                """) or {"total_lotes": 0, "estoque_total": 0}
+            except DatabaseError:
+                return {"total_lotes": 0, "estoque_total": 0}
         return get_cached("dashboard_estoque", 30, _fetch)

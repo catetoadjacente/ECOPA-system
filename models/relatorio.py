@@ -1,6 +1,6 @@
 import logging
 from database.cache import get_cached
-from models.base import BaseModel
+from models.base import BaseModel, DatabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,10 @@ class Relatorio(BaseModel):
             query += " AND c.status = %s"
             params.append(status)
         query += " ORDER BY c.data DESC"
-        return BaseModel._fetch_all(query, params)
+        try:
+            return BaseModel._fetch_all(query, params)
+        except DatabaseError:
+            return []
 
     @staticmethod
     def coletas_por_ponto(data_inicio=None, data_fim=None):
@@ -88,34 +91,43 @@ class Relatorio(BaseModel):
     @staticmethod
     def resumo_estoque():
         def _fetch():
-            return BaseModel._fetch_one("""
-                SELECT
-                    COUNT(*) AS total_lotes,
-                    COALESCE(SUM(quantidade_restante), 0) AS estoque_total,
-                    SUM(CASE WHEN status = 'Disponivel' THEN 1 ELSE 0 END) AS lotes_disponiveis,
-                    SUM(CASE WHEN status = 'Parcialmente Consumido' THEN 1 ELSE 0 END) AS lotes_parciais,
-                    SUM(CASE WHEN status = 'Esgotado' THEN 1 ELSE 0 END) AS lotes_esgotados
-                FROM lote
-            """) or {}
+            try:
+                return BaseModel._fetch_one("""
+                    SELECT
+                        COUNT(*) AS total_lotes,
+                        COALESCE(SUM(quantidade_restante), 0) AS estoque_total,
+                        SUM(CASE WHEN status = 'Disponivel' THEN 1 ELSE 0 END) AS lotes_disponiveis,
+                        SUM(CASE WHEN status = 'Parcialmente Consumido' THEN 1 ELSE 0 END) AS lotes_parciais,
+                        SUM(CASE WHEN status = 'Esgotado' THEN 1 ELSE 0 END) AS lotes_esgotados
+                    FROM lote
+                """) or {}
+            except DatabaseError:
+                return {}
         return get_cached("relatorio_estoque", 30, _fetch)
 
     @staticmethod
     def resumo_pedidos():
         def _fetch():
-            return BaseModel._fetch_one("""
-                SELECT
-                    COUNT(*) AS total_pedidos,
-                    SUM(CASE WHEN status = 'Aberto' THEN 1 ELSE 0 END) AS pedidos_abertos,
-                    SUM(CASE WHEN status = 'Atendido' THEN 1 ELSE 0 END) AS pedidos_atendidos,
-                    SUM(CASE WHEN status = 'Cancelado' THEN 1 ELSE 0 END) AS pedidos_cancelados
-                FROM pedido
-            """) or {}
+            try:
+                return BaseModel._fetch_one("""
+                    SELECT
+                        COUNT(*) AS total_pedidos,
+                        SUM(CASE WHEN status = 'Aberto' THEN 1 ELSE 0 END) AS pedidos_abertos,
+                        SUM(CASE WHEN status = 'Atendido' THEN 1 ELSE 0 END) AS pedidos_atendidos,
+                        SUM(CASE WHEN status = 'Cancelado' THEN 1 ELSE 0 END) AS pedidos_cancelados
+                    FROM pedido
+                """) or {}
+            except DatabaseError:
+                return {}
         return get_cached("relatorio_pedidos", 30, _fetch)
 
     @staticmethod
     def listar_pontos():
         def _fetch():
-            return BaseModel._fetch_all(
-                "SELECT id_ponto, estabelecimento FROM ponto_de_coleta ORDER BY estabelecimento"
-            )
+            try:
+                return BaseModel._fetch_all(
+                    "SELECT id_ponto, estabelecimento FROM ponto_de_coleta ORDER BY estabelecimento"
+                )
+            except DatabaseError:
+                return []
         return get_cached("relatorio_listar_pontos", 60, _fetch)

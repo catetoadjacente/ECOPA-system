@@ -1,4 +1,7 @@
+import logging
 import locale
+
+logger = logging.getLogger(__name__)
 
 try:
     locale.setlocale(locale.LC_TIME, "pt_BR.UTF-8")
@@ -226,7 +229,7 @@ class MainView(ctk.CTkFrame):
 
                 self.after(0, lambda: _montar(resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data))
             except Exception as e:
-                print(f"Erro ao carregar dashboard: {e}")
+                logger.error("Erro ao carregar dashboard: %s", e)
                 self.after(0, lambda: _erro())
 
         def _montar(resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data):
@@ -410,7 +413,7 @@ class MainView(ctk.CTkFrame):
             try:
                 funcao_carregar()
             except Exception as e:
-                print(f"Erro ao carregar {nome_menu}: {e}")
+                logger.error("Erro ao carregar %s: %s", nome_menu, e)
             finally:
                 self.after(0, lambda: overlay.stop())
 

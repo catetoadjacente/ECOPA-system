@@ -28,8 +28,6 @@ class GerenteController:
             erros.append("Email inválido")
         if not dados.get("senha"):
             erros.append("Senha")
-        if not dados.get("setor"):
-            erros.append("Setor")
         if erros:
             return False, f"Preencha: {', '.join(erros)}"
         if Gerente.buscar_por_cpf(cpf):
@@ -60,8 +58,6 @@ class GerenteController:
         email = dados.get("email", "")
         if not email or "@" not in email:
             erros.append("Email inválido")
-        if not dados.get("setor"):
-            erros.append("Setor")
         if erros:
             return False, f"Preencha: {', '.join(erros)}"
         if Gerente.atualizar(cpf, dados):

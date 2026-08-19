@@ -48,7 +48,6 @@ class CadastroGerente(ctk.CTkFrame):
             ("Celular", "celular", "(00) 00000-0000"),
             ("Email", "email", "email@exemplo.com"),
             ("Senha", "senha", "Senha de acesso"),
-            ("Setor", "setor", "Setor de atuação"),
         ]
         self.entries = {}
 

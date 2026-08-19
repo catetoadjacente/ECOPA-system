@@ -1,3 +1,5 @@
+import logging
+import threading
 import mysql.connector
 from mysql.connector import pooling, Error
 from dotenv import load_dotenv
@@ -5,6 +7,8 @@ import os
 from contextlib import contextmanager
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 DB_CONFIG = {
     'host': os.getenv('DB_HOST'),
@@ -15,22 +19,26 @@ DB_CONFIG = {
 }
 
 _pool = None
+_lock = threading.Lock()
 
 
 def _init_pool():
     global _pool
     if _pool is not None:
         return
-    try:
-        _pool = mysql.connector.pooling.MySQLConnectionPool(
-            pool_name="ecopa_pool",
-            pool_size=10,
-            pool_reset_session=True,
-            **DB_CONFIG
-        )
-    except Error as e:
-        print(f"Erro ao criar pool de conexoes: {e}")
-        _pool = None
+    with _lock:
+        if _pool is not None:
+            return
+        try:
+            _pool = mysql.connector.pooling.MySQLConnectionPool(
+                pool_name="ecopa_pool",
+                pool_size=10,
+                pool_reset_session=True,
+                **DB_CONFIG
+            )
+        except Error as e:
+            logger.critical("Erro ao criar pool de conexoes: %s", e)
+            _pool = None
 
 
 def get_connection():
@@ -38,9 +46,12 @@ def get_connection():
     if _pool is None:
         return None
     try:
-        return _pool.get_connection()
+        conn = _pool.get_connection()
+        if not conn.is_connected():
+            conn.reconnect()
+        return conn
     except Error as e:
-        print(f"Erro ao obter conexao do pool: {e}")
+        logger.critical("Erro ao obter conexao do pool: %s", e)
         return None
 
 
