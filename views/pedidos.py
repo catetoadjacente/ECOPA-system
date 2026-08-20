@@ -7,7 +7,7 @@ from utils.theme import (
     ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_ORANGE, ECOPA_LEAF,
     ECOPA_BLUE, ECOPA_RED, font, font_title, font_small, font_small_bold,
 )
-from utils.widgets import TabelaPaginada
+from utils.widgets import TabelaPaginada, toast
 
 
 class PedidosView(ctk.CTkFrame):
@@ -156,7 +156,7 @@ class PedidosView(ctk.CTkFrame):
         if messagebox.askyesno("Confirmar", "Deseja excluir este pedido?"):
             ok, msg = PedidoController.deletar(id_pedido)
             if ok:
-                messagebox.showinfo("Sucesso", msg)
+                toast(msg, tipo="success")
             else:
-                messagebox.showerror("Erro", msg)
+                toast(msg, tipo="error")
             self.montar_tela()

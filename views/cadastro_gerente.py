@@ -1,7 +1,7 @@
 import customtkinter as ctk
-from tkinter import messagebox
 from controllers.gerente_controller import GerenteController
 from utils.theme import font, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
+from utils.widgets import toast
 
 
 class CadastroGerente(ctk.CTkFrame):
@@ -94,7 +94,7 @@ class CadastroGerente(ctk.CTkFrame):
         dados = {campo: entry.get().strip() for campo, entry in self.entries.items()}
         ok, msg = GerenteController.cadastrar(dados)
         if ok:
-            messagebox.showinfo("Sucesso", msg)
+            toast(msg, tipo="success")
             self.on_voltar()
         else:
-            messagebox.showerror("Erro", msg)
+            toast(msg, tipo="error")

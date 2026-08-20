@@ -18,6 +18,7 @@ from utils.theme import (
     ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_ORANGE, ECOPA_LEAF,
     ECOPA_BLUE, ECOPA_RED, font, font_title, font_small, font_small_bold,
 )
+from utils.widgets import toast
 
 
 class RelatoriosView(ctk.CTkFrame):
@@ -182,11 +183,11 @@ class RelatoriosView(ctk.CTkFrame):
 
         data_inicio = self._parse_data(data_inicio_texto)
         if data_inicio_texto and data_inicio is None:
-            messagebox.showwarning("Aviso", "Data inicial invalida. Use o formato DD/MM/AAAA.")
+            toast("Data inicial invalida. Use o formato DD/MM/AAAA.", tipo="warning")
             return
         data_fim = self._parse_data(data_fim_texto)
         if data_fim_texto and data_fim is None:
-            messagebox.showwarning("Aviso", "Data final invalida. Use o formato DD/MM/AAAA.")
+            toast("Data final invalida. Use o formato DD/MM/AAAA.", tipo="warning")
             return
         # Incluir todo o dia final (ate 23:59:59)
         if data_fim:
@@ -703,9 +704,9 @@ class RelatoriosView(ctk.CTkFrame):
             except Exception:
                 return
             if status == "ok":
-                messagebox.showinfo("Sucesso", f"Relatório salvo em:\n{payload}")
+                toast(f"Relatorio salvo em:\n{payload}", tipo="success")
             else:
-                messagebox.showerror("Erro", f"Falha ao gerar PDF:\n{payload}")
+                toast(f"Falha ao gerar PDF:\n{payload}", tipo="error")
 
         self.after(100, _poll)
         threading.Thread(target=_tarefa, daemon=True).start()

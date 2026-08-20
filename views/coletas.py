@@ -5,7 +5,7 @@ from views.loading import LoadingOverlay
 import threading
 import queue
 from utils.theme import font, font_small, font_small_bold, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_ORANGE, ECOPA_LEAF
-from utils.widgets import TabelaPaginada
+from utils.widgets import TabelaPaginada, toast
 
 
 class ColetasView(ctk.CTkFrame):
@@ -151,7 +151,7 @@ class ColetasView(ctk.CTkFrame):
 
             overlay.stop()
             if status == "erro":
-                messagebox.showerror("Erro", f"Falha ao carregar coletas:\n{payload}")
+                toast(f"Falha ao carregar coletas:\n{payload}", tipo="error")
                 return
 
             dados = payload
@@ -191,4 +191,4 @@ class ColetasView(ctk.CTkFrame):
             if ColetaController.atualizar_status(id_coleta, "Realizada"):
                 self.montar_tela()
             else:
-                messagebox.showerror("Erro", "Falha ao atualizar status!")
+                toast("Falha ao atualizar status!", tipo="error")

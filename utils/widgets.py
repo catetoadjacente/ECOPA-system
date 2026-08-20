@@ -1,7 +1,69 @@
 import customtkinter as ctk
-from utils.theme import ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, font, font_small, font_small_bold
+from utils.theme import ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_RED, ECOPA_ORANGE, ECOPA_BLUE, font, font_small, font_small_bold
 
 ITENS_POR_PAGINA = 15
+
+
+# ── Toast ──────────────────────────────────────────────────────
+
+_TOAST_COLORS = {
+    "success": (ECOPA_GREEN, ECOPA_WHITE),
+    "error":   (ECOPA_RED, ECOPA_WHITE),
+    "warning": (ECOPA_ORANGE, ECOPA_WHITE),
+    "info":    (ECOPA_BLUE, ECOPA_WHITE),
+}
+
+
+class Toast(ctk.CTkToplevel):
+    """Notificação temporária que aparece no canto inferior direito."""
+
+    def __init__(self, master, mensagem, tipo="success", duracao=2500):
+        super().__init__(master)
+        self.overrideredirect(True)
+        self.attributes("-topmost", True)
+
+        bg_color, text_color = _TOAST_COLORS.get(tipo, _TOAST_COLORS["info"])
+
+        self.configure(fg_color=bg_color)
+
+        label = ctk.CTkLabel(
+            self, text=mensagem, font=font(13),
+            text_color=text_color, wraplength=340, justify="left",
+            padx=16, pady=12,
+        )
+        label.pack()
+
+        self.update_idletasks()
+
+        master_x = master.winfo_rootx()
+        master_y = master.winfo_rooty()
+        master_w = master.winfo_width()
+        master_h = master.winfo_height()
+        toast_w = self.winfo_reqwidth()
+        toast_h = self.winfo_reqheight()
+        margin = 16
+
+        x = master_x + master_w - toast_w - margin
+        y = master_y + master_h - toast_h - margin
+        self.geometry(f"+{x}+{y}")
+
+        self.after(duracao, self.destroy)
+
+
+def toast(mensagem, tipo="success", duracao=2500):
+    """Atalho rápido — passa a janela raiz automaticamente."""
+    import inspect
+    frame = inspect.currentframe().f_back
+    self = frame.f_locals.get("self")
+    root = None
+    if self is not None:
+        root = getattr(self, "winfo_toplevel", lambda: None)()
+    if root is None:
+        root = frame.f_locals.get("master") or frame.f_locals.get("parent")
+    if root is None:
+        root = ctk.CTk()
+        root.withdraw()
+    Toast(root, mensagem, tipo=tipo, duracao=duracao)
 
 
 class TabelaPaginada(ctk.CTkFrame):

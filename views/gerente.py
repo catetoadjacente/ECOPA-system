@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 from controllers.gerente_controller import GerenteController
 from utils.theme import font, font_small, font_small_bold, ECOPA_GREEN, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_ORANGE
-from utils.widgets import TabelaPaginada
+from utils.widgets import TabelaPaginada, toast
 
 
 class ListaGerentes(ctk.CTkFrame):
@@ -101,7 +101,7 @@ class ListaGerentes(ctk.CTkFrame):
         if messagebox.askyesno("Confirmar", "Deseja excluir este gerente?"):
             ok, msg = GerenteController.deletar(cpf)
             if ok:
-                messagebox.showinfo("Sucesso", msg)
+                toast(msg, tipo="success")
             else:
-                messagebox.showerror("Erro", msg)
+                toast(msg, tipo="error")
             self._montar()

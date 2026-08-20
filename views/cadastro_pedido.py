@@ -4,6 +4,7 @@ from controllers.pedido_controller import PedidoController
 from controllers.destinacao_controller import DestinacaoController
 from models.lote import Lote
 from utils.theme import font, font_small, font_small_bold, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
+from utils.widgets import toast
 
 
 class CadastroPedido(ctk.CTkFrame):
@@ -109,12 +110,12 @@ class CadastroPedido(ctk.CTkFrame):
                 break
 
         if idx < 0 or idx >= len(self.destinacoes_lista):
-            messagebox.showerror("Erro", "Selecione uma destinação!")
+            toast("Selecione uma destinacao!", tipo="error")
             return
 
         quantidade = self.entry_quantidade.get().strip()
         if not quantidade:
-            messagebox.showerror("Erro", "Preencha a quantidade!")
+            toast("Preencha a quantidade!", tipo="error")
             return
 
         try:
@@ -122,7 +123,7 @@ class CadastroPedido(ctk.CTkFrame):
             if quantidade <= 0:
                 raise ValueError
         except ValueError:
-            messagebox.showerror("Erro", "Quantidade invalida!")
+            toast("Quantidade invalida!", tipo="error")
             return
 
         observacao = self.text_obs.get("1.0", "end-1c").strip()
@@ -135,8 +136,8 @@ class CadastroPedido(ctk.CTkFrame):
 
         ok, msg, pedido_id = PedidoController.cadastrar(dados)
         if ok:
-            messagebox.showinfo("Sucesso", msg)
+            toast(msg, tipo="success")
             from views.distribuicao_estoque import DistribuicaoEstoque
             DistribuicaoEstoque(self, self.content, pedido_id, on_voltar=self.on_voltar)
         else:
-            messagebox.showerror("Erro", msg)
+            toast(msg, tipo="error")

@@ -3,7 +3,7 @@ from tkinter import messagebox
 from controllers.pedido_controller import PedidoController
 from controllers.lote_controller import LoteController
 from utils.theme import font, font_small, font_small_bold, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_ORANGE, ECOPA_LEAF, ECOPA_BLUE
-from views.loading import LoadingOverlay, carregar_em_bg
+from utils.widgets import toast
 
 
 class DistribuicaoEstoque(ctk.CTkFrame):
@@ -14,7 +14,7 @@ class DistribuicaoEstoque(ctk.CTkFrame):
         self.on_voltar = on_voltar
         self.pedido = PedidoController.obter_por_id(id_pedido)
         if not self.pedido:
-            messagebox.showerror("Erro", "Pedido nao encontrado!")
+            toast("Pedido nao encontrado!", tipo="error")
             self.on_voltar()
             return
         self.estoque_total = 0
@@ -261,11 +261,11 @@ class DistribuicaoEstoque(ctk.CTkFrame):
         falta = solicitada - atendida
 
         if falta <= 0:
-            messagebox.showinfo("Aviso", "Este pedido ja foi totalmente atendido!")
+            toast("Este pedido ja foi totalmente atendido!", tipo="info")
             return
 
         if not self.lotes_alocados:
-            messagebox.showwarning("Aviso", "Nenhum lote disponivel no estoque!")
+            toast("Nenhum lote disponivel no estoque!", tipo="warning")
             return
 
         total_alocado = sum(l["alocado"] for l in self.lotes_alocados)
@@ -290,20 +290,11 @@ class DistribuicaoEstoque(ctk.CTkFrame):
 
         self._btn_confirmar.configure(state="disabled", text="Distribuindo...")
 
+<<<<<<< Updated upstream
         def _distribuir():
             return PedidoController.distribuir_automatico(self.id_pedido, self.lotes_alocados)
 
-        def _resultado(dado):
-            ok, msg = dado
-            self._btn_confirmar.configure(state="normal", text="Confirmar Distribuicao")
-            if ok:
-                messagebox.showinfo("Sucesso", msg)
-                self.on_voltar()
-            else:
-                messagebox.showerror("Erro", msg)
-
-        def _erro_distribuir(msg):
-            self._btn_confirmar.configure(state="normal", text="Confirmar Distribuicao")
-            messagebox.showerror("Erro", f"Falha ao distribuir: {msg}")
-
-        carregar_em_bg(self, _distribuir, _resultado, callback_erro=_erro_distribuir)
+            self.on_voltar()
+        else:
+            toast(msg, tipo="error")
+>>>>>>> Stashed changes

@@ -1,10 +1,10 @@
 import customtkinter as ctk
-from tkinter import messagebox
 from datetime import datetime
 from controllers.coleta_controller import ColetaController
 from controllers.ponto_controller import PontoController
 from controllers.gerente_controller import GerenteController
 from utils.theme import font, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
+from utils.widgets import toast
 
 
 class CadastroColeta(ctk.CTkFrame):
@@ -162,14 +162,17 @@ class CadastroColeta(ctk.CTkFrame):
         observacao = self.text_observacao.get("1.0", "end-1c").strip()
 
         if not all([nome_gerente, nome_ponto, data_coleta, quantidade]):
-            messagebox.showerror("Erro", "Preencha todos os campos obrigatórios!")
+            toast("Preencha todos os campos obrigatorios!", tipo="error")
             return
 
         # Validar se selecionou valores reais (placeholder de combo vazio)
         nomes_pontos = [p["estabelecimento"] for p in self.pontos_lista]
         nomes_gerentes = [g["nome"] for g in self.gerentes_lista]
         if nome_ponto not in nomes_pontos:
-            messagebox.showerror("Erro", "Selecione um ponto de coleta válido!")
+            toast("Selecione um ponto de coleta valido!", tipo="error")
+            return
+        if nome_gerente not in nomes_gerentes:
+            messagebox.showerror("Erro", "Selecione um gerente válido!")
             return
         if nome_gerente not in nomes_gerentes:
             messagebox.showerror("Erro", "Selecione um gerente válido!")
@@ -178,17 +181,17 @@ class CadastroColeta(ctk.CTkFrame):
         try:
             data_coleta = datetime.strptime(data_coleta, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M")
         except ValueError:
-            messagebox.showerror("Erro", "Data deve estar no formato AAAA-MM-DD HH:MM!")
+            toast("Data deve estar no formato AAAA-MM-DD HH:MM!", tipo="error")
             return
 
         try:
             quantidade = float(quantidade)
         except ValueError:
-            messagebox.showerror("Erro", "Quantidade deve ser um número!")
+            toast("Quantidade deve ser um numero!", tipo="error")
             return
 
         if quantidade <= 0:
-            messagebox.showerror("Erro", "Quantidade deve ser maior que zero!")
+            toast("Quantidade deve ser maior que zero!", tipo="error")
             return
 
         gerente_cpf = next(
@@ -206,7 +209,7 @@ class CadastroColeta(ctk.CTkFrame):
 
         sucesso, mensagem = ColetaController.cadastrar(dados)
         if sucesso:
-            messagebox.showinfo("Sucesso", mensagem)
+            toast(mensagem, tipo="success")
             self.on_voltar()
         else:
-            messagebox.showerror("Erro", mensagem)
+            toast(mensagem, tipo="error")

@@ -1,7 +1,7 @@
 import customtkinter as ctk
-from tkinter import messagebox
 from controllers.gerente_controller import GerenteController
 from utils.theme import font, font_small, font_small_bold, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
+from utils.widgets import toast
 
 
 class EdicaoGerente(ctk.CTkFrame):
@@ -12,7 +12,7 @@ class EdicaoGerente(ctk.CTkFrame):
         self.on_voltar = on_voltar
         self.gerente = GerenteController.obter_por_cpf(cpf)
         if not self.gerente:
-            messagebox.showerror("Erro", "Gerente não encontrado")
+            toast("Gerente nao encontrado", tipo="error")
             self.on_voltar()
             return
         self._montar()
@@ -116,7 +116,7 @@ class EdicaoGerente(ctk.CTkFrame):
         dados = {campo: entry.get().strip() for campo, entry in self.entries.items()}
         ok, msg = GerenteController.atualizar(self.cpf, dados)
         if ok:
-            messagebox.showinfo("Sucesso", msg)
+            toast(msg, tipo="success")
             self.on_voltar()
         else:
-            messagebox.showerror("Erro", msg)
+            toast(msg, tipo="error")

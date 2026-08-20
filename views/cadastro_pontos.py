@@ -1,8 +1,8 @@
 import customtkinter as ctk
-from tkinter import messagebox
 from controllers.ponto_controller import PontoController
 from utils.horas import DIAS_SEMANA, validar_hora
 from utils.theme import font, font_small, font_small_bold, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
+from utils.widgets import toast
 
 
 class CadastroPonto(ctk.CTkFrame):
@@ -171,14 +171,13 @@ class CadastroPonto(ctk.CTkFrame):
                     "ativo": 1,
                 })
         if erros_hora:
-            messagebox.showerror(
-                "Erro",
-                "Horários inválidos (use HH:MM, ex: 08:00, 17:30):\n\n" +
-                "\n".join(erros_hora))
+            toast(
+                "Horarios invalidos (use HH:MM, ex: 08:00, 17:30):\n\n" +
+                "\n".join(erros_hora), tipo="error")
             return
         ok, msg = PontoController.cadastrar(dados, horarios=horarios if horarios else None)
         if ok:
-            messagebox.showinfo("Sucesso", msg)
+            toast(msg, tipo="success")
             self.on_voltar()
         else:
-            messagebox.showerror("Erro", msg)
+            toast(msg, tipo="error")

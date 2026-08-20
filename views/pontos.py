@@ -8,7 +8,7 @@ from utils.theme import (
     ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER, ECOPA_ORANGE, ECOPA_LEAF,
     ECOPA_BLUE, font, font_title, font_small, font_small_bold,
 )
-from utils.widgets import TabelaPaginada
+from utils.widgets import TabelaPaginada, toast
 
 
 class PontosView(ctk.CTkFrame):
@@ -140,7 +140,7 @@ class PontosView(ctk.CTkFrame):
             if ok:
                 self.montar_tela()
             else:
-                messagebox.showerror("Erro", msg)
+                toast(msg, tipo="error")
 
     def reativar_ponto(self, idponto):
         if messagebox.askyesno("Confirmar", "Deseja reativar este ponto de coleta?"):
@@ -148,7 +148,7 @@ class PontosView(ctk.CTkFrame):
             if ok:
                 self.montar_tela()
             else:
-                messagebox.showerror("Erro", msg)
+                toast(msg, tipo="error")
 
     def _ver_horarios(self, idponto):
         horarios = PontoController.buscar_horarios(idponto)
@@ -156,7 +156,7 @@ class PontosView(ctk.CTkFrame):
         nome = ponto.get("estabelecimento", "") if ponto else ""
 
         if not horarios:
-            messagebox.showinfo("Horários", f"{nome}\n\nNenhum horário cadastrado.")
+            toast(f"{nome}\n\nNenhum horario cadastrado.", tipo="info")
             return
 
         dialog = ctk.CTkToplevel(self)

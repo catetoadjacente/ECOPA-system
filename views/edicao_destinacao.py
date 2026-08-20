@@ -1,7 +1,7 @@
 import customtkinter as ctk
-from tkinter import messagebox
 from controllers.destinacao_controller import DestinacaoController
 from utils.theme import font, ECOPA_GREEN, ECOPA_GREEN_LIGHT, ECOPA_GREEN_DARK, ECOPA_BG, ECOPA_WHITE, ECOPA_TEXT, ECOPA_TEXT_LIGHT, ECOPA_BORDER
+from utils.widgets import toast
 
 TIPOS = ["Reciclagem", "Biomassa", "Compostagem", "Aterro", "Outro"]
 
@@ -14,7 +14,7 @@ class EdicaoDestinacao(ctk.CTkFrame):
         self.on_voltar = on_voltar
         self.dados = DestinacaoController.obter_por_id(id_dest)
         if not self.dados:
-            messagebox.showerror("Erro", "Destinação não encontrada!")
+            toast("Destinacao nao encontrada!", tipo="error")
             self.on_voltar()
             return
         self.montar_formulario()
@@ -137,12 +137,12 @@ class EdicaoDestinacao(ctk.CTkFrame):
         }
 
         if not dados["nome"] or not dados["endereco"]:
-            messagebox.showerror("Erro", "Preencha nome e endereço!")
+            toast("Preencha nome e endereco!", tipo="error")
             return
 
         ok, msg = DestinacaoController.atualizar(self.id_dest, dados)
         if ok:
-            messagebox.showinfo("Sucesso", msg)
+            toast(msg, tipo="success")
             self.on_voltar()
         else:
-            messagebox.showerror("Erro", msg)
+            toast(msg, tipo="error")
