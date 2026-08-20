@@ -35,6 +35,7 @@ class MainView(ctk.CTkFrame):
     def __init__(self, master, nome_usuario=""):
         super().__init__(master)
         self.nome_usuario = nome_usuario
+        self._navegacao_id = 0
         self.configure(fg_color=ECOPA_GREEN_BG)
 
         # === SIDEBAR ===
@@ -140,7 +141,6 @@ class MainView(ctk.CTkFrame):
         self.content.pack(side="right", fill="both", expand=True)
 
         self.abrir_dashboard()
-        self._destacar_menu("dashboard")
 
         # Detectar mudanca de estado da janela (maximizada/restaurada)
         self.after(100, self._configurar_listener_estado_janela)
@@ -183,6 +183,7 @@ class MainView(ctk.CTkFrame):
             )
 
     def _destacar_menu(self, ativo):
+        self._navegacao_id += 1
         for nome, (frame, btn) in self._botoes_menu.items():
             if nome == ativo:
                 frame.configure(fg_color=ECOPA_SIDEBAR_ACTIVE)
@@ -208,6 +209,7 @@ class MainView(ctk.CTkFrame):
         for widget in self.content.winfo_children():
             widget.destroy()
         self._destacar_menu("dashboard")
+        navegacao_id = self._navegacao_id
 
         overlay = LoadingOverlay(self.content, text="Carregando dashboard...")
         overlay.start()
@@ -233,10 +235,14 @@ class MainView(ctk.CTkFrame):
                 self.after(0, lambda: _erro())
 
         def _montar(resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data):
+            if navegacao_id != self._navegacao_id:
+                return
             overlay.stop()
             self._montar_dashboard(resumo_c, resumo_l, pedidos, coletas, pontos, grafico_data)
 
         def _erro():
+            if navegacao_id != self._navegacao_id:
+                return
             overlay.stop()
             self._mostrar_erro_dashboard()
 

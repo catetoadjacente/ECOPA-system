@@ -1,6 +1,6 @@
 import logging
 import bcrypt
-from database.cache import get_cached, invalidate, invalidate_prefix
+from database.cache import get_cached, invalidate_prefix
 from database.conecta_database import db_connection
 from models.base import BaseModel, DatabaseError
 
@@ -47,23 +47,25 @@ class Gerente(BaseModel):
     def criar(dados):
         try:
             senha_hash = bcrypt.hashpw(dados["senha"].encode(), bcrypt.gensalt()).decode()
-            return BaseModel._execute(
+            ok = BaseModel._execute(
                 "INSERT INTO gerente (cpf, nome, celular, email, senha) "
                 "VALUES (%s, %s, %s, %s, %s)",
                 (dados["cpf"], dados["nome"], dados["celular"],
                  dados["email"], senha_hash)
             )
+            if ok:
+                invalidate_prefix("gerentes")
+            return ok
         except DatabaseError:
             return False
 
     @staticmethod
     def listar():
-        try:
+        def _fetch():
             return BaseModel._fetch_all(
                 "SELECT cpf, nome, celular, email FROM gerente"
             )
-        except DatabaseError:
-            return []
+        return get_cached("gerentes_listar", 120, _fetch)
 
     @staticmethod
     def buscar_por_email(email):
@@ -88,10 +90,13 @@ class Gerente(BaseModel):
     @staticmethod
     def atualizar(cpf, dados):
         try:
-            return BaseModel._execute(
+            ok = BaseModel._execute(
                 "UPDATE gerente SET celular = %s, email = %s WHERE cpf = %s",
                 (dados["celular"], dados["email"], cpf)
             )
+            if ok:
+                invalidate_prefix("gerentes")
+            return ok
         except DatabaseError:
             return False
 
@@ -105,6 +110,7 @@ class Gerente(BaseModel):
                 cursor.execute("UPDATE coleta SET gerente_cpf = NULL WHERE gerente_cpf = %s", (cpf,))
                 cursor.execute("DELETE FROM gerente WHERE cpf = %s", (cpf,))
                 conn.commit()
+                invalidate_prefix("gerentes")
                 return True
             except Exception as e:
                 logger.error("Erro ao deletar gerente: %s", e)

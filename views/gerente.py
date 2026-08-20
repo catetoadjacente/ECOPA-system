@@ -67,7 +67,7 @@ class ListaGerentes(ctk.CTkFrame):
                              text_color=ECOPA_TEXT, anchor="w").place(relx=rlx[i], rely=0.5, anchor="w")
 
             acoes_frame = ctk.CTkFrame(frame, fg_color="transparent")
-            acoes_frame.place(relx=rlx[5], rely=0.5, anchor="w")
+            acoes_frame.place(relx=rlx[4], rely=0.5, anchor="w")
 
             cpf = item["cpf"]
             ctk.CTkButton(acoes_frame, text="Editar", width=70, height=28,

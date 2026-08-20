@@ -10,12 +10,17 @@ class Pedido(BaseModel):
     @staticmethod
     def criar(dados):
         try:
-            return BaseModel._execute_returning_id(
+            pedido_id = BaseModel._execute_returning_id(
                 "INSERT INTO pedido (id_destinacao, quantidade_solicitada, observacao) "
                 "VALUES (%s, %s, %s)",
                 (dados["id_destinacao"], dados["quantidade_solicitada"],
                  dados.get("observacao", ""))
             )
+            if pedido_id:
+                invalidate_prefix("pedidos")
+                invalidate_prefix("dashboard")
+                invalidate_prefix("relatorio")
+            return pedido_id
         except DatabaseError:
             return None
 
